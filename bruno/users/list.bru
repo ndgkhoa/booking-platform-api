@@ -1,0 +1,29 @@
+meta {
+  name: List users (admin)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{apiUrl}}/users?page=1&limit=20
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 20
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.meta.total: isDefined
+}
+
+docs {
+  Paginated user list. Requires the `admin` role — log in as admin@example.com
+  first. A non-admin token returns 403 FORBIDDEN.
+}

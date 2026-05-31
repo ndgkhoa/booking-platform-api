@@ -1,0 +1,23 @@
+meta {
+  name: Get user by id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{apiUrl}}/users/{{userId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Fetch a user by id. `userId` is captured by the Register request; otherwise set
+  it manually in the environment. Unknown id returns 404 NOT_FOUND.
+}

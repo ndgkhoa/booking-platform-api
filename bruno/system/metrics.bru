@@ -1,0 +1,19 @@
+meta {
+  name: Metrics
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/metrics
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Prometheus scrape endpoint (raw text, not enveloped). Exposes default Node
+  process metrics plus the http_request_duration_seconds histogram.
+}

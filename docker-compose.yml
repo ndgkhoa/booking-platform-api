@@ -1,0 +1,56 @@
+services:
+  # App is opt-in: `docker compose --profile full up -d` runs the full stack.
+  # Plain `docker compose up -d` starts only postgres + redis (dev workflow).
+  app:
+    build: .
+    profiles: ["full"]
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-app}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    # REDIS_PASSWORD is optional; when empty Redis starts without auth.
+    command:
+      [
+        "sh",
+        "-c",
+        'redis-server ${REDIS_PASSWORD:+--requirepass "$REDIS_PASSWORD"}',
+      ]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+.git
+.github
+.husky
+.env
+.env.*
+!.env.example
+*.log
+plans
+bruno
+docs
+test
+**/*.spec.ts
+README.md

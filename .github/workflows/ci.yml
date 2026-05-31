@@ -8,13 +8,15 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    # Dummy values so envalid passes at import. Integration tests use a
-    # testcontainers Postgres (Docker is preinstalled on the runner), not these.
+    # From GitHub Secrets (Settings → Secrets and variables → Actions). Values are
+    # only to satisfy envalid + sign tokens in tests; integration tests use a
+    # testcontainers Postgres, not these credentials.
     env:
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: app
-      JWT_SECRET: ci-jwt-secret-not-for-production-0123456789
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 

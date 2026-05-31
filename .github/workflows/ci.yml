@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    # Dummy values so envalid passes at import. Integration tests use a
+    # testcontainers Postgres (Docker is preinstalled on the runner), not these.
+    env:
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: app
+      JWT_SECRET: ci-jwt-secret-not-for-production-0123456789
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Integration tests (testcontainers)
+        run: pnpm test:int

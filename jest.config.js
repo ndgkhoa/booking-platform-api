@@ -1,17 +1,23 @@
 const { pathsToModuleNameMapper } = require('ts-jest');
 const { compilerOptions } = require('./tsconfig.json');
 
-// Unit-test config: fast, no external services. Specs live next to the code as
-// *.spec.ts under src/. `isolatedModules` transpiles per-file (still emits the
-// decorator metadata the stack needs) and sidesteps TS-version diagnostics.
-module.exports = {
+const base = {
   testEnvironment: 'node',
   setupFiles: ['reflect-metadata'],
-  roots: ['<rootDir>/src'],
-  testMatch: ['**/*.spec.ts'],
-  transform: {
-    '^.+\\.ts$': 'ts-jest',
-  },
+  transform: { '^.+\\.ts$': 'ts-jest' },
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
   clearMocks: true,
+};
+
+module.exports = {
+  projects: [
+    { ...base, displayName: 'unit', roots: ['<rootDir>/test/unit'], testMatch: ['**/*.spec.ts'] },
+    {
+      ...base,
+      displayName: 'integration',
+      roots: ['<rootDir>/test/integration'],
+      testMatch: ['**/*.e2e.spec.ts'],
+      testTimeout: 120000,
+    },
+  ],
 };

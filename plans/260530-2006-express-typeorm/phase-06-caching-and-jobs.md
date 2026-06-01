@@ -39,7 +39,7 @@ export const emailWorker = new Worker('email', async (job) => {
 }, { connection: redis });
 emailWorker.on('failed', (job, err) => logger.error(`Job ${job?.id} failed: ${err.message}`));
 ```
-> Decide run model: same process (start worker in index.ts) OR separate `src/worker.ts` entry + `pnpm worker` script. Boilerplate: separate entry, documented, default off.
+> Decide run model: same process (start worker in index.ts) OR separate `src/worker.ts` entry + `pnpm worker` script. This project: separate entry, documented, default off.
 
 ## Files
 config/redis.ts, common/utils/cache.ts, jobs/queues/email.queue.ts, jobs/workers/email.worker.ts, (optional) src/worker.ts + script.

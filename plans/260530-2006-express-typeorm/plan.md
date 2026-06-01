@@ -1,8 +1,8 @@
-# Express + TypeStack Boilerplate
+# Express + TypeORM
 
 **Created:** 2026-05-30 | **Branch:** develop | **Pkg manager:** pnpm | **DB:** PostgreSQL
 
-Production-ready Express boilerplate built on the TypeStack ecosystem (routing-controllers + typedi + typeorm), with structured responses, custom exceptions, strict layering (controller → service → repository), JWT auth, OpenAPI docs, BullMQ jobs, Prometheus metrics, graceful shutdown, and full test setup.
+Production-ready Express API built on the TypeStack ecosystem (routing-controllers + typedi + typeorm), with structured responses, custom exceptions, strict layering (controller → service → repository), JWT auth, OpenAPI docs, BullMQ jobs, Prometheus metrics, graceful shutdown, and full test setup.
 
 ## Locked Decisions (from interview)
 - **Express 4.22.2** — routing-controllers@0.11 peer-depends Express 4; Express 5 routing breaks it. NON-NEGOTIABLE.
@@ -41,7 +41,7 @@ src/
   server.ts      (createExpressServer + options)
   index.ts       (bootstrap + terminus graceful shutdown)
 test/            unit/ integration/ setup.ts
-bruno/           boilerplate.bru collection
+bruno/           API collection
 ```
 
 ## Top Risks

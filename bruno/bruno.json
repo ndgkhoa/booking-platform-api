@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "express-typestack-boilerplate",
+  "name": "express-typeorm",
   "type": "collection",
   "ignore": ["node_modules", ".git"]
 }

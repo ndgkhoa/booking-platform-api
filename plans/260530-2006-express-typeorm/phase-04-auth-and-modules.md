@@ -110,4 +110,4 @@ modules/auth/{dto/*,token.service,auth.service,auth.controller,jwt.strategy}.ts,
 - bcrypt cost 12. JWT short-lived (15m default). Generic "Invalid credentials" (no user enumeration). Role-based `@Authorized(['admin'])`.
 
 ## Unresolved
-- Refresh tokens out of scope (YAGNI for boilerplate) — note as future extension.
+- Refresh tokens out of scope (YAGNI for this project) — note as future extension.

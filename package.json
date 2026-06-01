@@ -1,7 +1,7 @@
 {
-  "name": "express-typestack-boilerplate",
+  "name": "express-typeorm",
   "version": "1.0.0",
-  "description": "Production-ready Express boilerplate on the TypeStack ecosystem (routing-controllers + typedi + typeorm)",
+  "description": "Production-ready Express API on the TypeStack ecosystem (routing-controllers + typedi + typeorm)",
   "license": "MIT",
   "main": "dist/index.js",
   "scripts": {

@@ -18,7 +18,7 @@ export function buildOpenApiSpec(routingOptions: any) {
   const schemas = validationMetadatasToSchemas({ classTransformerMetadataStorage: defaultMetadataStorage, refPointerPrefix: '#/components/schemas/' });
   return routingControllersToSpec(getMetadataArgsStorage(), routingOptions, {
     components: { schemas, securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } } },
-    info: { title: 'Express TypeStack Boilerplate', version: '1.0.0' },
+    info: { title: 'Express TypeORM', version: '1.0.0' },
     security: [{ bearerAuth: [] }],
   });
 }

@@ -3,12 +3,8 @@ import { AuthService } from '@modules/auth/auth.service';
 import { TokenService } from '@modules/auth/token.service';
 import type { User } from '@modules/user/user.entity';
 import type { UserRepository } from '@modules/user/user.repository';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
-/**
- * Unit tests for AuthService. The repository (the only DB boundary) is mocked,
- * proving the layering keeps business logic testable without a database.
- */
 describe('AuthService', () => {
   let repo: jest.Mocked<Pick<UserRepository, 'findByEmail' | 'create'>>;
   let service: AuthService;
@@ -46,7 +42,7 @@ describe('AuthService', () => {
 
       const created = repo.create.mock.calls[0][0];
       expect(created.passwordHash).toBeDefined();
-      expect(created.passwordHash).not.toBe('password123'); // stored hashed
+      expect(created.passwordHash).not.toBe('password123');
       expect(await bcrypt.compare('password123', created.passwordHash as string)).toBe(true);
       expect(created.roles).toEqual(['user']);
       expect(typeof result.token).toBe('string');

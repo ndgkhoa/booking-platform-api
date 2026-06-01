@@ -1,17 +1,10 @@
-// Must be the CJS build's storage instance — class-validator-jsonschema reads this
-// exact singleton; importing from the package root yields empty schemas.
-// @ts-expect-error no type declarations for the deep cjs path
+// @ts-expect-error
 import { defaultMetadataStorage } from 'class-transformer/cjs/storage';
 import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import type { RoutingControllersOptions } from 'routing-controllers';
 import { getMetadataArgsStorage } from 'routing-controllers';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
 
-/**
- * Builds an OpenAPI 3 spec from routing-controllers decorators + class-validator
- * DTO metadata. Must be called AFTER controllers are loaded (i.e. after
- * useExpressServer) so the metadata storage is populated.
- */
 export function buildOpenApiSpec(options: RoutingControllersOptions): object {
   const schemas = validationMetadatasToSchemas({
     classTransformerMetadataStorage: defaultMetadataStorage,

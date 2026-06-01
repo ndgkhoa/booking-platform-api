@@ -1,10 +1,5 @@
 import { HttpError } from 'routing-controllers';
 
-/**
- * Base application exception. Extends routing-controllers' `HttpError` so the
- * framework automatically sets the HTTP status code. Carries a stable
- * machine-readable `errorCode` and optional `details` for the response envelope.
- */
 export class AppException extends HttpError {
   constructor(
     status: number,

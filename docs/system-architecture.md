@@ -24,8 +24,8 @@ Repository (@Service)          ALL TypeORM access (getRepository / QueryBuilder)
 PostgreSQL  (TypeORM DataSource)
 ```
 
-Response path: controller return → **ResponseInterceptor** wraps in `{ success, data, timestamp }`.
-Error path: any throw → **ErrorHandler** (`@Middleware after`, `defaultErrorHandler:false`) → `{ success:false, error:{ code, message, details }, timestamp }`.
+Response path: controller return → **ResponseInterceptor** wraps in `{ success, data, meta? }`.
+Error path: any throw → **ErrorHandler** (`@Middleware after`, `defaultErrorHandler:false`) → `{ success:false, error:{ code, message, details } }`.
 
 ## Dependency Injection
 
@@ -48,7 +48,7 @@ Error path: any throw → **ErrorHandler** (`@Middleware after`, `defaultErrorHa
 ## Observability & lifecycle
 
 - prom-client `/metrics`; per-request latency histogram via metrics middleware.
-- terminus exposes `/health` (DB + Redis readiness) and `/health/live`, and on SIGINT/SIGTERM closes the DataSource + Redis before exit (graceful shutdown).
+- terminus exposes `/health/ready` (DB + Redis readiness) and `/health/live`, and on SIGINT/SIGTERM closes the DataSource + Redis before exit (graceful shutdown).
 
 ## Build/runtime note
 

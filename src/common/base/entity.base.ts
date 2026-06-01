@@ -5,10 +5,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-/**
- * Base entity shared by all domain entities: UUID primary key, audit timestamps,
- * and a soft-delete column. Concrete entities extend this and add their columns.
- */
 export abstract class BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

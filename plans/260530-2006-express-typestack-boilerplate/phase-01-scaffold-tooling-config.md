@@ -47,7 +47,6 @@ pnpm add -D typescript@^6.0.3 ts-node@^10.9.2 tsconfig-paths@^4.2.0 tsc-alias@^1
       "@/*": ["src/*"],
       "@config/*": ["src/config/*"],
       "@common/*": ["src/common/*"],
-      "@health/*": ["src/health/*"],
       "@modules/*": ["src/modules/*"],
       "@database/*": ["src/database/*"],
       "@jobs/*": ["src/jobs/*"]

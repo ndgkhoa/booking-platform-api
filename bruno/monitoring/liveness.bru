@@ -1,0 +1,19 @@
+meta {
+  name: Health (liveness)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/health/live
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Dependency-free liveness probe — 200 while the process is up. Use `/health/ready`
+  for the readiness check (verifies Postgres + Redis). Both are at the root (not /api).
+}

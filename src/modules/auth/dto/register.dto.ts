@@ -1,6 +1,5 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
-/** Payload for `POST /auth/register`. Validated by class-validator. */
 export class RegisterDto {
   @IsEmail()
   email!: string;

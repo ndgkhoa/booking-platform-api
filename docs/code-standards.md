@@ -8,7 +8,6 @@ Use aliases; never relative `../../`.
 | `@/*` | `src/*` |
 | `@config/*` | `src/config/*` |
 | `@common/*` | `src/common/*` |
-| `@health/*` | `src/health/*` |
 | `@modules/*` | `src/modules/*` |
 | `@database/*` | `src/database/*` |
 | `@jobs/*` | `src/jobs/*` |
@@ -21,11 +20,11 @@ Resolved by tsconfig `paths` (dev via ts-node + tsconfig-paths; build via tsc-al
 - **Repository** — the *only* place with `getRepository`/`QueryBuilder`. One per aggregate (`*.repository.ts`).
 
 ## Responses
-Every success is enveloped by `ResponseInterceptor`: `{ success:true, data, meta?, timestamp }`. Pre-enveloped payloads (e.g. `paginated()`) pass through untouched. Never hand-build success envelopes in controllers.
+Every success is enveloped by `ResponseInterceptor`: `{ success:true, data, meta? }`. Pre-enveloped payloads (e.g. `paginated()`) pass through untouched. Never hand-build success envelopes in controllers.
 
 ## Errors & exceptions
 - Throw subclasses of `AppException` (extends routing-controllers `HttpError`) from `@common/exceptions` — `NotFound`, `Conflict`, `Unauthorized`, `Forbidden`, `Validation`, `BadRequest`.
-- Each carries an `errorCode`; the global `ErrorHandler` renders `{ success:false, error:{ code, message, details }, timestamp }`, maps validation failures to 422 with `{ field, messages }` (never echoes submitted values), and hides 500 details in production.
+- Each carries an `errorCode`; the global `ErrorHandler` renders `{ success:false, error:{ code, message, details } }`, maps validation failures to 422 with `{ field, messages }` (never echoes submitted values), and hides 500 details in production.
 
 ## Validation & serialization
 - DTOs use class-validator decorators; global `validation: { whitelist, forbidNonWhitelisted }`.
@@ -34,7 +33,7 @@ Every success is enveloped by `ResponseInterceptor`: `{ success:true, data, meta
 ## Files & naming
 - kebab-case, descriptive (`user.repository.ts`, `error-handler.middleware.ts`).
 - Keep files focused/small; one concern per file.
-- Tests: `*.spec.ts` (unit, next to code) and `test/**/*.e2e.spec.ts` (integration).
+- Tests: `test/unit/**/*.spec.ts` (unit) and `test/integration/**/*.e2e.spec.ts` (integration).
 
 ## Tooling
 - **Biome** for lint + format (single quotes, 2-space, width 100, trailing commas). Parameter decorators enabled (`unsafeParameterDecoratorsEnabled`).
@@ -42,4 +41,4 @@ Every success is enveloped by `ResponseInterceptor`: `{ success:true, data, meta
 - Before pushing: `pnpm lint`, `pnpm typecheck`, `pnpm test` should all pass.
 
 ## Security defaults
-helmet, CORS, rate-limit on `/api`, hpp, `x-powered-by` off, bcrypt cost 12, short-lived JWT, generic auth errors (no user enumeration), `synchronize:false` (migrations only).
+helmet, CORS, rate-limit on `/api`, hpp, `x-powered-by` off, bcryptjs cost 12, short-lived JWT, generic auth errors (no user enumeration), `synchronize:false` (migrations only).

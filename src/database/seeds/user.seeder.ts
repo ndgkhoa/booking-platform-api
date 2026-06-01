@@ -1,13 +1,9 @@
 import { SEED_PASSWORD } from '@database/factories/user.factory';
 import { User } from '@modules/user/user.entity';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import type { DataSource } from 'typeorm';
 import type { Seeder, SeederFactoryManager } from 'typeorm-extension';
 
-/**
- * Seeds a deterministic admin account plus a batch of random users. Idempotent:
- * skips users whose email already exists.
- */
 export class UserSeeder implements Seeder {
   async run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<void> {
     const repo = dataSource.getRepository(User);

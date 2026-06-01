@@ -5,10 +5,6 @@ import { userFactory } from '@database/factories/user.factory';
 import { UserSeeder } from '@database/seeds/user.seeder';
 import { runSeeders } from 'typeorm-extension';
 
-/**
- * Standalone seed runner (invoked via `pnpm seed`). Initializes the DataSource,
- * runs all seeders/factories, then tears the connection down.
- */
 async function main(): Promise<void> {
   await AppDataSource.initialize();
   try {

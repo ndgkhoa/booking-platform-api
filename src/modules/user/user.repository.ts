@@ -1,12 +1,8 @@
+import type { UserQuery } from '@modules/user/dto/query.dto';
 import { User } from '@modules/user/user.entity';
 import { Service } from 'typedi';
-import { DataSource, type Repository } from 'typeorm';
+import { DataSource, type FindOptionsWhere, ILike, type Repository } from 'typeorm';
 
-/**
- * Data-access boundary for the User entity. ALL TypeORM queries live here — the
- * service layer depends only on this class and never touches the EntityManager
- * or QueryBuilder directly. Receives the shared DataSource via TypeDI.
- */
 @Service()
 export class UserRepository {
   private readonly repo: Repository<User>;
@@ -27,11 +23,15 @@ export class UserRepository {
     return this.repo.save(this.repo.create(data));
   }
 
-  /** Returns a page of users plus the total count, newest first. */
-  paginate(page: number, limit: number): Promise<[User[], number]> {
+  paginate(query: UserQuery): Promise<[User[], number]> {
+    const where: FindOptionsWhere<User> = {};
+    if (query.name) where.name = ILike(`%${query.name}%`);
+    if (query.email) where.email = ILike(`%${query.email}%`);
+
     return this.repo.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
+      where,
+      skip: (query.page - 1) * query.limit,
+      take: query.limit,
       order: { createdAt: 'DESC' },
     });
   }

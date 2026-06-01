@@ -7,11 +7,6 @@ import { Container } from 'typedi';
 import { DataSource } from 'typeorm';
 import { createServer } from '@/server';
 
-/**
- * End-to-end auth flow against a real Postgres (testcontainers). Verifies the
- * full stack: routing-controllers → service → repository → DB, response
- * envelope, JWT auth, and that password hashes never leak.
- */
 describe('Auth e2e', () => {
   let container: StartedPostgreSqlContainer;
   let dataSource: DataSource;
@@ -23,20 +18,18 @@ describe('Auth e2e', () => {
       type: 'postgres',
       url: container.getConnectionUri(),
       entities: [User],
-      synchronize: true, // tests build the schema directly (no migrations)
+      synchronize: true,
     });
     await dataSource.initialize();
-    Container.set(DataSource, dataSource); // repositories inject this
+    Container.set(DataSource, dataSource);
     app = createServer();
-  });
+  }, 120000);
 
   afterAll(async () => {
-    await dataSource.destroy();
-    await container.stop();
+    await dataSource?.destroy();
+    await container?.stop();
   });
 
-  // Inline unique data — @faker-js/faker is ESM-only and incompatible with
-  // Jest's CJS runtime (faker is used in the DB seeder, which runs under ts-node).
   const credentials = () => ({
     email: `user-${randomUUID()}@test.com`,
     name: `User ${randomUUID().slice(0, 8)}`,
@@ -80,5 +73,54 @@ describe('Auth e2e', () => {
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
     expect(Array.isArray(res.body.error.details)).toBe(true);
+  });
+
+  async function adminToken(): Promise<string> {
+    const creds = credentials();
+    await request(app).post('/api/auth/register').send(creds);
+    await dataSource
+      .getRepository(User)
+      .update({ email: creds.email }, { roles: ['admin', 'user'] });
+    const login = await request(app)
+      .post('/api/auth/login')
+      .send({ email: creds.email, password: creds.password });
+    return login.body.data.token;
+  }
+
+  it('lists users with pagination and name filter (admin)', async () => {
+    const token = await adminToken();
+    const named = { ...credentials(), name: 'Zaphod Beeblebrox' };
+    await request(app).post('/api/auth/register').send(named);
+
+    const page = await request(app)
+      .get('/api/users?page=1&limit=2')
+      .set('Authorization', `Bearer ${token}`);
+    expect(page.status).toBe(200);
+    expect(page.body.data.length).toBeLessThanOrEqual(2);
+    expect(page.body.meta.total).toBeGreaterThan(0);
+
+    const filtered = await request(app)
+      .get('/api/users?name=Zaphod')
+      .set('Authorization', `Bearer ${token}`);
+    expect(filtered.status).toBe(200);
+    expect(filtered.body.data.every((u: { name: string }) => u.name.includes('Zaphod'))).toBe(true);
+  });
+
+  it('rejects list for non-admin (403) and invalid limit (422)', async () => {
+    const creds = credentials();
+    await request(app).post('/api/auth/register').send(creds);
+    const login = await request(app)
+      .post('/api/auth/login')
+      .send({ email: creds.email, password: creds.password });
+
+    const forbidden = await request(app)
+      .get('/api/users')
+      .set('Authorization', `Bearer ${login.body.data.token}`);
+    expect(forbidden.status).toBe(403);
+
+    const badLimit = await request(app)
+      .get('/api/users?limit=999')
+      .set('Authorization', `Bearer ${await adminToken()}`);
+    expect(badLimit.status).toBe(422);
   });
 });

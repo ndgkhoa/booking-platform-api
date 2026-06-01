@@ -1,3 +1,4 @@
+import { UserQuery } from '@modules/user/dto/query.dto';
 import type { User } from '@modules/user/user.entity';
 import { UserService } from '@modules/user/user.service';
 import {
@@ -6,7 +7,7 @@ import {
   Get,
   JsonController,
   Param,
-  QueryParam,
+  QueryParams,
 } from 'routing-controllers';
 import { Service } from 'typedi';
 
@@ -15,23 +16,21 @@ import { Service } from 'typedi';
 export class UserController {
   constructor(private readonly users: UserService) {}
 
-  /** Current authenticated user (any role). */
   @Get('/me')
   @Authorized()
   me(@CurrentUser({ required: true }) user: User): User {
     return user;
   }
 
-  /** Paginated user list — admin only. */
   @Get()
   @Authorized(['admin'])
-  list(@QueryParam('page') page = 1, @QueryParam('limit') limit = 20) {
-    return this.users.list(page, limit);
+  list(@QueryParams() query: UserQuery) {
+    return this.users.list(query);
   }
 
   @Get('/:id')
   @Authorized()
   byId(@Param('id') id: string): Promise<User> {
-    return this.users.getByIdOrFail(id);
+    return this.users.getById(id);
   }
 }

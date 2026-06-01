@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import http from 'node:http';
+import { withTimeout } from '@common/utils/timeout';
 import { AppDataSource } from '@config/data-source';
 import { env } from '@config/env';
 import { logger } from '@config/logger';
@@ -9,19 +10,8 @@ import { Container } from 'typedi';
 import { DataSource } from 'typeorm';
 import { createServer } from '@/server';
 
-/** Rejects if `promise` does not settle within `ms` — keeps health checks bounded. */
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`${label} health check timed out`)), ms),
-    ),
-  ]);
-}
-
 async function bootstrap(): Promise<void> {
   await AppDataSource.initialize();
-  // Register the initialized DataSource in TypeDI so repositories can inject it.
   Container.set(DataSource, AppDataSource);
   logger.info('Database connected');
 
@@ -31,17 +21,14 @@ async function bootstrap(): Promise<void> {
   createTerminus(server, {
     signals: ['SIGINT', 'SIGTERM'],
     healthChecks: {
-      // Readiness: dependencies must be reachable (returns 503 otherwise).
-      '/health': async () => {
+      '/health/live': async () => ({ status: 'ok' }),
+      '/health/ready': async () => {
         await withTimeout(AppDataSource.query('SELECT 1'), 2000, 'database');
         await withTimeout(redis.ping(), 1000, 'redis');
-        return { database: 'up', redis: 'up' };
+        return { status: 'ready' };
       },
-      // Liveness: process is up (no dependency checks).
-      '/health/live': async () => ({ status: 'ok' }),
       verbatim: true,
     },
-    // Graceful shutdown: close DB + Redis before the process exits.
     onSignal: async () => {
       logger.info('Shutdown signal received — releasing resources');
       await AppDataSource.destroy();
@@ -50,7 +37,7 @@ async function bootstrap(): Promise<void> {
     onShutdown: async () => {
       logger.info('Cleanup finished, process exiting');
     },
-    logger: (msg, err) => logger.error(`${msg} ${err?.message ?? ''}`),
+    logger: (msg, err) => logger.error(err ? `${msg}: ${err.message}` : msg),
   });
 
   server.listen(env.PORT, () => {

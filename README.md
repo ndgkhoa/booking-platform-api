@@ -10,7 +10,7 @@ Production-ready Express API on the TypeStack ecosystem — decorator-based cont
 | DI | TypeDI |
 | ORM / migrations | TypeORM + PostgreSQL |
 | Validation / serialization | class-validator + class-transformer |
-| Auth | passport-jwt + jsonwebtoken + bcrypt |
+| Auth | passport-jwt + jsonwebtoken + bcryptjs |
 | Config | dotenv + envalid |
 | Logging | winston + morgan |
 | API docs | routing-controllers-openapi + swagger-ui-express |
@@ -24,16 +24,16 @@ Production-ready Express API on the TypeStack ecosystem — decorator-based cont
 
 ```bash
 pnpm install
-cp .env.example .env          # then fill in secrets (JWT_SECRET, DB creds...)
+cp .env.example .env          # then fill in secrets
 docker compose up -d          # Postgres + Redis
 pnpm migration:run            # create schema
-pnpm seed                     # admin@example.com / password123 + 10 users
-pnpm dev                      # http://localhost:5000
+pnpm seed                     # admin@example.com / Abc@123456 + 10 users
+pnpm dev                      # http://localhost:3000
 ```
 
 - API base: `http://localhost:<PORT>/api`
 - Swagger UI: `http://localhost:<PORT>/api-docs`
-- Health: `/health` (readiness), `/health/live` (liveness)
+- Health: `/health/ready` (readiness), `/health/live` (liveness)
 - Metrics: `/metrics` (Prometheus)
 - Background worker: `pnpm worker`
 - API client collection: [`bruno/`](./bruno) (open with [Bruno](https://www.usebruno.com))
@@ -55,9 +55,9 @@ pnpm dev                      # http://localhost:5000
 
 ## Conventions
 
-- **Path aliases** for all imports (`@config`, `@common`, `@modules`, `@health`, `@database`, `@jobs`) — no relative `../../`.
+- **Path aliases** for all imports (`@config`, `@common`, `@modules`, `@database`, `@jobs`) — no relative `../../`.
 - **Layering:** controller → service → **repository** (all DB access lives in `*.repository.ts`; services never touch QueryBuilder).
-- **Structured responses:** `{ success, data, meta?, timestamp }` / errors `{ success:false, error:{ code, message, details }, timestamp }`.
+- **Structured responses:** `{ success, data, meta? }` / errors `{ success:false, error:{ code, message, details } }`.
 - **Custom exceptions** extend routing-controllers `HttpError` with a stable `errorCode`.
 
 ## Documentation

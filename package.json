@@ -24,7 +24,10 @@
     "prepare": "husky"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["cpu-features", "msgpackr-extract", "protobufjs", "ssh2", "unrs-resolver"]
   },
   "lint-staged": {
     "*.{ts,js,json}": "biome check --write --no-errors-on-unmatched"

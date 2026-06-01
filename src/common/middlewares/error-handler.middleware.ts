@@ -1,11 +1,10 @@
-import type { ApiError } from '@common/types/api-response';
+import type { ApiError } from '@common/types/response';
 import { env } from '@config/env';
 import { logger } from '@config/logger';
 import type { NextFunction, Request, Response } from 'express';
 import { type ExpressErrorMiddlewareInterface, Middleware } from 'routing-controllers';
 import { Service } from 'typedi';
 
-/** Maps an HTTP status to a stable, machine-readable error code. */
 const STATUS_CODE: Record<number, string> = {
   400: 'BAD_REQUEST',
   401: 'UNAUTHORIZED',
@@ -32,8 +31,6 @@ function isValidationErrors(value: unknown): value is ValidationErrorLike[] {
   );
 }
 
-/** Flattens class-validator errors to `{ field, messages }`, dropping `target`/`value`
- * so submitted data (e.g. passwords) is never echoed back. */
 function formatValidationErrors(errors: ValidationErrorLike[]): unknown[] {
   return errors.map((e) => ({
     field: e.property,
@@ -42,12 +39,6 @@ function formatValidationErrors(errors: ValidationErrorLike[]): unknown[] {
   }));
 }
 
-/**
- * Global error handler. Registered as an `after` middleware and paired with
- * `defaultErrorHandler: false`, so it owns ALL error responses and renders the
- * standard error envelope. Handles AppException, routing-controllers HttpError,
- * class-validator failures, and unexpected errors.
- */
 @Service()
 @Middleware({ type: 'after' })
 export class ErrorHandler implements ExpressErrorMiddlewareInterface {
@@ -61,7 +52,6 @@ export class ErrorHandler implements ExpressErrorMiddlewareInterface {
     let details: unknown = error.details;
     let message: string = error.message ?? 'Error';
 
-    // routing-controllers wraps class-validator failures in a 400 with `.errors`.
     if (isValidationErrors(error.errors)) {
       status = 422;
       details = formatValidationErrors(error.errors);
@@ -80,7 +70,6 @@ export class ErrorHandler implements ExpressErrorMiddlewareInterface {
     const body: ApiError = {
       success: false,
       error: { code, message, details },
-      timestamp: new Date().toISOString(),
     };
     res.status(status).json(body);
   }

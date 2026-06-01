@@ -5,11 +5,6 @@ import passport from 'passport';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Container } from 'typedi';
 
-/**
- * Registers the passport-jwt strategy: extracts a Bearer token, verifies it
- * against JWT_SECRET, then loads the full user via the repository. The resolved
- * user is what the authorizationChecker/currentUserChecker expose downstream.
- */
 export function configurePassport(): void {
   passport.use(
     new JwtStrategy(

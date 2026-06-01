@@ -3,10 +3,6 @@ import { logger } from '@config/logger';
 import { redis } from '@config/redis';
 import { startEmailWorker } from '@jobs/workers/email.worker';
 
-/**
- * Standalone worker process (run via `pnpm worker`). Kept separate from the HTTP
- * server so jobs scale independently. Add more workers here as the app grows.
- */
 const workers = [startEmailWorker()];
 logger.info('Workers started');
 

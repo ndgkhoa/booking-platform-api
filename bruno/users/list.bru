@@ -12,6 +12,8 @@ get {
 params:query {
   page: 1
   limit: 20
+  ~name: Admin
+  ~email: example.com
 }
 
 auth:bearer {
@@ -25,5 +27,6 @@ assert {
 
 docs {
   Paginated user list. Requires the `admin` role — log in as admin@example.com
-  first. A non-admin token returns 403 FORBIDDEN.
+  first. A non-admin token returns 403 FORBIDDEN. Optional `name`/`email` query
+  params filter by partial match (enable them in params:query). `limit` max is 100.
 }

@@ -13,7 +13,7 @@ post {
 body:json {
   {
     "email": "admin@example.com",
-    "password": "password123"
+    "password": "Abc@123456"
   }
 }
 
@@ -28,5 +28,5 @@ assert {
 
 docs {
   Log in and capture the JWT into the `token` env var. Defaults to the seeded
-  admin account (admin@example.com / password123) so the admin-only list works.
+  admin account (admin@example.com / Abc@123456) so the admin-only list works.
 }

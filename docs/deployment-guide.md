@@ -35,7 +35,7 @@ pnpm worker                 # separate process for background jobs
 
 ## Docker
 
-Multi-stage `Dockerfile` (build with full deps → slim non-root runtime; bcrypt native module rebuilt for the runtime stage).
+Multi-stage `Dockerfile` (build with full deps → slim non-root runtime). All deps are pure-JS, so no native build toolchain is needed in the image.
 
 ```bash
 docker build -t express-typestack .
@@ -56,7 +56,7 @@ The `app` compose service reads `.env` and overrides `DB_HOST=postgres` / `REDIS
 
 ## Health & monitoring (for orchestrators)
 - **Liveness:** `GET /health/live` — process up.
-- **Readiness:** `GET /health` — 200 when Postgres + Redis reachable, else 503.
+- **Readiness:** `GET /health/ready` — 200 when Postgres + Redis reachable, else 503.
 - **Metrics:** `GET /metrics` — Prometheus scrape target.
 - **Graceful shutdown:** SIGTERM/SIGINT → terminus drains connections, closes DataSource + Redis, then exits (set a generous `terminationGracePeriodSeconds` in k8s).
 

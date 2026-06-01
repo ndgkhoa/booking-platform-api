@@ -13,20 +13,21 @@ src/
     redis.ts                    ioredis client + shared connection options
     swagger.ts                  OpenAPI spec from decorators + class-validator schemas
   common/
-    entities/base.entity.ts     uuid id + timestamps + soft delete
+    base/                       entity.base (BaseEntity), query.base (BaseQuery pagination)
     exceptions/                 AppException + concrete HTTP exceptions (barrel)
     interceptors/               ResponseInterceptor (success envelope)
     middlewares/                error-handler, http-logger, metrics
-    types/api-response.ts       ApiResponse / ApiError / paginated()
-    utils/cache.ts              JSON cache helpers over Redis
+    monitoring/                 prom-client registry + http histogram
+    types/                      api-response (ApiResponse/ApiError/paginated), express.d.ts
+    utils/                      JSON cache helpers over Redis (cache.ts)
   modules/
     user/                       entity, repository, service, controller
     auth/                       dto, token.service, jwt.strategy, auth.service, auth.controller
-  health/metrics.ts             prom-client registry + http histogram
   database/
     migrations/                 generated TypeORM migrations
     factories/user.factory.ts   faker-based factory
     seeds/                      UserSeeder + run-seeds.ts
+test/unit/                      unit tests (mocked repository)
 test/integration/               supertest + testcontainers e2e
 bruno/                          API client collection (auth, users, system)
 ```
@@ -39,4 +40,4 @@ bruno/                          API client collection (auth, users, system)
 - `docker-compose.yml` — Postgres 17 + Redis 7.
 
 ## Key endpoints
-`POST /api/auth/register|login` · `GET /api/users/me|/:id` · `GET /api/users` (admin) · `GET /api-docs` · `GET /health` · `GET /metrics`
+`POST /api/auth/register|login` · `GET /api/users/me|/:id` · `GET /api/users` (admin) · `GET /api-docs` · `GET /health/ready` · `GET /health/live` · `GET /metrics`

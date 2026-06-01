@@ -1,4 +1,4 @@
-# Express + TypeStack Boilerplate
+# Express + TypeORM
 
 Production-ready Express API on the TypeStack ecosystem — decorator-based controllers, dependency injection, ORM, validation — with structured responses, JWT auth, OpenAPI docs, background jobs, metrics, and graceful shutdown.
 

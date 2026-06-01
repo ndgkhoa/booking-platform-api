@@ -24,7 +24,6 @@
       "@/*": ["src/*"],
       "@config/*": ["src/config/*"],
       "@common/*": ["src/common/*"],
-      "@health/*": ["src/health/*"],
       "@modules/*": ["src/modules/*"],
       "@database/*": ["src/database/*"],
       "@jobs/*": ["src/jobs/*"]

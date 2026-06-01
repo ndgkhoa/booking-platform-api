@@ -4,7 +4,7 @@ import type { RegisterDto } from '@modules/auth/dto/register.dto';
 import { TokenService } from '@modules/auth/token.service';
 import type { User } from '@modules/user/user.entity';
 import { UserRepository } from '@modules/user/user.repository';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { Service } from 'typedi';
 
 const BCRYPT_ROUNDS = 12;
@@ -14,11 +14,6 @@ export interface AuthResult {
   token: string;
 }
 
-/**
- * Authentication use-cases. Depends only on the repository (no direct DB access)
- * and the token service. Throws domain exceptions that the global error handler
- * renders into the standard error envelope.
- */
 @Service()
 export class AuthService {
   constructor(
@@ -42,8 +37,6 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<AuthResult> {
     const user = await this.users.findByEmail(dto.email);
-    // Compare even on missing user is unnecessary here; generic message avoids
-    // leaking which emails exist (no user enumeration).
     if (!user || !(await bcrypt.compare(dto.password, user.passwordHash))) {
       throw new UnauthorizedException('Invalid credentials');
     }

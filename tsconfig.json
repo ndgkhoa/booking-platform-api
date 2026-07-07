@@ -2,8 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "commonjs",
-    "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
+    "moduleResolution": "bundler",
     "lib": ["ES2022"],
     "types": ["node", "jest"],
     "experimentalDecorators": true,
@@ -19,14 +18,13 @@
     "sourceMap": true,
     "outDir": "dist",
     "rootDir": ".",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@config/*": ["src/config/*"],
-      "@common/*": ["src/common/*"],
-      "@modules/*": ["src/modules/*"],
-      "@database/*": ["src/database/*"],
-      "@jobs/*": ["src/jobs/*"]
+      "@/*": ["./src/*"],
+      "@config/*": ["./src/config/*"],
+      "@common/*": ["./src/common/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@database/*": ["./src/database/*"],
+      "@jobs/*": ["./src/jobs/*"]
     }
   },
   "ts-node": {

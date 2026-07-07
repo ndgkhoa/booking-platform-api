@@ -37,7 +37,7 @@ pnpm dev                      # http://localhost:3000
 - Metrics: `/metrics` (Prometheus)
 - Background worker: `pnpm worker`
 - API client collection: [`bruno/`](./bruno) (open with [Bruno](https://www.usebruno.com))
-- Full stack in Docker: `docker compose --profile full up -d` (app + Postgres + Redis)
+- Full stack in Docker: `docker compose --profile full up -d` (api + Postgres + Redis)
 - CI: `.github/workflows/ci.yml` (lint, typecheck, test, build, integration)
 
 ## Scripts

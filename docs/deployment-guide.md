@@ -20,7 +20,7 @@ The app **fails fast** at startup if a required var is missing or malformed.
 
 ## Local infrastructure
 ```bash
-docker compose up -d        # Postgres 17 + Redis 7 (reads .env)
+docker compose up -d        # Postgres 18 + Redis 8 (reads .env)
 ```
 `docker-compose.yml` substitutes `${DB_*}` / `${REDIS_*}` from `.env`. `POSTGRES_PASSWORD` only applies on first volume creation — change it ⇒ `docker compose down -v` to reset.
 
@@ -39,11 +39,11 @@ Multi-stage `Dockerfile` (build with full deps → slim non-root runtime). All d
 
 ```bash
 docker build -t express-typestack .
-# full stack (app + postgres + redis) via compose:
-docker compose --profile full up -d        # app is behind the "full" profile
+# full stack (api + postgres + redis) via compose:
+docker compose --profile full up -d        # api is behind the "full" profile
 docker compose up -d                        # plain: only postgres + redis (dev)
 ```
-The `app` compose service reads `.env` and overrides `DB_HOST=postgres` / `REDIS_HOST=redis` for the compose network.
+The `api` compose service reads `.env` and overrides `DB_HOST=postgres` / `REDIS_HOST=redis` for the compose network.
 
 ## CI
 

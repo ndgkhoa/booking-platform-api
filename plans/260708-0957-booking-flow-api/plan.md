@@ -19,7 +19,8 @@ Evolve the `express-typeorm` starter into **`booking-flow-api`**: a production-g
 | # | Phase | Status | File |
 |---|-------|--------|------|
 | 0 | Rename repo + API versioning | ✅ done | [phase-00](phase-00-rename-and-api-versioning.md) |
-| 1 | Multi-tenancy core | ⬜ next | [phase-01](phase-01-multi-tenancy-core.md) |
+| 1 | Multi-tenancy core | ✅ done | [phase-01](phase-01-multi-tenancy-core.md) |
+| 1b | Platform admin & back-office | ⬜ | [phase-01b](phase-01b-platform-admin-backoffice.md) |
 | 2 | Onboarding, auth flows, invites | ⬜ | [phase-02](phase-02-onboarding-auth-invites.md) |
 | 3 | Services & staff scheduling | ⬜ | [phase-03](phase-03-services-and-staff-scheduling.md) |
 | 4 | Core booking engine ⭐ | ⬜ | [phase-04](phase-04-core-booking-engine.md) |
@@ -32,6 +33,7 @@ Evolve the `express-typeorm` starter into **`booking-flow-api`**: a production-g
 
 ## Dependencies
 - 1 → 2 → 3 → 4 are strictly sequential (each builds on prior schema/context).
+- 1b (platform admin) depends on 1; its `users.platform_role` column ships in Phase 1's migration. Can run any time after 1 (before or alongside 2+).
 - 5, 6 depend on 4. 7 depends on 1. 8 depends on 7. 9 is cross-cutting (after 4). 10 is last.
 
 ## Cadence per phase

@@ -3,11 +3,14 @@ import { ResponseInterceptor } from '@common/interceptors/response.interceptor';
 import { ErrorHandler } from '@common/middlewares/error-handler.middleware';
 import { httpLogger } from '@common/middlewares/http-logger.middleware';
 import { metricsMiddleware } from '@common/middlewares/metrics.middleware';
+import { tenantContextMiddleware } from '@common/middlewares/tenant-context.middleware';
 import { registry } from '@common/monitoring/metrics';
+import { getTenantContext } from '@common/tenant/tenant-context';
 import type { ApiError } from '@common/types/response';
 import { env } from '@config/env';
 import { buildOpenApiSpec } from '@config/swagger';
 import { configurePassport } from '@modules/auth/jwt.strategy';
+import { TenantMemberRepository } from '@modules/tenant/tenant-member.repository';
 import type { User } from '@modules/user/user.entity';
 import cors from 'cors';
 import express, { type Express, type NextFunction, type Request, type Response } from 'express';
@@ -33,6 +36,10 @@ export const routingControllersOptions: RoutingControllersOptions = {
   classTransformer: true,
   validation: { whitelist: true, forbidNonWhitelisted: true },
 
+  // Authenticate via passport (loads the user), then authorize against the
+  // *current* membership fetched from the DB — not the role baked into the token.
+  // This makes a revoked or downgraded membership take effect immediately rather
+  // than lingering until the access token expires.
   authorizationChecker: (action: Action, roles: string[]) =>
     new Promise<boolean>((resolve) => {
       passport.authenticate('jwt', { session: false }, (_err: unknown, user: User | false) => {
@@ -41,7 +48,17 @@ export const routingControllersOptions: RoutingControllersOptions = {
           return;
         }
         action.request.user = user;
-        resolve(roles.length === 0 || roles.some((role) => user.roles.includes(role)));
+        const tenantId = getTenantContext()?.tenantId;
+        if (!tenantId) {
+          resolve(false);
+          return;
+        }
+        Container.get(TenantMemberRepository)
+          .findForUserAndTenant(user.id, tenantId)
+          .then((member) => {
+            resolve(member != null && (roles.length === 0 || roles.includes(member.role)));
+          })
+          .catch(() => resolve(false));
       })(action.request, action.response, () => undefined);
     }),
 
@@ -70,6 +87,7 @@ export function createServer(): Express {
 
   configurePassport();
   app.use(passport.initialize());
+  app.use(tenantContextMiddleware);
 
   app.use(
     '/api',

@@ -18,15 +18,21 @@ body:json {
 }
 
 script:post-response {
-  if (res.body?.data?.token) bru.setEnvVar("token", res.body.data.token);
+  if (res.body?.data?.token) {
+    bru.setEnvVar("token", res.body.data.token);
+    bru.setEnvVar("refreshToken", res.body.data.refreshToken);
+  }
 }
 
 assert {
   res.status: eq 200
   res.body.data.token: isDefined
+  res.body.data.refreshToken: isDefined
 }
 
 docs {
-  Log in and capture the JWT into the `token` env var. Defaults to the seeded
-  admin account (admin@example.com / Abc@123456) so the admin-only list works.
+  Log in and capture the access token into `token` and the refresh token into
+  `refreshToken`. Defaults to the seeded admin account (admin@example.com /
+  Abc@123456), who is an owner of the demo tenant, so the owner-only list works.
+  Login requires a tenant membership — an account with none returns 401.
 }

@@ -21,6 +21,7 @@ body:json {
 script:post-response {
   if (res.body?.data?.token) {
     bru.setEnvVar("token", res.body.data.token);
+    bru.setEnvVar("refreshToken", res.body.data.refreshToken);
     bru.setEnvVar("userId", res.body.data.user.id);
   }
 }
@@ -28,10 +29,12 @@ script:post-response {
 assert {
   res.status: eq 201
   res.body.success: eq true
+  res.body.data.refreshToken: isDefined
 }
 
 docs {
-  Create a new user. Captures the returned JWT into the `token` env var so the
-  protected requests below authorize automatically. Re-running with the same
-  email returns 409 (email already in use).
+  Sign up: creates the user, their tenant, and an owner membership atomically.
+  Captures the access token into `token` and the rotating refresh token into
+  `refreshToken` so the protected and refresh requests below work. Re-running
+  with the same email returns 409 (email already in use).
 }

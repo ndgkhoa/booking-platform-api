@@ -1,3 +1,6 @@
+import { RefreshToken } from '@modules/auth/refresh-token.entity';
+import { Tenant } from '@modules/tenant/tenant.entity';
+import { TenantMember } from '@modules/tenant/tenant-member.entity';
 import { User } from '@modules/user/user.entity';
 import type { Express } from 'express';
 import { Container } from 'typedi';
@@ -13,7 +16,7 @@ export async function startTestApp(): Promise<TestApp> {
   const dataSource = new DataSource({
     type: 'postgres',
     url: process.env.TEST_DATABASE_URL,
-    entities: [User],
+    entities: [User, Tenant, TenantMember, RefreshToken],
     synchronize: false,
   });
   await dataSource.initialize();

@@ -3,7 +3,7 @@ import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import { DataSource } from 'typeorm';
 
 export default async function globalSetup(): Promise<void> {
-  const container = await new PostgreSqlContainer('postgres:17-alpine').start();
+  const container = await new PostgreSqlContainer('postgres:18-alpine').start();
 
   const dataSource = new DataSource({
     type: 'postgres',

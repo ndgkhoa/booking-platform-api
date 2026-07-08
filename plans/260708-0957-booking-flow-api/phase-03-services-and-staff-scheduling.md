@@ -11,6 +11,9 @@
 - Functional: CRUD services (name, price, duration, buffer); assign staff↔service; per-staff weekly working hours; per-staff time-off.
 - Non-functional: working hours per (staff, weekday) non-overlapping; time-off valid range; money stored as integer minor units.
 
+## Wire RLS into the runtime (carried over from Phase 1)
+- Phase 1 established RLS + `app_user` role + `withTenantTransaction` but left runtime enforcement unwired (app runs as superuser). The first tenant-owned business tables here are where it becomes real: connect the app runtime as the non-superuser `app_user`, open a per-request tenant transaction that sets `app.tenant_id`, and apply RLS policies to every table below. Keep migrations running as the table owner. See ADR-0001.
+
 ## Architecture / entities (all tenant-scoped)
 - `Service` (name, `price` int minor units + currency, duration_min, buffer_min).
 - `StaffService` (staff_id, service_id) — M2M join.

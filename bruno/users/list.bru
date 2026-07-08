@@ -1,5 +1,5 @@
 meta {
-  name: List users (admin)
+  name: List users (owner)
   type: http
   seq: 2
 }
@@ -26,7 +26,8 @@ assert {
 }
 
 docs {
-  Paginated user list. Requires the `admin` role — log in as admin@example.com
-  first. A non-admin token returns 403 FORBIDDEN. Optional `name`/`email` query
-  params filter by partial match (enable them in params:query). `limit` max is 100.
+  Paginated user list. Requires the `owner` role in the active tenant — log in
+  as admin@example.com first. A staff (non-owner) token returns 403 FORBIDDEN.
+  Optional `name`/`email` query params filter by partial match (enable them in
+  params:query). `limit` max is 100.
 }

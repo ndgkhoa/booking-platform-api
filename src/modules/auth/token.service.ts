@@ -1,24 +1,29 @@
 import { env } from '@config/env';
-import type { User } from '@modules/user/user.entity';
+import type { Role } from '@modules/tenant/role.enum';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import { Service } from 'typedi';
 
-export interface JwtPayload {
+const JWT_ALGORITHM = 'HS256' as const;
+
+/** Claims carried by the short-lived access token. */
+export interface AccessTokenPayload {
   sub: string;
-  roles: string[];
+  tenantId: string;
+  role: Role;
 }
 
 @Service()
 export class TokenService {
-  sign(user: Pick<User, 'id' | 'roles'>): string {
-    const payload: JwtPayload = { sub: user.id, roles: user.roles };
+  signAccess(payload: AccessTokenPayload): string {
     const options: SignOptions = {
+      algorithm: JWT_ALGORITHM,
       expiresIn: env.JWT_EXPIRES_IN as SignOptions['expiresIn'],
     };
     return jwt.sign(payload, env.JWT_SECRET, options);
   }
 
-  verify(token: string): JwtPayload {
-    return jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+  verifyAccess(token: string): AccessTokenPayload {
+    // Pin the algorithm so a forged token can't downgrade to `alg: none`.
+    return jwt.verify(token, env.JWT_SECRET, { algorithms: [JWT_ALGORITHM] }) as AccessTokenPayload;
   }
 }

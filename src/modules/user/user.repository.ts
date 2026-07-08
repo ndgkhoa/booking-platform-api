@@ -1,7 +1,7 @@
 import type { UserQuery } from '@modules/user/dto/query.dto';
 import { User } from '@modules/user/user.entity';
 import { Service } from 'typedi';
-import { DataSource, type FindOptionsWhere, ILike, type Repository } from 'typeorm';
+import { DataSource, type Repository, type SelectQueryBuilder } from 'typeorm';
 
 @Service()
 export class UserRepository {
@@ -11,34 +11,43 @@ export class UserRepository {
     this.repo = dataSource.getRepository(User);
   }
 
+  /** Global lookup by id — used by auth flows that resolve a user pre-context. */
   findById(id: string): Promise<User | null> {
     return this.repo.findOne({ where: { id } });
   }
 
+  /** Global lookup by email — used by login/register (email is unique). */
   findByEmail(email: string): Promise<User | null> {
     return this.repo.findOne({ where: { email } });
   }
 
-  create(data: Partial<User>): Promise<User> {
-    return this.repo.save(this.repo.create(data));
+  /** A user, only if they are an active member of the given tenant (else null). */
+  findByIdInTenant(id: string, tenantId: string): Promise<User | null> {
+    return this.membersOf(tenantId).andWhere('u.id = :id', { id }).getOne();
   }
 
-  async softDelete(id: string): Promise<boolean> {
-    const result = await this.repo.softDelete(id);
-    return !!result.affected;
+  /** Paginated list of the tenant's active members, with optional name/email filter. */
+  paginateInTenant(tenantId: string, query: UserQuery): Promise<[User[], number]> {
+    const qb = this.membersOf(tenantId);
+    if (query.name) qb.andWhere('u.name ILIKE :name', { name: `%${query.name}%` });
+    if (query.email) qb.andWhere('u.email ILIKE :email', { email: `%${query.email}%` });
+
+    return qb
+      .orderBy('u.createdAt', 'DESC')
+      .skip((query.page - 1) * query.limit)
+      .take(query.limit)
+      .getManyAndCount();
   }
 
-  paginate(query: UserQuery): Promise<[User[], number]> {
-    const where: FindOptionsWhere<User> = {};
-    if (query.name) where.name = ILike(`%${query.name}%`);
-    if (query.email) where.email = ILike(`%${query.email}%`);
-
-    return this.repo.findAndCount({
-      where,
-      skip: (query.page - 1) * query.limit,
-      take: query.limit,
-      order: { createdAt: 'DESC' },
-      withDeleted: query.includeDeleted,
-    });
+  /**
+   * Query builder joining users to the *active* memberships of one tenant.
+   * TypeORM auto-appends `m.deleted_at IS NULL`, so removed members drop out.
+   */
+  private membersOf(tenantId: string): SelectQueryBuilder<User> {
+    return this.repo
+      .createQueryBuilder('u')
+      .innerJoin('tenant_members', 'm', 'm.user_id = u.id AND m.tenant_id = :tenantId', {
+        tenantId,
+      });
   }
 }

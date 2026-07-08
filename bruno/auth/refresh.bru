@@ -1,0 +1,37 @@
+meta {
+  name: Refresh token
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{apiUrl}}/auth/refresh
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "refreshToken": "{{refreshToken}}"
+  }
+}
+
+script:post-response {
+  if (res.body?.data?.token) {
+    bru.setEnvVar("token", res.body.data.token);
+    bru.setEnvVar("refreshToken", res.body.data.refreshToken);
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.data.token: isDefined
+  res.body.data.refreshToken: isDefined
+}
+
+docs {
+  Rotate the refresh token: returns a new access + refresh pair and re-captures
+  both env vars. Run Register or Login first to populate `refreshToken`.
+  Replaying a token that was already rotated is treated as theft — it returns
+  401 and revokes the whole token family (every token in that login chain dies).
+}

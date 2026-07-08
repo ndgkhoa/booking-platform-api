@@ -31,7 +31,7 @@ pnpm seed                     # admin@example.com / Abc@123456 + 10 users
 pnpm dev                      # http://localhost:3000
 ```
 
-- API base: `http://localhost:<PORT>/api`
+- API base: `http://localhost:<PORT>/api/v1`
 - Swagger UI: `http://localhost:<PORT>/api-docs`
 - Health: `/health/ready` (readiness), `/health/live` (liveness)
 - Metrics: `/metrics` (Prometheus)
@@ -57,7 +57,7 @@ pnpm dev                      # http://localhost:3000
 
 - **Path aliases** for all imports (`@config`, `@common`, `@modules`, `@database`, `@jobs`) — no relative `../../`.
 - **Layering:** controller → service → **repository** (all DB access lives in `*.repository.ts`; services never touch QueryBuilder).
-- **Structured responses:** `{ success, data, meta? }` / errors `{ success:false, error:{ code, message, details } }`.
+- **Structured responses:** success `{ success, data, meta? }`; errors are RFC 7807 `application/problem+json` (`type, title, status, detail, instance, code, errors?, traceId?`).
 - **Custom exceptions** extend routing-controllers `HttpError` with a stable `errorCode`.
 
 ## Documentation

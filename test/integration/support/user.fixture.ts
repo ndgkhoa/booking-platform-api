@@ -12,10 +12,10 @@ export const credentials = () => ({
 
 export async function adminToken(app: Express, dataSource: DataSource): Promise<string> {
   const creds = credentials();
-  await request(app).post('/api/auth/register').send(creds);
+  await request(app).post('/api/v1/auth/register').send(creds);
   await dataSource.getRepository(User).update({ email: creds.email }, { roles: ['admin', 'user'] });
   const login = await request(app)
-    .post('/api/auth/login')
+    .post('/api/v1/auth/login')
     .send({ email: creds.email, password: creds.password });
   return login.body.data.token;
 }

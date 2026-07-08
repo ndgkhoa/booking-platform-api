@@ -1,6 +1,6 @@
-# Express + TypeORM
+# booking-flow-api
 
-Production-ready Express API on the TypeStack ecosystem — decorator-based controllers, dependency injection, ORM, validation — with structured responses, JWT auth, OpenAPI docs, background jobs, metrics, and graceful shutdown.
+Multi-tenant booking SaaS API on the TypeStack ecosystem — decorator-based controllers, dependency injection, ORM, validation — with tenant isolation, structured responses, JWT auth, OpenAPI docs, background jobs, metrics, and graceful shutdown.
 
 ## Stack
 
@@ -31,7 +31,7 @@ pnpm seed                     # admin@example.com / Abc@123456 + 10 users
 pnpm dev                      # http://localhost:3000
 ```
 
-- API base: `http://localhost:<PORT>/api`
+- API base: `http://localhost:<PORT>/api/v1`
 - Swagger UI: `http://localhost:<PORT>/api-docs`
 - Health: `/health/ready` (readiness), `/health/live` (liveness)
 - Metrics: `/metrics` (Prometheus)

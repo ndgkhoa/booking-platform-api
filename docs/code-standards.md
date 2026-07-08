@@ -11,6 +11,7 @@ Use aliases; never relative `../../`.
 | `@modules/*` | `src/modules/*` |
 | `@database/*` | `src/database/*` |
 | `@jobs/*` | `src/jobs/*` |
+| `@test/*` | `test/*` |
 
 Resolved by tsconfig `paths` (dev via ts-node + tsconfig-paths; build via tsc-alias). Biome `organizeImports` sorts them.
 

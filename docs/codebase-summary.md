@@ -7,7 +7,6 @@ src/
   worker.ts                     standalone BullMQ worker entry (pnpm worker)
   config/
     env.ts                      envalid-validated, typed environment
-    container.ts                TypeDI ↔ routing-controllers wiring
     logger.ts                   winston (dev pretty / prod JSON)
     data-source.ts              TypeORM DataSource (postgres, migrations)
     redis.ts                    ioredis client + shared connection options
@@ -35,9 +34,12 @@ bruno/                          API client collection (auth, users, system)
 ## Config files
 - `tsconfig.json` — editor + typecheck + ts-node/jest (includes `src` + `test`, jest types).
 - `tsconfig.build.json` — emit only (`src`, excludes tests) → used by `pnpm build`.
-- `jest.config.js` / `jest.int.config.js` — unit / integration runners.
+- `jest.config.js` — single config, `projects: [unit, integration]` (`pnpm test` / `pnpm test:int` select via `--selectProjects`).
 - `biome.json`, `.lintstagedrc.json`, `.husky/` — quality gates.
 - `docker-compose.yml` — Postgres 17 + Redis 7.
 
 ## Key endpoints
-`POST /api/auth/register|login` · `GET /api/users/me|/:id` · `GET /api/users` (admin) · `GET /api-docs` · `GET /health/ready` · `GET /health/live` · `GET /metrics`
+`POST /api/auth/register|login` · `GET /api/users/me|/:id` · `GET /api/users` (admin) · `DELETE /api/users/:id` (admin, soft-delete) · `GET /api-docs` · `GET /health/ready` · `GET /health/live` · `GET /metrics`
+
+## Notes
+- DI wiring (TypeDI ↔ routing-controllers `useContainer`) lives inline in `server.ts`, not a separate `container.ts`.

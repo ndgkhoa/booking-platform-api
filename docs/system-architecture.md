@@ -53,3 +53,18 @@ Error path: any throw → **ErrorHandler** (`@Middleware after`, `defaultErrorHa
 ## Build/runtime note
 
 Decorator metadata (`emitDecoratorMetadata`) is required by TypeORM/TypeDI/routing-controllers. esbuild (tsx/tsup) does **not** emit it, so dev/CLI use **ts-node** and the build uses **tsc** (+ `tsc-alias` to resolve path aliases in `dist`).
+
+## Transactions
+
+Every current write path (`AuthService.register`, `UserService.delete`) touches exactly one entity, so a plain `repo.save()`/`repo.softDelete()` is already atomic — no explicit transaction needed today.
+
+If a future feature writes to **more than one entity** in a single operation (e.g. creating a `User` plus a related `Wallet` row), wrap it with `DataSource.transaction()` in the service so either all writes commit or all roll back:
+
+```ts
+await this.dataSource.transaction(async (manager) => {
+  const user = await manager.save(User, dto);
+  await manager.save(Wallet, { userId: user.id });
+});
+```
+
+Repositories would need to accept an optional `EntityManager` (falling back to the injected `DataSource`'s default manager) so the same repository methods work both inside and outside a transaction.

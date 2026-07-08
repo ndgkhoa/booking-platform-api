@@ -23,7 +23,7 @@ export class UserController {
   }
 
   @Get()
-  @Authorized(['admin'])
+  @Authorized(['super_admin'])
   list(@QueryParams() query: UserQuery) {
     return this.users.list(query);
   }

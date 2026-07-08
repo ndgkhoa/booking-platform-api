@@ -15,6 +15,7 @@ export class User extends BaseEntity {
   @Column({ name: 'password_hash' })
   passwordHash!: string;
 
-  @Column({ type: 'simple-array', default: '' })
-  roles!: string[];
+  // Global platform administrator. Tenant-scoped roles live in `memberships`.
+  @Column({ name: 'is_super_admin', default: false })
+  isSuperAdmin!: boolean;
 }

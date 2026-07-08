@@ -1,17 +1,21 @@
 import { env } from '@config/env';
-import type { User } from '@modules/user/user.entity';
+import type { MembershipRole } from '@modules/membership/membership.entity';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import { Service } from 'typedi';
 
+/**
+ * Token claims. `tenantId`/`role` describe the session's active tenant and are
+ * absent for a user with no tenant yet (fresh signup before onboarding).
+ */
 export interface JwtPayload {
   sub: string;
-  roles: string[];
+  tenantId?: string;
+  role?: MembershipRole;
 }
 
 @Service()
 export class TokenService {
-  sign(user: Pick<User, 'id' | 'roles'>): string {
-    const payload: JwtPayload = { sub: user.id, roles: user.roles };
+  sign(payload: JwtPayload): string {
     const options: SignOptions = {
       expiresIn: env.JWT_EXPIRES_IN as SignOptions['expiresIn'],
     };

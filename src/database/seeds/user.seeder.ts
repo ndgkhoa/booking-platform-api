@@ -15,7 +15,7 @@ export class UserSeeder implements Seeder {
           email: adminEmail,
           name: 'Admin',
           passwordHash: await bcrypt.hash(SEED_PASSWORD, 12),
-          roles: ['admin', 'user'],
+          isSuperAdmin: true,
         }),
       );
     }

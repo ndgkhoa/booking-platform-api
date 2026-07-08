@@ -3,6 +3,7 @@ import { ResponseInterceptor } from '@common/interceptors/response.interceptor';
 import { ErrorHandler } from '@common/middlewares/error-handler.middleware';
 import { httpLogger } from '@common/middlewares/http-logger.middleware';
 import { metricsMiddleware } from '@common/middlewares/metrics.middleware';
+import { TenantContextMiddleware } from '@common/middlewares/tenant-context.middleware';
 import { registry } from '@common/monitoring/metrics';
 import { buildProblem, PROBLEM_CONTENT_TYPE } from '@common/types/problem-details';
 import { env } from '@config/env';
@@ -28,11 +29,13 @@ export const routingControllersOptions: RoutingControllersOptions = {
   routePrefix: '/api/v1',
   defaultErrorHandler: false,
   controllers: [path.join(__dirname, 'modules/**/*.controller.{ts,js}')],
-  middlewares: [ErrorHandler],
+  middlewares: [TenantContextMiddleware, ErrorHandler],
   interceptors: [ResponseInterceptor],
   classTransformer: true,
   validation: { whitelist: true, forbidNonWhitelisted: true },
 
+  // Role is resolved from the active-tenant membership carried in the token
+  // claims (set by TenantContextMiddleware). super_admin bypasses tenant scope.
   authorizationChecker: (action: Action, roles: string[]) =>
     new Promise<boolean>((resolve) => {
       passport.authenticate('jwt', { session: false }, (_err: unknown, user: User | false) => {
@@ -41,7 +44,16 @@ export const routingControllersOptions: RoutingControllersOptions = {
           return;
         }
         action.request.user = user;
-        resolve(roles.length === 0 || roles.some((role) => user.roles.includes(role)));
+        if (user.isSuperAdmin) {
+          resolve(true);
+          return;
+        }
+        if (roles.length === 0) {
+          resolve(true);
+          return;
+        }
+        const role = action.request.tokenClaims?.role;
+        resolve(role != null && roles.includes(role));
       })(action.request, action.response, () => undefined);
     }),
 

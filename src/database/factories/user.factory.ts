@@ -9,6 +9,5 @@ export const userFactory = setSeederFactory(User, async (faker) => {
   user.email = faker.internet.email().toLowerCase();
   user.name = faker.person.fullName();
   user.passwordHash = await bcrypt.hash(SEED_PASSWORD, 12);
-  user.roles = ['user'];
   return user;
 });

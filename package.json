@@ -1,7 +1,7 @@
 {
   "name": "booking-platform-api",
   "version": "1.0.0",
-  "description": "Production-ready Express API on the TypeStack ecosystem (routing-controllers + typedi + typeorm)",
+  "description": "Multi-tenant booking SaaS API",
   "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
@@ -40,6 +40,12 @@
   },
   "dependencies": {
     "@godaddy/terminus": "^4.12.1",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/auto-instrumentations-node": "^0.78.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.220.0",
+    "@opentelemetry/resources": "^2.9.0",
+    "@opentelemetry/sdk-node": "^0.220.0",
+    "@opentelemetry/semantic-conventions": "^1.42.0",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.77.6",
     "class-transformer": "^0.5.1",

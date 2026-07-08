@@ -1,0 +1,25 @@
+import { BaseEntity } from '@common/base/entity.base';
+import { Column, Entity, Index } from 'typeorm';
+
+export type TenantStatus = 'active' | 'suspended';
+
+/**
+ * A tenant is the isolation boundary itself — it is NOT tenant-scoped, so it
+ * extends `BaseEntity` (not `BaseTenantEntity`). `timezone` is an IANA name
+ * used to render tenant-local times from UTC storage.
+ */
+@Entity('tenants')
+export class Tenant extends BaseEntity {
+  @Column()
+  name!: string;
+
+  @Index({ unique: true })
+  @Column()
+  slug!: string;
+
+  @Column({ default: 'UTC' })
+  timezone!: string;
+
+  @Column({ type: 'varchar', default: 'active' })
+  status!: TenantStatus;
+}

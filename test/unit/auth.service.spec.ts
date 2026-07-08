@@ -1,12 +1,14 @@
 import { ConflictException, UnauthorizedException } from '@common/exceptions';
 import { AuthService } from '@modules/auth/auth.service';
 import { TokenService } from '@modules/auth/token.service';
+import type { MembershipService } from '@modules/membership/membership.service';
 import type { User } from '@modules/user/user.entity';
 import type { UserRepository } from '@modules/user/user.repository';
 import bcrypt from 'bcryptjs';
 
 describe('AuthService', () => {
   let repo: jest.Mocked<Pick<UserRepository, 'findByEmail' | 'create'>>;
+  let memberships: jest.Mocked<Pick<MembershipService, 'listForUser' | 'resolveRole'>>;
   let service: AuthService;
   let passwordHash: string;
 
@@ -16,7 +18,12 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     repo = { findByEmail: jest.fn(), create: jest.fn() };
-    service = new AuthService(repo as unknown as UserRepository, new TokenService());
+    memberships = { listForUser: jest.fn().mockResolvedValue([]), resolveRole: jest.fn() };
+    service = new AuthService(
+      repo as unknown as UserRepository,
+      new TokenService(),
+      memberships as unknown as MembershipService,
+    );
   });
 
   const makeUser = (overrides: Partial<User> = {}): User =>
@@ -25,7 +32,7 @@ describe('AuthService', () => {
       email: 'a@b.com',
       name: 'A',
       passwordHash,
-      roles: ['user'],
+      isSuperAdmin: false,
       ...overrides,
     }) as User;
 
@@ -44,7 +51,7 @@ describe('AuthService', () => {
       expect(created.passwordHash).toBeDefined();
       expect(created.passwordHash).not.toBe('password123');
       expect(await bcrypt.compare('password123', created.passwordHash as string)).toBe(true);
-      expect(created.roles).toEqual(['user']);
+      expect(created.email).toBe('new@b.com');
       expect(typeof result.token).toBe('string');
     });
 

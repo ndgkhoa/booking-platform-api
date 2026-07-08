@@ -23,6 +23,8 @@ module.exports = {
       roots: ['<rootDir>/test/integration'],
       testMatch: ['**/*.e2e.spec.ts'],
       testTimeout: 120000,
+      globalSetup: '<rootDir>/test/support/global-setup.ts',
+      globalTeardown: '<rootDir>/test/support/global-teardown.ts',
     },
   ],
 };

@@ -65,13 +65,19 @@ Invite: POST /tenants/:id/invites (owner) → InviteToken row + enqueue email
 9. Tests: role resolution matrix, invite happy/expired/reused/wrong-email paths.
 
 ## Todo
-- [ ] JwtPayload → {sub,tenantId,role}; TokenService update
-- [ ] Login tenant-scoped token + switch-tenant endpoint
-- [ ] authorizationChecker via Membership + super_admin bypass
-- [ ] Invite entity/repo/service/controller + DTOs
-- [ ] Invite email job (generalized payload)
-- [ ] Migration: invites table (+RLS)
-- [ ] RBAC + invite tests
+- [x] JwtPayload → {sub,tenantId,role}; TokenService update
+- [x] Drop user.roles → add is_super_admin (migration + backfill, reversible)
+- [x] Tenant-context middleware (decode token → ALS + req.tokenClaims), registered globally
+- [x] authorizationChecker via token role claim + super_admin bypass, fail-closed
+- [x] Login tenant-scoped token (primary membership) + switch-tenant endpoint
+- [x] Tenant onboarding: POST /tenants (atomic tenant + owner membership) → owner-scoped token
+- [x] Shared integration harness (one testcontainer for the whole suite) + onboarding e2e (12 tests green)
+- [ ] Invite entity/repo/service/controller + DTOs — **next slice**
+- [ ] Invite email job (generalized payload) — next slice
+- [ ] Refresh-token rotation + reuse detection — next slice
+
+### Slice note
+This slice landed the auth/tenant-activation core (deferred phase-00 items + onboarding + switch-tenant). Invite flow and refresh-token rotation are the remaining phase-01 slices.
 
 ## Success Criteria
 - Owner-only endpoint rejects staff (403 FORBIDDEN), allows owner.

@@ -1,33 +1,23 @@
 import { randomUUID } from 'node:crypto';
 import { User } from '@modules/user/user.entity';
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { Express } from 'express';
 import request from 'supertest';
-import { Container } from 'typedi';
-import { DataSource } from 'typeorm';
-import { createServer } from '@/server';
+import type { DataSource } from 'typeorm';
+import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 describe('Auth e2e', () => {
-  let container: StartedPostgreSqlContainer;
-  let dataSource: DataSource;
+  let ctx: IntegrationContext;
   let app: Express;
+  let dataSource: DataSource;
 
   beforeAll(async () => {
-    container = await new PostgreSqlContainer('postgres:18.4').start();
-    dataSource = new DataSource({
-      type: 'postgres',
-      url: container.getConnectionUri(),
-      entities: [User],
-      synchronize: true,
-    });
-    await dataSource.initialize();
-    Container.set(DataSource, dataSource);
-    app = createServer();
-  }, 120000);
+    ctx = await initIntegrationContext();
+    app = ctx.app;
+    dataSource = ctx.dataSource;
+  });
 
   afterAll(async () => {
-    await dataSource?.destroy();
-    await container?.stop();
+    await ctx.teardown();
   });
 
   const credentials = () => ({
@@ -78,9 +68,7 @@ describe('Auth e2e', () => {
   async function adminToken(): Promise<string> {
     const creds = credentials();
     await request(app).post('/api/v1/auth/register').send(creds);
-    await dataSource
-      .getRepository(User)
-      .update({ email: creds.email }, { roles: ['admin', 'user'] });
+    await dataSource.getRepository(User).update({ email: creds.email }, { isSuperAdmin: true });
     const login = await request(app)
       .post('/api/v1/auth/login')
       .send({ email: creds.email, password: creds.password });

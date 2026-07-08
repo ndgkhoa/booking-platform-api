@@ -24,7 +24,8 @@
       "@common/*": ["./src/common/*"],
       "@modules/*": ["./src/modules/*"],
       "@database/*": ["./src/database/*"],
-      "@jobs/*": ["./src/jobs/*"]
+      "@jobs/*": ["./src/jobs/*"],
+      "@test/*": ["./test/*"]
     }
   },
   "ts-node": {

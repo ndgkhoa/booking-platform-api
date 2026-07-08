@@ -12,7 +12,7 @@ export function buildOpenApiSpec(options: RoutingControllersOptions): object {
   });
 
   return routingControllersToSpec(getMetadataArgsStorage(), options, {
-    info: { title: 'Express TypeORM API', version: '1.0.0' },
+    info: { title: 'booking-platform-api', version: '1.0.0' },
     components: {
       schemas: schemas as any,
       securitySchemes: {

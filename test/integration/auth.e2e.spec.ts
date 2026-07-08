@@ -13,7 +13,7 @@ describe('Auth e2e', () => {
   let app: Express;
 
   beforeAll(async () => {
-    container = await new PostgreSqlContainer('postgres:17-alpine').start();
+    container = await new PostgreSqlContainer('postgres:18.4').start();
     dataSource = new DataSource({
       type: 'postgres',
       url: container.getConnectionUri(),

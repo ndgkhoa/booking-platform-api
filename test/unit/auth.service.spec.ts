@@ -40,7 +40,7 @@ describe('AuthService', () => {
         password: 'password123',
       });
 
-      const created = repo.create.mock.calls[0][0];
+      const created = repo.create.mock.calls[0]![0];
       expect(created.passwordHash).toBeDefined();
       expect(created.passwordHash).not.toBe('password123');
       expect(await bcrypt.compare('password123', created.passwordHash as string)).toBe(true);

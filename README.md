@@ -1,4 +1,4 @@
-# Express + TypeORM
+# booking-platform-api
 
 Production-ready Express API on the TypeStack ecosystem — decorator-based controllers, dependency injection, ORM, validation — with structured responses, JWT auth, OpenAPI docs, background jobs, metrics, and graceful shutdown.
 
@@ -18,7 +18,7 @@ Production-ready Express API on the TypeStack ecosystem — decorator-based cont
 | Monitoring | prom-client + @godaddy/terminus |
 | Testing | jest + supertest + testcontainers |
 | Lint / format | Biome + husky + lint-staged |
-| Dev / build | ts-node (dev) + tsc + tsc-alias (build) |
+| Dev / build | @swc-node + node --watch (dev) + tsc + tsc-alias (build) |
 
 ## Quick start
 
@@ -37,14 +37,14 @@ pnpm dev                      # http://localhost:3000
 - Metrics: `/metrics` (Prometheus)
 - Background worker: `pnpm worker`
 - API client collection: [`bruno/`](./bruno) (open with [Bruno](https://www.usebruno.com))
-- Full stack in Docker: `docker compose --profile full up -d` (app + Postgres + Redis)
+- Full stack in Docker: `docker compose --profile full up -d` (api + Postgres + Redis)
 - CI: `.github/workflows/ci.yml` (lint, typecheck, test, build, integration)
 
 ## Scripts
 
 | Script | Purpose |
 |--------|---------|
-| `pnpm dev` | Hot-reload dev server (ts-node + node --watch) |
+| `pnpm dev` | Hot-reload dev server (@swc-node + node --watch) |
 | `pnpm build` / `pnpm start` | Compile to `dist/` / run compiled |
 | `pnpm worker` | Run the BullMQ worker process |
 | `pnpm test` / `pnpm test:int` | Unit / integration (testcontainers) tests |

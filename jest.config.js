@@ -1,5 +1,10 @@
 const { pathsToModuleNameMapper } = require('ts-jest');
-const { compilerOptions } = require('./tsconfig.json');
+const ts = require('typescript');
+
+// Read tsconfig through the TypeScript parser so JSONC (comments, trailing
+// commas written by the formatter) is tolerated — a plain require() is not.
+const { config } = ts.readConfigFile('./tsconfig.json', ts.sys.readFile);
+const { compilerOptions } = config;
 
 const base = {
   testEnvironment: 'node',

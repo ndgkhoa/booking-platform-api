@@ -1,3 +1,4 @@
+import { RefreshToken } from '@modules/auth/refresh-token.entity';
 import { Membership } from '@modules/membership/membership.entity';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { User } from '@modules/user/user.entity';
@@ -7,7 +8,7 @@ import { DataSource } from 'typeorm';
 import { createServer } from '@/server';
 
 /** Every entity the integration suite needs registered. Extend as modules land. */
-export const TEST_ENTITIES = [User, Membership, Tenant];
+export const TEST_ENTITIES = [User, Membership, Tenant, RefreshToken];
 
 export interface IntegrationContext {
   dataSource: DataSource;

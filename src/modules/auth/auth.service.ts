@@ -1,6 +1,7 @@
 import { ConflictException, UnauthorizedException } from '@common/exceptions';
 import type { LoginDto } from '@modules/auth/dto/login.dto';
 import type { RegisterDto } from '@modules/auth/dto/register.dto';
+import { RefreshTokenService, type SessionScope } from '@modules/auth/refresh-token.service';
 import { TokenService } from '@modules/auth/token.service';
 import { MembershipService } from '@modules/membership/membership.service';
 import type { User } from '@modules/user/user.entity';
@@ -10,9 +11,13 @@ import { Service } from 'typedi';
 
 const BCRYPT_ROUNDS = 12;
 
-export interface AuthResult {
-  user: User;
+export interface SessionTokens {
   token: string;
+  refreshToken: string;
+}
+
+export interface AuthResult extends SessionTokens {
+  user: User;
 }
 
 @Service()
@@ -21,6 +26,7 @@ export class AuthService {
     private readonly users: UserRepository,
     private readonly tokens: TokenService,
     private readonly memberships: MembershipService,
+    private readonly refreshTokens: RefreshTokenService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResult> {
@@ -29,8 +35,8 @@ export class AuthService {
     }
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
     const user = await this.users.create({ email: dto.email, name: dto.name, passwordHash });
-    // No tenant yet — the token carries only identity until onboarding/invite.
-    return { user, token: this.tokens.sign({ sub: user.id }) };
+    // No tenant yet — the session carries only identity until onboarding/invite.
+    return { user, ...(await this.issueSession(user, {})) };
   }
 
   async login(dto: LoginDto): Promise<AuthResult> {
@@ -38,7 +44,9 @@ export class AuthService {
     if (!user || !(await bcrypt.compare(dto.password, user.passwordHash))) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return { user, token: await this.issueToken(user) };
+    const [primary] = await this.memberships.listForUser(user.id);
+    const scope: SessionScope = primary ? { tenantId: primary.tenantId, role: primary.role } : {};
+    return { user, ...(await this.issueSession(user, scope)) };
   }
 
   async switchTenant(user: User, tenantId: string): Promise<AuthResult> {
@@ -46,17 +54,27 @@ export class AuthService {
     if (!role && !user.isSuperAdmin) {
       throw new UnauthorizedException('Not a member of this tenant');
     }
-    return {
-      user,
-      token: this.tokens.sign({ sub: user.id, tenantId, role: role ?? undefined }),
-    };
+    return { user, ...(await this.issueSession(user, { tenantId, role: role ?? undefined })) };
   }
 
-  /** Signs a token scoped to the user's primary membership, if any. */
-  private async issueToken(user: User): Promise<string> {
-    const [primary] = await this.memberships.listForUser(user.id);
-    return this.tokens.sign(
-      primary ? { sub: user.id, tenantId: primary.tenantId, role: primary.role } : { sub: user.id },
-    );
+  /** Rotates the refresh token and returns a fresh access + refresh pair. */
+  async refresh(refreshToken: string): Promise<SessionTokens> {
+    const rotated = await this.refreshTokens.rotate(refreshToken);
+    const token = this.tokens.sign({
+      sub: rotated.userId,
+      tenantId: rotated.tenantId,
+      role: rotated.role,
+    });
+    return { token, refreshToken: rotated.refreshToken };
+  }
+
+  logout(refreshToken: string): Promise<void> {
+    return this.refreshTokens.revoke(refreshToken);
+  }
+
+  private async issueSession(user: User, scope: SessionScope): Promise<SessionTokens> {
+    const token = this.tokens.sign({ sub: user.id, tenantId: scope.tenantId, role: scope.role });
+    const refreshToken = await this.refreshTokens.issue(user.id, scope);
+    return { token, refreshToken };
   }
 }

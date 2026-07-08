@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { bool, cleanEnv, host, port, str } from 'envalid';
+import { bool, cleanEnv, host, num, port, str } from 'envalid';
 
 export const env = cleanEnv(process.env, {
   NODE_ENV: str({
@@ -17,6 +17,7 @@ export const env = cleanEnv(process.env, {
 
   JWT_SECRET: str(),
   JWT_EXPIRES_IN: str({ default: '15m' }),
+  REFRESH_TOKEN_TTL_DAYS: num({ default: 30 }),
 
   REDIS_HOST: host({ default: 'localhost' }),
   REDIS_PORT: port({ default: 6379 }),

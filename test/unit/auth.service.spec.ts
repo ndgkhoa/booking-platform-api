@@ -1,5 +1,6 @@
 import { ConflictException, UnauthorizedException } from '@common/exceptions';
 import { AuthService } from '@modules/auth/auth.service';
+import type { RefreshTokenService } from '@modules/auth/refresh-token.service';
 import { TokenService } from '@modules/auth/token.service';
 import type { MembershipService } from '@modules/membership/membership.service';
 import type { User } from '@modules/user/user.entity';
@@ -9,6 +10,7 @@ import bcrypt from 'bcryptjs';
 describe('AuthService', () => {
   let repo: jest.Mocked<Pick<UserRepository, 'findByEmail' | 'create'>>;
   let memberships: jest.Mocked<Pick<MembershipService, 'listForUser' | 'resolveRole'>>;
+  let refreshTokens: jest.Mocked<Pick<RefreshTokenService, 'issue' | 'rotate' | 'revoke'>>;
   let service: AuthService;
   let passwordHash: string;
 
@@ -19,10 +21,16 @@ describe('AuthService', () => {
   beforeEach(() => {
     repo = { findByEmail: jest.fn(), create: jest.fn() };
     memberships = { listForUser: jest.fn().mockResolvedValue([]), resolveRole: jest.fn() };
+    refreshTokens = {
+      issue: jest.fn().mockResolvedValue('refresh-plaintext'),
+      rotate: jest.fn(),
+      revoke: jest.fn(),
+    };
     service = new AuthService(
       repo as unknown as UserRepository,
       new TokenService(),
       memberships as unknown as MembershipService,
+      refreshTokens as unknown as RefreshTokenService,
     );
   });
 

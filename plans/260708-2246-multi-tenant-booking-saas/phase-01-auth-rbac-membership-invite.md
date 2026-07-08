@@ -72,12 +72,14 @@ Invite: POST /tenants/:id/invites (owner) → InviteToken row + enqueue email
 - [x] Login tenant-scoped token (primary membership) + switch-tenant endpoint
 - [x] Tenant onboarding: POST /tenants (atomic tenant + owner membership) → owner-scoped token
 - [x] Shared integration harness (one testcontainer for the whole suite) + onboarding e2e (12 tests green)
+- [x] Refresh-token rotation + reuse detection (family revoke on replay) + logout — 5 e2e green
 - [ ] Invite entity/repo/service/controller + DTOs — **next slice**
 - [ ] Invite email job (generalized payload) — next slice
-- [ ] Refresh-token rotation + reuse detection — next slice
 
-### Slice note
-This slice landed the auth/tenant-activation core (deferred phase-00 items + onboarding + switch-tenant). Invite flow and refresh-token rotation are the remaining phase-01 slices.
+### Slice notes
+- Slice 1: auth/tenant-activation core (deferred phase-00 items + onboarding + switch-tenant).
+- Slice 2: refresh-token rotation — opaque token, SHA-256 at rest, `family_id` chain; replay of a rotated token burns the family (theft response). `POST /auth/refresh` + `/auth/logout`. Access token TTL stays short; refresh TTL `REFRESH_TOKEN_TTL_DAYS` (30d). Known simplification: `switch-tenant` scopes the access token for its lifetime; a later refresh re-derives scope from the token's stored snapshot.
+- Remaining: invite flow.
 
 ## Success Criteria
 - Owner-only endpoint rejects staff (403 FORBIDDEN), allows owner.

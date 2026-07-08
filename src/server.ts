@@ -1,11 +1,11 @@
 import path from 'node:path';
+import { getTenantContext } from '@common/context/tenant-context';
 import { ResponseInterceptor } from '@common/interceptors/response.interceptor';
 import { ErrorHandler } from '@common/middlewares/error-handler.middleware';
 import { httpLogger } from '@common/middlewares/http-logger.middleware';
 import { metricsMiddleware } from '@common/middlewares/metrics.middleware';
 import { tenantContextMiddleware } from '@common/middlewares/tenant-context.middleware';
 import { registry } from '@common/monitoring/metrics';
-import { getTenantContext } from '@common/tenant/tenant-context';
 import type { ApiError } from '@common/types/response';
 import { env } from '@config/env';
 import { buildOpenApiSpec } from '@config/swagger';

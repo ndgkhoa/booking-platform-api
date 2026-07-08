@@ -1,7 +1,7 @@
 import { SEED_PASSWORD } from '@database/factories/user.factory';
-import { Role } from '@modules/tenant/role.enum';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { TenantMember } from '@modules/tenant/tenant-member.entity';
+import { TenantRole } from '@modules/tenant/tenant-role.enum';
 import { PlatformRole } from '@modules/user/platform-role.enum';
 import { User } from '@modules/user/user.entity';
 import bcrypt from 'bcryptjs';
@@ -33,7 +33,7 @@ export class UserSeeder implements Seeder {
         dataSource.getRepository(TenantMember).create({
           tenantId: tenant.id,
           userId: admin.id,
-          role: Role.OWNER,
+          role: TenantRole.OWNER,
           joinedAt: new Date(),
         }),
       );

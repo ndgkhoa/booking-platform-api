@@ -18,7 +18,8 @@ Resolved by tsconfig `paths` (dev via ts-node + tsconfig-paths; build via tsc-al
 ## Layering (non-negotiable)
 - **Controller** — routing + DTO binding only. No business logic, no DB.
 - **Service** — business rules; throws domain exceptions; depends on repositories, never the ORM directly.
-- **Repository** — the *only* place with `getRepository`/`QueryBuilder`. One per aggregate (`*.repository.ts`).
+- **Repository** — the *only* place with `getRepository`/`QueryBuilder`. One per aggregate (`*.repository.ts`). Methods that participate in a caller's transaction take an optional `EntityManager` last param.
+- **Exception:** a service orchestrating an atomic multi-entity unit of work may open `dataSource.transaction` and pass the `manager` to repositories; it must not call `getRepository` for querying itself.
 
 ## Responses
 Every success is enveloped by `ResponseInterceptor`: `{ success:true, data, meta? }`. Pre-enveloped payloads (e.g. `paginated()`) pass through untouched. Never hand-build success envelopes in controllers.
@@ -32,7 +33,10 @@ Every success is enveloped by `ResponseInterceptor`: `{ success:true, data, meta
 - Sensitive entity fields use class-transformer `@Exclude` (e.g. `passwordHash`) — stripped from all responses.
 
 ## Files & naming
-- kebab-case, descriptive (`user.repository.ts`, `error-handler.middleware.ts`).
+- kebab-case, descriptive. **Stereotype is the last segment**: `<name>.<stereotype>.ts` — `user.repository.ts`, `error-handler.middleware.ts`, `tenant-role.enum.ts`, `base.entity.ts` (base classes are `base.<stereotype>.ts` → class `Base<Stereotype>`).
+- Plain function-module utilities carry no forced stereotype suffix (`tenant-context.ts`, `postgres-error.ts`, `timeout.ts`).
+- Symbols say what they are and disambiguate their axis: `TenantRole` vs `PlatformRole` (never a bare `Role`); classes PascalCase, files kebab-case matching.
+- Cross-cutting infra lives under `common/` by concern (`common/context`, `common/persistence`), never mirroring a domain module name.
 - Keep files focused/small; one concern per file.
 - Tests: `test/unit/**/*.spec.ts` (unit) and `test/integration/**/*.e2e.spec.ts` (integration).
 

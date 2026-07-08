@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { Role } from '@modules/tenant/role.enum';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { TenantMember } from '@modules/tenant/tenant-member.entity';
+import { TenantRole } from '@modules/tenant/tenant-role.enum';
 import { Service } from 'typedi';
 import type { EntityManager } from 'typeorm';
 
@@ -38,7 +38,7 @@ export class TenantService {
       members.create({
         tenantId: tenant.id,
         userId: params.userId,
-        role: Role.OWNER,
+        role: TenantRole.OWNER,
         joinedAt: new Date(),
       }),
     );

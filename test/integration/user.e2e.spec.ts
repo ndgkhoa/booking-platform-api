@@ -1,5 +1,5 @@
-import { Role } from '@modules/tenant/role.enum';
 import { TenantMember } from '@modules/tenant/tenant-member.entity';
+import { TenantRole } from '@modules/tenant/tenant-role.enum';
 import { startTestApp, stopTestApp, type TestApp } from '@test/integration/support/start-test-app';
 import {
   addMemberToTenant,
@@ -101,7 +101,7 @@ describe('User e2e (tenant-scoped)', () => {
     // Token still claims OWNER; downgrade the membership in the DB to STAFF.
     await dataSource
       .getRepository(TenantMember)
-      .update({ userId: owner.userId, tenantId: owner.tenantId }, { role: Role.STAFF });
+      .update({ userId: owner.userId, tenantId: owner.tenantId }, { role: TenantRole.STAFF });
 
     const res = await request(app).get('/api/v1/users').set(bearer(owner.token));
     expect(res.status).toBe(403); // 200 would mean the token role was trusted

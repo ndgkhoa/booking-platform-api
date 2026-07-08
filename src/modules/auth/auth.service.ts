@@ -1,27 +1,19 @@
 import { ConflictException, UnauthorizedException } from '@common/exceptions';
+import { isUniqueViolation } from '@common/persistence/postgres-error';
 import type { LoginDto } from '@modules/auth/dto/login.dto';
 import type { RegisterDto } from '@modules/auth/dto/register.dto';
 import { RefreshTokenService } from '@modules/auth/refresh-token.service';
 import { TokenService } from '@modules/auth/token.service';
-import { Role } from '@modules/tenant/role.enum';
 import { TenantService } from '@modules/tenant/tenant.service';
 import { TenantMemberRepository } from '@modules/tenant/tenant-member.repository';
+import { TenantRole } from '@modules/tenant/tenant-role.enum';
 import { User } from '@modules/user/user.entity';
 import { UserRepository } from '@modules/user/user.repository';
 import bcrypt from 'bcryptjs';
 import { Service } from 'typedi';
-import { DataSource, type EntityManager, QueryFailedError } from 'typeorm';
+import { DataSource, type EntityManager } from 'typeorm';
 
 const BCRYPT_ROUNDS = 12;
-const PG_UNIQUE_VIOLATION = '23505';
-
-/** True when the error is a Postgres unique-constraint violation. */
-function isUniqueViolation(error: unknown): boolean {
-  return (
-    error instanceof QueryFailedError &&
-    (error.driverError as { code?: string } | undefined)?.code === PG_UNIQUE_VIOLATION
-  );
-}
 
 export interface AuthResult {
   user: User;
@@ -63,7 +55,7 @@ export class AuthService {
           userId: user.id,
           ownerName: dto.name,
         });
-        return this.issueTokens(user, tenant.id, Role.OWNER, manager);
+        return this.issueTokens(user, tenant.id, TenantRole.OWNER, manager);
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -107,7 +99,7 @@ export class AuthService {
   private async issueTokens(
     user: User,
     tenantId: string,
-    role: Role,
+    role: TenantRole,
     manager?: EntityManager,
   ): Promise<AuthResult> {
     const token = this.tokens.signAccess({ sub: user.id, tenantId, role });

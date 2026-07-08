@@ -1,4 +1,4 @@
-import { getTenantId } from '@common/tenant/tenant-context';
+import { getTenantId } from '@common/context/tenant-context';
 import { TenantMember } from '@modules/tenant/tenant-member.entity';
 import { Service } from 'typedi';
 import { DataSource, type Repository } from 'typeorm';

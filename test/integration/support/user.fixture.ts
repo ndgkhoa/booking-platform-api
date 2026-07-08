@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { TokenService } from '@modules/auth/token.service';
-import { Role } from '@modules/tenant/role.enum';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { TenantMember } from '@modules/tenant/tenant-member.entity';
+import { TenantRole } from '@modules/tenant/tenant-role.enum';
 import { User } from '@modules/user/user.entity';
 import type { Express } from 'express';
 import request from 'supertest';
@@ -44,7 +44,7 @@ export async function staffToken(dataSource: DataSource): Promise<string> {
     members.create({
       tenantId: tenant.id,
       userId: user.id,
-      role: Role.STAFF,
+      role: TenantRole.STAFF,
       joinedAt: new Date(),
     }),
   );
@@ -52,7 +52,7 @@ export async function staffToken(dataSource: DataSource): Promise<string> {
   return Container.get(TokenService).signAccess({
     sub: user.id,
     tenantId: tenant.id,
-    role: Role.STAFF,
+    role: TenantRole.STAFF,
   });
 }
 
@@ -74,7 +74,7 @@ export async function addMemberToTenant(
   dataSource: DataSource,
   tenantId: string,
   name = 'Member',
-  role: Role = Role.STAFF,
+  role: TenantRole = TenantRole.STAFF,
 ): Promise<string> {
   const user = await dataSource.getRepository(User).save(
     dataSource.getRepository(User).create({

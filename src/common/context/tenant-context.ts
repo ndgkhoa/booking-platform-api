@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { Role } from '@modules/tenant/role.enum';
+import type { TenantRole } from '@modules/tenant/tenant-role.enum';
 
 /**
  * Request-scoped tenant context propagated via AsyncLocalStorage. Populated by
@@ -9,7 +9,7 @@ import type { Role } from '@modules/tenant/role.enum';
 export interface TenantContext {
   tenantId: string;
   userId: string;
-  role: Role;
+  role: TenantRole;
 }
 
 const storage = new AsyncLocalStorage<TenantContext>();

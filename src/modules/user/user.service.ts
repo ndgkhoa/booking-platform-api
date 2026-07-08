@@ -1,5 +1,5 @@
+import { getTenantId } from '@common/context/tenant-context';
 import { NotFoundException } from '@common/exceptions';
-import { getTenantId } from '@common/tenant/tenant-context';
 import { type ApiResponse, paginated } from '@common/types/response';
 import { TenantMemberRepository } from '@modules/tenant/tenant-member.repository';
 import type { UserQuery } from '@modules/user/dto/query.dto';

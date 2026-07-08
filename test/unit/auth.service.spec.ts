@@ -2,10 +2,10 @@ import { UnauthorizedException } from '@common/exceptions';
 import { AuthService } from '@modules/auth/auth.service';
 import type { RefreshTokenService } from '@modules/auth/refresh-token.service';
 import { TokenService } from '@modules/auth/token.service';
-import { Role } from '@modules/tenant/role.enum';
 import type { TenantService } from '@modules/tenant/tenant.service';
 import type { TenantMember } from '@modules/tenant/tenant-member.entity';
 import type { TenantMemberRepository } from '@modules/tenant/tenant-member.repository';
+import { TenantRole } from '@modules/tenant/tenant-role.enum';
 import type { User } from '@modules/user/user.entity';
 import type { UserRepository } from '@modules/user/user.repository';
 import bcrypt from 'bcryptjs';
@@ -40,7 +40,7 @@ describe('AuthService', () => {
     ({ id: 'u-1', email: 'a@b.com', name: 'A', passwordHash, ...overrides }) as User;
 
   const makeMember = (overrides: Partial<TenantMember> = {}): TenantMember =>
-    ({ tenantId: 't-1', userId: 'u-1', role: Role.OWNER, ...overrides }) as TenantMember;
+    ({ tenantId: 't-1', userId: 'u-1', role: TenantRole.OWNER, ...overrides }) as TenantMember;
 
   describe('login', () => {
     it('returns an access + refresh token pair for the primary membership', async () => {
@@ -53,7 +53,7 @@ describe('AuthService', () => {
       expect(result.refreshToken).toBe('refresh-token');
       expect(refreshTokens.issue).toHaveBeenCalledWith('u-1', 't-1', undefined, undefined);
       const decoded = new TokenService().verifyAccess(result.token);
-      expect(decoded).toMatchObject({ sub: 'u-1', tenantId: 't-1', role: Role.OWNER });
+      expect(decoded).toMatchObject({ sub: 'u-1', tenantId: 't-1', role: TenantRole.OWNER });
     });
 
     it('throws UnauthorizedException on wrong password', async () => {

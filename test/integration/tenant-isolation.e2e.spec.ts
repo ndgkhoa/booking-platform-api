@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { runWithTenant } from '@common/tenant/tenant-context';
-import { withTenantTransaction } from '@common/tenant/tenant-transaction';
-import { Role } from '@modules/tenant/role.enum';
+import { runWithTenant } from '@common/context/tenant-context';
+import { withTenantTransaction } from '@common/persistence/tenant-scoped-transaction';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { TenantMember } from '@modules/tenant/tenant-member.entity';
 import { TenantMemberRepository } from '@modules/tenant/tenant-member.repository';
+import { TenantRole } from '@modules/tenant/tenant-role.enum';
 import { User } from '@modules/user/user.entity';
 import { startTestApp, stopTestApp, type TestApp } from '@test/integration/support/start-test-app';
 import { Container } from 'typedi';
@@ -30,7 +30,7 @@ async function seedTenantWithMember(dataSource: DataSource, label: string): Prom
     members.create({
       tenantId: tenant.id,
       userId: user.id,
-      role: Role.OWNER,
+      role: TenantRole.OWNER,
       joinedAt: new Date(),
     }),
   );
@@ -56,7 +56,7 @@ describe('Tenant isolation', () => {
     const repo = Container.get(TenantMemberRepository);
 
     const rows = await runWithTenant(
-      { tenantId: a.tenantId, userId: a.userId, role: Role.OWNER },
+      { tenantId: a.tenantId, userId: a.userId, role: TenantRole.OWNER },
       () => repo.findAllInTenant(),
     );
 

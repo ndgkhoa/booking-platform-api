@@ -1,5 +1,5 @@
-import { BaseEntity } from '@common/base/entity.base';
-import { Role } from '@modules/tenant/role.enum';
+import { BaseEntity } from '@common/base/base.entity';
+import { TenantRole } from '@modules/tenant/tenant-role.enum';
 import { Column, Entity, Index } from 'typeorm';
 
 /**
@@ -15,8 +15,13 @@ export class TenantMember extends BaseEntity {
   @Column({ name: 'user_id', type: 'uuid' })
   userId!: string;
 
-  @Column({ type: 'enum', enum: Role, enumName: 'tenant_member_role', default: Role.STAFF })
-  role!: Role;
+  @Column({
+    type: 'enum',
+    enum: TenantRole,
+    enumName: 'tenant_member_role',
+    default: TenantRole.STAFF,
+  })
+  role!: TenantRole;
 
   @Column({ name: 'invited_at', type: 'timestamptz', nullable: true })
   invitedAt?: Date | null;

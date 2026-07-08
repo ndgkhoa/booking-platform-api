@@ -1,4 +1,4 @@
-import { Role } from '@modules/tenant/role.enum';
+import { TenantRole } from '@modules/tenant/tenant-role.enum';
 import { UserQuery } from '@modules/user/dto/query.dto';
 import type { User } from '@modules/user/user.entity';
 import { UserService } from '@modules/user/user.service';
@@ -31,7 +31,7 @@ export class UserController {
   }
 
   @Get()
-  @Authorized([Role.OWNER])
+  @Authorized([TenantRole.OWNER])
   @OpenAPI({
     summary: 'List members',
     description:
@@ -52,7 +52,7 @@ export class UserController {
   }
 
   @Delete('/:id')
-  @Authorized([Role.OWNER])
+  @Authorized([TenantRole.OWNER])
   @OnUndefined(204)
   @OpenAPI({
     summary: 'Remove a member',

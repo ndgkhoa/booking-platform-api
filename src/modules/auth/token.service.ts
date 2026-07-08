@@ -1,5 +1,5 @@
 import { env } from '@config/env';
-import type { Role } from '@modules/tenant/role.enum';
+import type { TenantRole } from '@modules/tenant/tenant-role.enum';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import { Service } from 'typedi';
 
@@ -9,7 +9,7 @@ const JWT_ALGORITHM = 'HS256' as const;
 export interface AccessTokenPayload {
   sub: string;
   tenantId: string;
-  role: Role;
+  role: TenantRole;
 }
 
 @Service()

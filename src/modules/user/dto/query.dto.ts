@@ -1,4 +1,4 @@
-import { BaseQuery } from '@common/base/query.base';
+import { BaseQuery } from '@common/base/base.query';
 import { IsOptional, IsString } from 'class-validator';
 
 export class UserQuery extends BaseQuery {

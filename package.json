@@ -6,7 +6,6 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "node --watch -r @swc-node/register -r tsconfig-paths/register src/index.ts",
-    "worker": "node --watch -r @swc-node/register -r tsconfig-paths/register src/worker.ts",
     "clean": "rimraf dist",
     "build": "pnpm clean && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/index.js",

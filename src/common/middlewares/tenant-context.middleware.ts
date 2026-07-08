@@ -1,4 +1,4 @@
-import { runWithTenant } from '@common/tenant/tenant-context';
+import { runWithTenant } from '@common/context/tenant-context';
 import { logger } from '@config/logger';
 import { TokenService } from '@modules/auth/token.service';
 import type { NextFunction, Request, Response } from 'express';

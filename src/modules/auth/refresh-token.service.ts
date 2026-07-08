@@ -1,8 +1,8 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { UnauthorizedException } from '@common/exceptions';
-import { RefreshToken } from '@modules/auth/refresh-token.entity';
+import { RefreshTokenRepository } from '@modules/auth/refresh-token.repository';
 import { Service } from 'typedi';
-import { DataSource, type EntityManager, IsNull, type Repository } from 'typeorm';
+import { DataSource, type EntityManager } from 'typeorm';
 
 const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -19,32 +19,32 @@ export interface RotatedRefresh {
  */
 @Service()
 export class RefreshTokenService {
-  private readonly repo: Repository<RefreshToken>;
-
-  constructor(private readonly dataSource: DataSource) {
-    this.repo = dataSource.getRepository(RefreshToken);
-  }
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly tokens: RefreshTokenRepository,
+  ) {}
 
   private hash(token: string): string {
     return createHash('sha256').update(token).digest('hex');
   }
 
-  /** Persist a fresh token row and return the plaintext (caller keeps it). */
-  private async persist(
-    manager: EntityManager,
+  /** Persist a fresh token row and return the plaintext (caller keeps it) + id. */
+  private async mint(
     userId: string,
     tenantId: string,
     familyId: string,
+    manager?: EntityManager,
   ): Promise<{ token: string; id: string }> {
     const token = randomBytes(32).toString('hex');
-    const row = await manager.getRepository(RefreshToken).save(
-      manager.getRepository(RefreshToken).create({
+    const row = await this.tokens.insert(
+      {
         userId,
         tenantId,
         tokenHash: this.hash(token),
         familyId,
         expiresAt: new Date(Date.now() + REFRESH_TTL_MS),
-      }),
+      },
+      manager,
     );
     return { token, id: row.id };
   }
@@ -54,9 +54,9 @@ export class RefreshTokenService {
     userId: string,
     tenantId: string,
     familyId: string = randomUUID(),
-    manager: EntityManager = this.dataSource.manager,
+    manager?: EntityManager,
   ): Promise<string> {
-    const { token } = await this.persist(manager, userId, tenantId, familyId);
+    const { token } = await this.mint(userId, tenantId, familyId, manager);
     return token;
   }
 
@@ -69,13 +69,12 @@ export class RefreshTokenService {
    * outside the rotation transaction so a subsequent rejection can't roll it back.
    */
   async rotate(token: string): Promise<RotatedRefresh> {
-    const tokenHash = this.hash(token);
-    const record = await this.repo.findOne({ where: { tokenHash } });
+    const record = await this.tokens.findByHash(this.hash(token));
     if (!record) {
       throw new UnauthorizedException('Invalid refresh token');
     }
     if (record.revokedAt) {
-      await this.revokeFamily(record.familyId);
+      await this.tokens.revokeActiveInFamily(record.familyId);
       throw new UnauthorizedException('Refresh token reuse detected');
     }
     if (record.expiresAt.getTime() < Date.now()) {
@@ -84,35 +83,27 @@ export class RefreshTokenService {
 
     try {
       return await this.dataSource.transaction(async (manager) => {
-        const repo = manager.getRepository(RefreshToken);
         // Atomic claim: only the request that flips revoked_at may issue a successor.
-        const claim = await repo.update(
-          { id: record.id, revokedAt: IsNull() },
-          { revokedAt: new Date() },
-        );
-        if (claim.affected !== 1) {
+        const won = await this.tokens.claim(record.id, manager);
+        if (!won) {
           throw new ConcurrentRotationError(record.familyId);
         }
-        const replacement = await this.persist(
-          manager,
+        const replacement = await this.mint(
           record.userId,
           record.tenantId,
           record.familyId,
+          manager,
         );
-        await repo.update(record.id, { replacedBy: replacement.id });
+        await this.tokens.setReplacedBy(record.id, replacement.id, manager);
         return { userId: record.userId, tenantId: record.tenantId, newToken: replacement.token };
       });
     } catch (error) {
       if (error instanceof ConcurrentRotationError) {
-        await this.revokeFamily(error.familyId);
+        await this.tokens.revokeActiveInFamily(error.familyId);
         throw new UnauthorizedException('Refresh token reuse detected');
       }
       throw error;
     }
-  }
-
-  private async revokeFamily(familyId: string): Promise<void> {
-    await this.repo.update({ familyId, revokedAt: IsNull() }, { revokedAt: new Date() });
   }
 }
 

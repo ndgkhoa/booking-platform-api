@@ -16,20 +16,10 @@ export async function runInTenantContext<T>(
   tenantId: string,
   work: (manager: EntityManager) => Promise<T>,
 ): Promise<T> {
-  const queryRunner = dataSource.createQueryRunner();
-  await queryRunner.connect();
-  await queryRunner.startTransaction();
-  try {
-    await queryRunner.query('SELECT set_config($1, $2, true)', ['app.tenant_id', tenantId]);
-    const result = await runWithTenant({ tenantId, manager: queryRunner.manager }, () =>
-      work(queryRunner.manager),
-    );
-    await queryRunner.commitTransaction();
-    return result;
-  } catch (error) {
-    await queryRunner.rollbackTransaction();
-    throw error;
-  } finally {
-    await queryRunner.release();
-  }
+  // `dataSource.transaction` owns connect/commit/rollback/release, so a failure
+  // acquiring the connection or starting the transaction cannot leak it.
+  return dataSource.transaction(async (manager) => {
+    await manager.query('SELECT set_config($1, $2, true)', ['app.tenant_id', tenantId]);
+    return runWithTenant({ tenantId, manager }, () => work(manager));
+  });
 }

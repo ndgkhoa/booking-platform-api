@@ -27,34 +27,40 @@ export abstract class BaseTenantRepository<T extends ObjectLiteral> {
     private readonly target: EntityTarget<T>,
   ) {}
 
+  /**
+   * Resolves the repository. Inside `runInTenantContext` this is the RLS-scoped
+   * transaction manager; otherwise it falls back to the pooled manager where
+   * only Layer-1 filtering applies. NOTE: once RLS is FORCEd (phase-02), reads on
+   * the fallback connection see no rows because `app.tenant_id` is unset — the
+   * per-request RLS strategy is a phase-02 decision.
+   */
   protected get repo(): Repository<T> {
     const manager: EntityManager = getTenantManager() ?? this.dataSource.manager;
     return manager.getRepository(this.target);
   }
 
-  protected scopedWhere(where: FindOptionsWhere<T> = {}): FindOptionsWhere<T> {
-    return { ...where, tenantId: getTenantId() } as FindOptionsWhere<T>;
+  protected scopedWhere(
+    where: FindOptionsWhere<T> | FindOptionsWhere<T>[] = {},
+  ): FindOptionsWhere<T> | FindOptionsWhere<T>[] {
+    const tenantId = getTenantId();
+    // Array `where` is an OR of branches — each branch must carry the tenant
+    // filter, otherwise the spread would drop them and leak across tenants.
+    if (Array.isArray(where)) {
+      return where.map((branch) => ({ ...branch, tenantId }) as FindOptionsWhere<T>);
+    }
+    return { ...where, tenantId } as FindOptionsWhere<T>;
   }
 
   protected findOne(options: FindOneOptions<T> = {}): Promise<T | null> {
-    return this.repo.findOne({
-      ...options,
-      where: this.scopedWhere(options.where as FindOptionsWhere<T>),
-    });
+    return this.repo.findOne({ ...options, where: this.scopedWhere(options.where) });
   }
 
   protected findMany(options: FindManyOptions<T> = {}): Promise<T[]> {
-    return this.repo.find({
-      ...options,
-      where: this.scopedWhere(options.where as FindOptionsWhere<T>),
-    });
+    return this.repo.find({ ...options, where: this.scopedWhere(options.where) });
   }
 
   protected findAndCount(options: FindManyOptions<T> = {}): Promise<[T[], number]> {
-    return this.repo.findAndCount({
-      ...options,
-      where: this.scopedWhere(options.where as FindOptionsWhere<T>),
-    });
+    return this.repo.findAndCount({ ...options, where: this.scopedWhere(options.where) });
   }
 
   protected persist(data: DeepPartial<T>): Promise<T> {

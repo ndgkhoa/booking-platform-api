@@ -64,7 +64,11 @@ export class ErrorHandler implements ExpressErrorMiddlewareInterface {
 
     if (status >= 500) {
       logger.error(error.stack ?? error.message ?? String(error));
-      if (env.isProduction) detail = 'Internal Server Error';
+      if (env.isProduction) {
+        // Never surface internal specifics (stack, query, driver detail) on 5xx.
+        detail = 'Internal Server Error';
+        errors = undefined;
+      }
     }
 
     const problem = buildProblem({ status, code, detail, instance: req.originalUrl, errors });

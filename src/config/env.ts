@@ -25,4 +25,8 @@ export const env = cleanEnv(process.env, {
   LOG_LEVEL: str({ default: 'info' }),
   SWAGGER_ENABLED: bool({ default: true }),
   METRICS_ENABLED: bool({ default: true }),
+
+  OTEL_ENABLED: bool({ default: false }),
+  OTEL_SERVICE_NAME: str({ default: 'booking-platform-api' }),
+  OTEL_EXPORTER_OTLP_ENDPOINT: str({ default: 'http://localhost:4318/v1/traces' }),
 });

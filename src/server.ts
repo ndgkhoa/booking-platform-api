@@ -4,7 +4,7 @@ import { ErrorHandler } from '@common/middlewares/error-handler.middleware';
 import { httpLogger } from '@common/middlewares/http-logger.middleware';
 import { metricsMiddleware } from '@common/middlewares/metrics.middleware';
 import { registry } from '@common/monitoring/metrics';
-import type { ApiError } from '@common/types/response';
+import { buildProblem, PROBLEM_CONTENT_TYPE } from '@common/types/problem-details';
 import { env } from '@config/env';
 import { buildOpenApiSpec } from '@config/swagger';
 import { configurePassport } from '@modules/auth/jwt.strategy';
@@ -25,7 +25,7 @@ import swaggerUi from 'swagger-ui-express';
 import { Container } from 'typedi';
 
 export const routingControllersOptions: RoutingControllersOptions = {
-  routePrefix: '/api',
+  routePrefix: '/api/v1',
   defaultErrorHandler: false,
   controllers: [path.join(__dirname, 'modules/**/*.controller.{ts,js}')],
   middlewares: [ErrorHandler],
@@ -96,14 +96,13 @@ export function createServer(): Express {
       next();
       return;
     }
-    const body: ApiError = {
-      success: false,
-      error: {
-        code: 'NOT_FOUND',
-        message: `Route ${req.method} ${req.path} not found`,
-      },
-    };
-    res.status(404).json(body);
+    const problem = buildProblem({
+      status: 404,
+      code: 'NOT_FOUND',
+      detail: `Route ${req.method} ${req.path} not found`,
+      instance: req.originalUrl,
+    });
+    res.status(404).type(PROBLEM_CONTENT_TYPE).json(problem);
   });
 
   return app;

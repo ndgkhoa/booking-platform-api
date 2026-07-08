@@ -1,3 +1,4 @@
+import '@config/tracing';
 import 'reflect-metadata';
 import http from 'node:http';
 import { withTimeout } from '@common/utils/timeout';

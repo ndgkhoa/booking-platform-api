@@ -1,3 +1,4 @@
+import '@config/tracing';
 import 'reflect-metadata';
 import { logger } from '@config/logger';
 import { redis } from '@config/redis';

@@ -37,7 +37,7 @@ describe('Auth e2e', () => {
   });
 
   it('registers a user (201, enveloped, no passwordHash, token issued)', async () => {
-    const res = await request(app).post('/api/auth/register').send(credentials());
+    const res = await request(app).post('/api/v1/auth/register').send(credentials());
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
     expect(res.body.data.user).not.toHaveProperty('passwordHash');
@@ -46,43 +46,43 @@ describe('Auth e2e', () => {
 
   it('logs in and accesses /users/me with the token', async () => {
     const creds = credentials();
-    await request(app).post('/api/auth/register').send(creds);
+    await request(app).post('/api/v1/auth/register').send(creds);
 
     const login = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: creds.email, password: creds.password });
     expect(login.status).toBe(200);
     const token = login.body.data.token;
 
-    const me = await request(app).get('/api/users/me').set('Authorization', `Bearer ${token}`);
+    const me = await request(app).get('/api/v1/users/me').set('Authorization', `Bearer ${token}`);
     expect(me.status).toBe(200);
     expect(me.body.data.email).toBe(creds.email);
     expect(me.body.data).not.toHaveProperty('passwordHash');
   });
 
   it('rejects /users/me without a token (401)', async () => {
-    const res = await request(app).get('/api/users/me');
+    const res = await request(app).get('/api/v1/users/me');
     expect(res.status).toBe(401);
-    expect(res.body.error.code).toBe('UNAUTHORIZED');
+    expect(res.body.code).toBe('UNAUTHORIZED');
   });
 
   it('rejects invalid registration payload (422 with field details)', async () => {
     const res = await request(app)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({ email: 'bad', name: 'x', password: '123' });
     expect(res.status).toBe(422);
-    expect(res.body.error.code).toBe('VALIDATION_ERROR');
-    expect(Array.isArray(res.body.error.details)).toBe(true);
+    expect(res.body.code).toBe('VALIDATION_ERROR');
+    expect(Array.isArray(res.body.errors)).toBe(true);
   });
 
   async function adminToken(): Promise<string> {
     const creds = credentials();
-    await request(app).post('/api/auth/register').send(creds);
+    await request(app).post('/api/v1/auth/register').send(creds);
     await dataSource
       .getRepository(User)
       .update({ email: creds.email }, { roles: ['admin', 'user'] });
     const login = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: creds.email, password: creds.password });
     return login.body.data.token;
   }
@@ -90,17 +90,17 @@ describe('Auth e2e', () => {
   it('lists users with pagination and name filter (admin)', async () => {
     const token = await adminToken();
     const named = { ...credentials(), name: 'Zaphod Beeblebrox' };
-    await request(app).post('/api/auth/register').send(named);
+    await request(app).post('/api/v1/auth/register').send(named);
 
     const page = await request(app)
-      .get('/api/users?page=1&limit=2')
+      .get('/api/v1/users?page=1&limit=2')
       .set('Authorization', `Bearer ${token}`);
     expect(page.status).toBe(200);
     expect(page.body.data.length).toBeLessThanOrEqual(2);
     expect(page.body.meta.total).toBeGreaterThan(0);
 
     const filtered = await request(app)
-      .get('/api/users?name=Zaphod')
+      .get('/api/v1/users?name=Zaphod')
       .set('Authorization', `Bearer ${token}`);
     expect(filtered.status).toBe(200);
     expect(filtered.body.data.every((u: { name: string }) => u.name.includes('Zaphod'))).toBe(true);
@@ -108,18 +108,18 @@ describe('Auth e2e', () => {
 
   it('rejects list for non-admin (403) and invalid limit (422)', async () => {
     const creds = credentials();
-    await request(app).post('/api/auth/register').send(creds);
+    await request(app).post('/api/v1/auth/register').send(creds);
     const login = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: creds.email, password: creds.password });
 
     const forbidden = await request(app)
-      .get('/api/users')
+      .get('/api/v1/users')
       .set('Authorization', `Bearer ${login.body.data.token}`);
     expect(forbidden.status).toBe(403);
 
     const badLimit = await request(app)
-      .get('/api/users?limit=999')
+      .get('/api/v1/users?limit=999')
       .set('Authorization', `Bearer ${await adminToken()}`);
     expect(badLimit.status).toBe(422);
   });

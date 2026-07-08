@@ -4,6 +4,9 @@ import { logger } from '@config/logger';
 import type { NextFunction, Request, Response } from 'express';
 import { type ExpressErrorMiddlewareInterface, Middleware } from 'routing-controllers';
 import { Service } from 'typedi';
+import { QueryFailedError } from 'typeorm';
+
+const PG_UNIQUE_VIOLATION = '23505';
 
 const STATUS_CODE: Record<number, string> = {
   400: 'BAD_REQUEST',
@@ -52,7 +55,16 @@ export class ErrorHandler implements ExpressErrorMiddlewareInterface {
     let details: unknown = error.details;
     let message: string = error.message ?? 'Error';
 
-    if (isValidationErrors(error.errors)) {
+    const isUniqueViolation =
+      error instanceof QueryFailedError &&
+      (error as unknown as { driverError?: { code?: string } }).driverError?.code ===
+        PG_UNIQUE_VIOLATION;
+
+    if (isUniqueViolation) {
+      status = 409;
+      message = 'Resource already exists';
+      details = undefined;
+    } else if (isValidationErrors(error.errors)) {
       status = 422;
       details = formatValidationErrors(error.errors);
       message = 'Validation failed';

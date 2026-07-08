@@ -17,7 +17,7 @@ describe('Auth e2e', () => {
   });
 
   it('registers a user (201, enveloped, no passwordHash, token issued)', async () => {
-    const res = await request(app).post('/api/auth/register').send(credentials());
+    const res = await request(app).post('/api/v1/auth/register').send(credentials());
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
     expect(res.body.data.user).not.toHaveProperty('passwordHash');
@@ -26,29 +26,29 @@ describe('Auth e2e', () => {
 
   it('logs in and accesses /users/me with the token', async () => {
     const creds = credentials();
-    await request(app).post('/api/auth/register').send(creds);
+    await request(app).post('/api/v1/auth/register').send(creds);
 
     const login = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: creds.email, password: creds.password });
     expect(login.status).toBe(200);
     const token = login.body.data.token;
 
-    const me = await request(app).get('/api/users/me').set('Authorization', `Bearer ${token}`);
+    const me = await request(app).get('/api/v1/users/me').set('Authorization', `Bearer ${token}`);
     expect(me.status).toBe(200);
     expect(me.body.data.email).toBe(creds.email);
     expect(me.body.data).not.toHaveProperty('passwordHash');
   });
 
   it('rejects /users/me without a token (401)', async () => {
-    const res = await request(app).get('/api/users/me');
+    const res = await request(app).get('/api/v1/users/me');
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe('UNAUTHORIZED');
   });
 
   it('rejects invalid registration payload (422 with field details)', async () => {
     const res = await request(app)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({ email: 'bad', name: 'x', password: '123' });
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');

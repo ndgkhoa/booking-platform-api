@@ -25,7 +25,7 @@ import swaggerUi from 'swagger-ui-express';
 import { Container } from 'typedi';
 
 export const routingControllersOptions: RoutingControllersOptions = {
-  routePrefix: '/api',
+  routePrefix: '/api/v1',
   defaultErrorHandler: false,
   controllers: [path.join(__dirname, 'modules/**/*.controller.{ts,js}')],
   middlewares: [ErrorHandler],

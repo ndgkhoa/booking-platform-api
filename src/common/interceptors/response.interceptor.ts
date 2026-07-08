@@ -5,6 +5,9 @@ import { Service } from 'typedi';
 @Interceptor()
 export class ResponseInterceptor implements InterceptorInterface {
   intercept(_action: Action, content: unknown): unknown {
+    if (content === undefined) {
+      return content;
+    }
     if (content && typeof content === 'object' && 'success' in content) {
       return content;
     }

@@ -21,4 +21,11 @@ export class UserService {
     const [items, total] = await this.users.paginate(query);
     return paginated(items, query.page, query.limit, total);
   }
+
+  async delete(id: string): Promise<void> {
+    const deleted = await this.users.softDelete(id);
+    if (!deleted) {
+      throw new NotFoundException(`User ${id} not found`);
+    }
+  }
 }

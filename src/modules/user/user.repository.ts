@@ -23,6 +23,11 @@ export class UserRepository {
     return this.repo.save(this.repo.create(data));
   }
 
+  async softDelete(id: string): Promise<boolean> {
+    const result = await this.repo.softDelete(id);
+    return !!result.affected;
+  }
+
   paginate(query: UserQuery): Promise<[User[], number]> {
     const where: FindOptionsWhere<User> = {};
     if (query.name) where.name = ILike(`%${query.name}%`);
@@ -33,6 +38,7 @@ export class UserRepository {
       skip: (query.page - 1) * query.limit,
       take: query.limit,
       order: { createdAt: 'DESC' },
+      withDeleted: query.includeDeleted,
     });
   }
 }

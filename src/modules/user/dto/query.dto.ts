@@ -1,5 +1,6 @@
 import { BaseQuery } from '@common/base/query.base';
-import { IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class UserQuery extends BaseQuery {
   @IsOptional()
@@ -9,4 +10,9 @@ export class UserQuery extends BaseQuery {
   @IsOptional()
   @IsString()
   email?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  includeDeleted?: boolean;
 }

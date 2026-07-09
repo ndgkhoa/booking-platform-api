@@ -1,4 +1,9 @@
-import { AppException, BadRequestException, NotFoundException } from '@common/exceptions';
+import {
+  AppException,
+  BadRequestException,
+  NotFoundException,
+  UnprocessableStateException,
+} from '@common/exceptions';
 import type { Booking } from '@modules/booking/booking.entity';
 import { BookingRepository } from '@modules/booking/booking.repository';
 import { assertCanTransition } from '@modules/booking/booking-state-machine';
@@ -67,7 +72,7 @@ export class BookingService {
   async reschedule(id: string, dto: RescheduleBookingDto): Promise<Booking> {
     const booking = await this.getOrThrow(id);
     if (!ACTIVE_BOOKING_STATUSES.includes(booking.status)) {
-      throw new BadRequestException('Only active bookings can be rescheduled');
+      throw new UnprocessableStateException('Only active bookings can be rescheduled');
     }
     const service = await this.services.getById(booking.serviceId);
     const startsAt = new Date(dto.startsAt);

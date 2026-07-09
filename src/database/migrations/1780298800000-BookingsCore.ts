@@ -63,7 +63,7 @@ export class BookingsCore1780298800000 implements MigrationInterface {
           "tenant_id" WITH =,
           "staff_id" WITH =,
           tstzrange("starts_at", "ends_at") WITH &&
-        ) WHERE (status IN ('pending', 'confirmed'))
+        ) WHERE (status IN ('pending', 'confirmed') AND "deleted_at" IS NULL)
     `);
 
     for (const table of RLS_TABLES) {

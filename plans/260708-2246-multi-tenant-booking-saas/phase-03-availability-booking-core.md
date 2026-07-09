@@ -93,6 +93,8 @@ Transitions → BookingStateMachine.assertCanTransition(from,to) → update WHER
 - [x] Capability gate (staff canPerform service) + tenant-scoped customer/service checks
 - [x] **Concurrency e2e: 10 parallel → exactly 1 wins**, freed-slot rebook, illegal transition (422), stale version (409), cannot-perform (400) — 44 integration green
 - [x] state-machine unit tests
+- [x] Review fixes: EXCLUDE excludes `deleted_at IS NULL` (soft-deleted active row can't block a slot); reschedule state error → 422.
+- Deferred (documented, not blockers): completing/no-showing a *future* booking frees its slot (operator edge — add a time guard in hardening); no per-booking ownership authz (staff-managed model; customer-owns-booking is future); past-dated bookings accepted; no DB CHECK on status enum.
 
 **Slice B — availability (next):**
 - [ ] AvailabilityService (windows − timeOff − bookings ± buffer; slot slicing; luxon DST-safe local→UTC)

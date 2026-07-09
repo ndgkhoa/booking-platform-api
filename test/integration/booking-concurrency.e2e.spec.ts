@@ -22,7 +22,7 @@ describe('Booking concurrency & lifecycle e2e', () => {
       ALTER TABLE "bookings" ADD CONSTRAINT "bookings_no_overlap"
         EXCLUDE USING gist (
           "tenant_id" WITH =, "staff_id" WITH =, tstzrange("starts_at", "ends_at") WITH &&
-        ) WHERE (status IN ('pending', 'confirmed'))
+        ) WHERE (status IN ('pending', 'confirmed') AND "deleted_at" IS NULL)
     `);
   });
 

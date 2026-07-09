@@ -1,4 +1,4 @@
-import { UserQuery } from '@modules/user/dto/query.dto';
+import { ListUsersDto } from '@modules/user/dto/list-users.dto';
 import type { User } from '@modules/user/user.entity';
 import { UserService } from '@modules/user/user.service';
 import {
@@ -24,7 +24,7 @@ export class UserController {
 
   @Get()
   @Authorized(['super_admin'])
-  list(@QueryParams() query: UserQuery) {
+  list(@QueryParams() query: ListUsersDto) {
     return this.users.list(query);
   }
 

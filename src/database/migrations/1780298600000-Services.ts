@@ -24,8 +24,9 @@ export class Services1780298600000 implements MigrationInterface {
       )
     `);
     await queryRunner.query('CREATE INDEX "IDX_services_tenant" ON "services" ("tenant_id")');
+    // Partial: a soft-deleted service must not block re-creating the same name.
     await queryRunner.query(
-      'CREATE UNIQUE INDEX "UQ_services_tenant_name" ON "services" ("tenant_id", "name")',
+      'CREATE UNIQUE INDEX "UQ_services_tenant_name" ON "services" ("tenant_id", "name") WHERE "deleted_at" IS NULL',
     );
 
     // Row-Level Security: defence-in-depth over the app-layer tenant filter.

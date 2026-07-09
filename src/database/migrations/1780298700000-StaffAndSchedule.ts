@@ -23,7 +23,7 @@ export class StaffAndSchedule1780298700000 implements MigrationInterface {
     `);
     await queryRunner.query('CREATE INDEX "IDX_staff_tenant" ON "staff" ("tenant_id")');
     await queryRunner.query(
-      'CREATE UNIQUE INDEX "UQ_staff_tenant_user" ON "staff" ("tenant_id", "user_id")',
+      'CREATE UNIQUE INDEX "UQ_staff_tenant_user" ON "staff" ("tenant_id", "user_id") WHERE "deleted_at" IS NULL',
     );
 
     await queryRunner.query(`
@@ -45,7 +45,7 @@ export class StaffAndSchedule1780298700000 implements MigrationInterface {
       'CREATE INDEX "IDX_staff_services_tenant" ON "staff_services" ("tenant_id")',
     );
     await queryRunner.query(
-      'CREATE UNIQUE INDEX "UQ_staff_services" ON "staff_services" ("tenant_id", "staff_id", "service_id")',
+      'CREATE UNIQUE INDEX "UQ_staff_services" ON "staff_services" ("tenant_id", "staff_id", "service_id") WHERE "deleted_at" IS NULL',
     );
 
     await queryRunner.query(`
@@ -67,6 +67,17 @@ export class StaffAndSchedule1780298700000 implements MigrationInterface {
     await queryRunner.query(
       'CREATE INDEX "IDX_working_hours_staff_weekday" ON "working_hours" ("tenant_id", "staff_id", "weekday")',
     );
+    // DB-level guarantee that a staff's intervals on a weekday never overlap
+    // (half-open int4range), closing the check-then-insert race. Maps to 23P01.
+    await queryRunner.query(`
+      ALTER TABLE "working_hours" ADD CONSTRAINT "no_overlap_working_hours"
+        EXCLUDE USING gist (
+          "tenant_id" WITH =,
+          "staff_id" WITH =,
+          "weekday" WITH =,
+          int4range("start_min", "end_min") WITH &&
+        ) WHERE ("deleted_at" IS NULL)
+    `);
 
     await queryRunner.query(`
       CREATE TABLE "time_off" (

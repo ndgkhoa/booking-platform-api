@@ -118,4 +118,16 @@ describe('Service catalog e2e', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(gone.status).toBe(404);
   });
+
+  it('allows re-creating a service with the name of a soft-deleted one', async () => {
+    const token = await ownerToken();
+    const body = { name: 'Reusable', durationMin: 30, priceAmount: 50000 };
+    const first = await create(token, body);
+    await request(app)
+      .delete(`/api/v1/services/${first.body.data.id}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    const recreated = await create(token, body);
+    expect(recreated.status).toBe(201);
+  });
 });

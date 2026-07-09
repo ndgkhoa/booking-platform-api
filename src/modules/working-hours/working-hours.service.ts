@@ -18,17 +18,26 @@ export class WorkingHoursService {
       throw new BadRequestException('startMin must be before endMin');
     }
     // Half-open intervals: overlap when start < other.end AND other.start < end.
+    // The app check gives a friendly message; the DB EXCLUDE constraint (23P01)
+    // is the race-proof backstop.
     const sameDay = await this.hours.findForStaffWeekday(staffId, dto.weekday);
     const overlaps = sameDay.some((h) => dto.startMin < h.endMin && h.startMin < dto.endMin);
     if (overlaps) {
       throw new ConflictException('Working hours overlap an existing interval');
     }
-    return this.hours.createOne({
-      staffId,
-      weekday: dto.weekday,
-      startMin: dto.startMin,
-      endMin: dto.endMin,
-    });
+    try {
+      return await this.hours.createOne({
+        staffId,
+        weekday: dto.weekday,
+        startMin: dto.startMin,
+        endMin: dto.endMin,
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code === '23P01') {
+        throw new ConflictException('Working hours overlap an existing interval');
+      }
+      throw error;
+    }
   }
 
   list(staffId: string): Promise<WorkingHours[]> {

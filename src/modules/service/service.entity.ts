@@ -7,7 +7,7 @@ import { Column, Entity, Index } from 'typeorm';
  * slot before/after for cleanup or prep and feed availability (phase-03).
  */
 @Entity('services')
-@Index(['tenantId', 'name'], { unique: true })
+@Index(['tenantId', 'name'], { unique: true, where: '"deleted_at" IS NULL' })
 export class Service extends BaseTenantEntity {
   @Column()
   name!: string;

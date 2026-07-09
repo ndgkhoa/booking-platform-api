@@ -21,6 +21,10 @@ export class StaffServiceRepository extends BaseTenantRepository<StaffService> {
     return this.findOne({ where: { staffId, serviceId } });
   }
 
+  findByService(serviceId: string): Promise<StaffService[]> {
+    return this.findMany({ where: { serviceId } });
+  }
+
   async unlink(staffId: string, serviceId: string): Promise<boolean> {
     const where = this.scopedWhere({ staffId, serviceId }) as FindOptionsWhere<StaffService>;
     const result = await this.repo.delete(where);

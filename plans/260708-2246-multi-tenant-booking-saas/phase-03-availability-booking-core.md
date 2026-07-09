@@ -96,10 +96,12 @@ Transitions → BookingStateMachine.assertCanTransition(from,to) → update WHER
 - [x] Review fixes: EXCLUDE excludes `deleted_at IS NULL` (soft-deleted active row can't block a slot); reschedule state error → 422.
 - Deferred (documented, not blockers): completing/no-showing a *future* booking frees its slot (operator edge — add a time guard in hardening); no per-booking ownership authz (staff-managed model; customer-owns-booking is future); past-dated bookings accepted; no DB CHECK on status enum.
 
-**Slice B — availability (next):**
-- [ ] AvailabilityService (windows − timeOff − bookings ± buffer; slot slicing; luxon DST-safe local→UTC)
-- [ ] GET /availability + query DTO; filter capable + active staff (excl. soft-deleted)
-- [ ] DST availability unit tests
+**Slice B — availability (done):**
+- [x] AvailabilityService (windows − timeOff − bookings ± buffer; slot slicing; luxon DST-safe local→UTC) — aggregating read service
+- [x] pure helpers: `local-time` (localMinutesToUtc, weekdayInZone) + `slot-generator`
+- [x] GET /availability + query DTO; filter capable + active staff (skips soft-deleted/inactive)
+- [x] DST unit tests (EST/EDT offset) + slot-generator unit tests; e2e (UTC slice + booking removal + NY-timezone offset) — 46 integration green
+- Buffer model: existing booking blocks a candidate within ±(buffer_before+buffer_after); documented simplification (uses the queried service's buffers).
 
 **Slice C — idempotency + ETag (next):**
 - [ ] Idempotency-Key on POST /bookings (entity + helper)

@@ -32,8 +32,12 @@ export class StaffService {
     }
   }
 
+  findById(id: string): Promise<Staff | null> {
+    return this.staff.findById(id);
+  }
+
   async getById(id: string): Promise<Staff> {
-    const staff = await this.staff.findById(id);
+    const staff = await this.findById(id);
     if (!staff) {
       throw new NotFoundException('Staff not found');
     }

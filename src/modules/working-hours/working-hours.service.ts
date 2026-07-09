@@ -44,6 +44,10 @@ export class WorkingHoursService {
     return this.hours.listForStaff(staffId);
   }
 
+  forStaffWeekday(staffId: string, weekday: number): Promise<WorkingHours[]> {
+    return this.hours.findForStaffWeekday(staffId, weekday);
+  }
+
   async remove(id: string): Promise<void> {
     if (!(await this.hours.remove(id))) {
       throw new NotFoundException('Working hours not found');

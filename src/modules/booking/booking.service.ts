@@ -53,6 +53,10 @@ export class BookingService {
     return this.getOrThrow(id);
   }
 
+  activeForStaffBetween(staffId: string, from: Date, to: Date): Promise<Booking[]> {
+    return this.bookings.findActiveForStaffBetween(staffId, from, to);
+  }
+
   confirm(id: string, version: number): Promise<Booking> {
     return this.transition(id, version, 'confirmed');
   }

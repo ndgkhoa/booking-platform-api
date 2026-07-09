@@ -71,6 +71,9 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
+      luxon:
+        specifier: ^3.7.2
+        version: 3.7.2
       morgan:
         specifier: ^1.10.1
         version: 1.10.1
@@ -141,6 +144,9 @@ importers:
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
+      '@types/luxon':
+        specifier: ^3.7.2
+        version: 3.7.2
       '@types/morgan':
         specifier: ^1.9.10
         version: 1.9.10
@@ -1495,6 +1501,9 @@ packages:
 
   '@types/jsonwebtoken@9.0.10':
     resolution: {integrity: sha512-asx5hIG9Qmf/1oStypjanR7iKTv0gXQ1Ov/jfrX6kS/EO0OFni8orbmGCn0672NHR3kXHwpAwR+B368ZGN/2rA==}
+
+  '@types/luxon@3.7.2':
+    resolution: {integrity: sha512-gW+Oib+vUtGJBtNC8V9Reww0oIpusw+4m81uncg9REGZAJfqOQHfo/nkabnc7w0QReXyPqjrbWMJk6NuAkiX3Q==}
 
   '@types/memcached@2.2.10':
     resolution: {integrity: sha512-AM9smvZN55Gzs2wRrqeMHVP7KE8KWgCJO/XL5yCly2xF6EKa4YlbpK+cLSAH4NG/Ah64HrlegmGqW8kYws7Vxg==}
@@ -5827,6 +5836,8 @@ snapshots:
     dependencies:
       '@types/ms': 2.1.0
       '@types/node': 25.9.1
+
+  '@types/luxon@3.7.2': {}
 
   '@types/memcached@2.2.10':
     dependencies:

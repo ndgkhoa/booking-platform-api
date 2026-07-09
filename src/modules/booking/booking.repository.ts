@@ -1,10 +1,10 @@
 import { BaseTenantRepository } from '@common/base/tenant-repository.base';
-import { AppException, ConflictException } from '@common/exceptions';
+import { AppException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
 import { Booking } from '@modules/booking/booking.entity';
-import type { BookingStatus } from '@modules/booking/booking-status';
+import { ACTIVE_BOOKING_STATUSES, type BookingStatus } from '@modules/booking/booking-status';
 import { Service } from 'typedi';
-import { DataSource } from 'typeorm';
+import { DataSource, In, LessThan, MoreThan } from 'typeorm';
 
 @Service()
 export class BookingRepository extends BaseTenantRepository<Booking> {
@@ -23,6 +23,18 @@ export class BookingRepository extends BaseTenantRepository<Booking> {
 
   findById(id: string): Promise<Booking | null> {
     return this.findOne({ where: { id } });
+  }
+
+  /** Active bookings for a staff overlapping [from, to) — for availability. */
+  findActiveForStaffBetween(staffId: string, from: Date, to: Date): Promise<Booking[]> {
+    return this.findMany({
+      where: {
+        staffId,
+        status: In([...ACTIVE_BOOKING_STATUSES]),
+        startsAt: LessThan(to),
+        endsAt: MoreThan(from),
+      },
+    });
   }
 
   /** Optimistic status change: succeeds only if the version still matches. */

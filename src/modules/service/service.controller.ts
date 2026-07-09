@@ -1,5 +1,6 @@
 import { BaseQuery } from '@common/base/query.base';
 import { paginated } from '@common/types/response';
+import { OWNER_ONLY } from '@modules/auth/roles';
 import { CreateServiceDto } from '@modules/service/dto/create-service.dto';
 import { UpdateServiceDto } from '@modules/service/dto/update-service.dto';
 import { ServiceService } from '@modules/service/service.service';
@@ -38,19 +39,19 @@ export class ServiceController {
 
   @Post()
   @HttpCode(201)
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   create(@Body() dto: CreateServiceDto) {
     return this.catalog.create(dto);
   }
 
   @Patch('/:id')
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   update(@Param('id') id: string, @Body() dto: UpdateServiceDto) {
     return this.catalog.update(id, dto);
   }
 
   @Delete('/:id')
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   async remove(@Param('id') id: string) {
     await this.catalog.remove(id);
     return { success: true };

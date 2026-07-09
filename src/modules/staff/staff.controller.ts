@@ -1,5 +1,6 @@
 import { BaseQuery } from '@common/base/query.base';
 import { paginated } from '@common/types/response';
+import { OWNER_ONLY } from '@modules/auth/roles';
 import { CreateStaffDto } from '@modules/staff/dto/create-staff.dto';
 import { UpdateStaffDto } from '@modules/staff/dto/update-staff.dto';
 import { StaffService } from '@modules/staff/staff.service';
@@ -37,19 +38,19 @@ export class StaffController {
 
   @Post()
   @HttpCode(201)
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   create(@Body() dto: CreateStaffDto) {
     return this.staff.create(dto);
   }
 
   @Patch('/:id')
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   update(@Param('id') id: string, @Body() dto: UpdateStaffDto) {
     return this.staff.update(id, dto);
   }
 
   @Delete('/:id')
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   async remove(@Param('id') id: string) {
     await this.staff.remove(id);
     return { success: true };

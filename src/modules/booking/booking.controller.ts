@@ -1,3 +1,4 @@
+import { TENANT_MEMBER } from '@modules/auth/roles';
 import { BookingService } from '@modules/booking/booking.service';
 import { CreateBookingDto } from '@modules/booking/dto/create-booking.dto';
 import { RescheduleBookingDto } from '@modules/booking/dto/reschedule-booking.dto';
@@ -21,7 +22,7 @@ export class BookingController {
 
   @Post()
   @HttpCode(201)
-  @Authorized(['owner', 'staff'])
+  @Authorized(TENANT_MEMBER)
   create(@Body() dto: CreateBookingDto) {
     return this.bookings.create(dto);
   }
@@ -33,31 +34,31 @@ export class BookingController {
   }
 
   @Post('/:id/confirm')
-  @Authorized(['owner', 'staff'])
+  @Authorized(TENANT_MEMBER)
   confirm(@Param('id') id: string, @Body() dto: TransitionBookingDto) {
     return this.bookings.confirm(id, dto.version);
   }
 
   @Post('/:id/complete')
-  @Authorized(['owner', 'staff'])
+  @Authorized(TENANT_MEMBER)
   complete(@Param('id') id: string, @Body() dto: TransitionBookingDto) {
     return this.bookings.complete(id, dto.version);
   }
 
   @Post('/:id/cancel')
-  @Authorized(['owner', 'staff'])
+  @Authorized(TENANT_MEMBER)
   cancel(@Param('id') id: string, @Body() dto: TransitionBookingDto) {
     return this.bookings.cancel(id, dto.version);
   }
 
   @Post('/:id/no-show')
-  @Authorized(['owner', 'staff'])
+  @Authorized(TENANT_MEMBER)
   noShow(@Param('id') id: string, @Body() dto: TransitionBookingDto) {
     return this.bookings.noShow(id, dto.version);
   }
 
   @Patch('/:id/reschedule')
-  @Authorized(['owner', 'staff'])
+  @Authorized(TENANT_MEMBER)
   reschedule(@Param('id') id: string, @Body() dto: RescheduleBookingDto) {
     return this.bookings.reschedule(id, dto);
   }

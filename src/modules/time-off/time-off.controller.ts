@@ -1,3 +1,4 @@
+import { OWNER_ONLY } from '@modules/auth/roles';
 import { CreateTimeOffDto } from '@modules/time-off/dto/create-time-off.dto';
 import { TimeOffService } from '@modules/time-off/time-off.service';
 import {
@@ -25,13 +26,13 @@ export class TimeOffController {
 
   @Post()
   @HttpCode(201)
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   create(@Param('staffId') staffId: string, @Body() dto: CreateTimeOffDto) {
     return this.timeOff.create(staffId, dto);
   }
 
   @Delete('/:id')
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   async remove(@Param('id') id: string) {
     await this.timeOff.remove(id);
     return { success: true };

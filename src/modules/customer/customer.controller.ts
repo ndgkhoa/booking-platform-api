@@ -1,5 +1,6 @@
 import { BaseQuery } from '@common/base/query.base';
 import { paginated } from '@common/types/response';
+import { TENANT_MEMBER } from '@modules/auth/roles';
 import { CustomerService } from '@modules/customer/customer.service';
 import { CreateCustomerDto } from '@modules/customer/dto/create-customer.dto';
 import {
@@ -34,7 +35,7 @@ export class CustomerController {
 
   @Post()
   @HttpCode(201)
-  @Authorized(['owner', 'staff'])
+  @Authorized(TENANT_MEMBER)
   create(@Body() dto: CreateCustomerDto) {
     return this.customers.create(dto);
   }

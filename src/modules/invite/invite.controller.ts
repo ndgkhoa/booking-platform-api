@@ -1,3 +1,4 @@
+import { OWNER_ONLY } from '@modules/auth/roles';
 import { AcceptInviteDto } from '@modules/invite/dto/accept-invite.dto';
 import { CreateInviteDto } from '@modules/invite/dto/create-invite.dto';
 import { InviteService } from '@modules/invite/invite.service';
@@ -13,7 +14,7 @@ export class InviteController {
   /** Owner invites someone to the active tenant. Token is returned to share. */
   @Post()
   @HttpCode(201)
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   async create(@Body() dto: CreateInviteDto) {
     const { invite, token } = await this.invites.create(dto.email, dto.role);
     return {

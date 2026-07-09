@@ -1,3 +1,4 @@
+import { OWNER_ONLY } from '@modules/auth/roles';
 import { LinkServiceDto } from '@modules/staff-service/dto/link-service.dto';
 import { StaffServiceService } from '@modules/staff-service/staff-service.service';
 import {
@@ -25,13 +26,13 @@ export class StaffServiceController {
 
   @Post()
   @HttpCode(201)
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   link(@Param('staffId') staffId: string, @Body() dto: LinkServiceDto) {
     return this.capabilities.link(staffId, dto.serviceId);
   }
 
   @Delete('/:serviceId')
-  @Authorized(['owner'])
+  @Authorized(OWNER_ONLY)
   async unlink(@Param('staffId') staffId: string, @Param('serviceId') serviceId: string) {
     await this.capabilities.unlink(staffId, serviceId);
     return { success: true };

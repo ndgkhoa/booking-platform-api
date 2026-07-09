@@ -10,25 +10,28 @@ export class Money {
   ) {}
 
   static of(amount: number, currency = 'VND'): Money {
-    if (!Number.isInteger(amount)) {
-      throw new Error('Money amount must be an integer in minor units');
+    if (!Number.isSafeInteger(amount)) {
+      throw new Error('Money amount must be a safe integer in minor units');
     }
     if (amount < 0) {
       throw new Error('Money amount must be non-negative');
+    }
+    if (currency.length !== 3) {
+      throw new Error('Money currency must be a 3-letter ISO code');
     }
     return new Money(amount, currency.toUpperCase());
   }
 
   add(other: Money): Money {
     this.assertSameCurrency(other);
-    return new Money(this.amount + other.amount, this.currency);
+    return Money.of(this.amount + other.amount, this.currency);
   }
 
   multiply(factor: number): Money {
     if (!Number.isInteger(factor) || factor < 0) {
       throw new Error('Money multiplier must be a non-negative integer');
     }
-    return new Money(this.amount * factor, this.currency);
+    return Money.of(this.amount * factor, this.currency);
   }
 
   equals(other: Money): boolean {

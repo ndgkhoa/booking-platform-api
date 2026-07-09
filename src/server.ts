@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { ResponseInterceptor } from '@common/interceptors/response.interceptor';
+import { TenantTransactionInterceptor } from '@common/interceptors/tenant-transaction.interceptor';
 import { ErrorHandler } from '@common/middlewares/error-handler.middleware';
 import { httpLogger } from '@common/middlewares/http-logger.middleware';
 import { metricsMiddleware } from '@common/middlewares/metrics.middleware';
@@ -30,7 +31,7 @@ export const routingControllersOptions: RoutingControllersOptions = {
   defaultErrorHandler: false,
   controllers: [path.join(__dirname, 'modules/**/*.controller.{ts,js}')],
   middlewares: [TenantContextMiddleware, ErrorHandler],
-  interceptors: [ResponseInterceptor],
+  interceptors: [TenantTransactionInterceptor, ResponseInterceptor],
   classTransformer: true,
   validation: { whitelist: true, forbidNonWhitelisted: true },
 

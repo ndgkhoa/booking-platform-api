@@ -15,6 +15,7 @@ export const env = cleanEnv(process.env, {
   DB_USER: str(),
   DB_PASSWORD: str(),
   DB_NAME: str(),
+  DB_POOL_MAX: num({ default: 10 }),
 
   JWT_SECRET: str(),
   JWT_EXPIRES_IN: str({ default: '15m' }),

@@ -27,9 +27,12 @@ export class ServiceRepository extends BaseTenantRepository<ServiceEntity> {
   }
 
   async update(id: string, data: Partial<ServiceEntity>): Promise<ServiceEntity | null> {
-    const existing = await this.findOne({ where: { id } });
-    if (!existing) return null;
-    return this.repo.save(Object.assign(existing, data));
+    // Write only the provided columns (no read-modify-write) to avoid clobbering
+    // concurrent updates to other fields.
+    const where = this.scopedWhere({ id }) as FindOptionsWhere<ServiceEntity>;
+    const result = await this.repo.update(where, data);
+    if (!result.affected) return null;
+    return this.findOne({ where: { id } });
   }
 
   async softRemove(id: string): Promise<boolean> {

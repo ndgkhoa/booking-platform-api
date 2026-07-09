@@ -6,7 +6,7 @@
 
 ## Overview
 - **Priority:** P0 (the differentiator)
-- **Status:** pending
+- **Status:** ⏭️ Next (in progress)
 - **Description:** `AvailabilityService` (hardest domain logic), `Booking` entity with Postgres `EXCLUDE` double-booking guard, explicit state machine, Idempotency-Key on POST, `@VersionColumn` optimistic lock for reschedule/cancel, and concurrency integration test proving exactly-1-wins.
 
 ## Key Insights

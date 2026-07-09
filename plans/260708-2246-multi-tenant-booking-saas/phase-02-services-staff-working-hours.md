@@ -6,7 +6,7 @@
 
 ## Overview
 - **Priority:** P1
-- **Status:** pending
+- **Status:** ✅ Done
 - **Description:** Bookable catalog. `Service` (duration, price, buffer), `Staff` (linked to a Membership user), staff↔service capability link, weekly `WorkingHours`, and `TimeOff` overrides. Pure CRUD + constraints; no availability computation yet (phase-03).
 
 ## Key Insights
@@ -74,13 +74,18 @@ Tenant
 - [x] Cross-tenant isolation: Layer-1 e2e (service catalog) + Layer-2 DB RLS proof (rls-isolation via SET ROLE) — 31 integration green
 - [x] Documented RLS superuser caveat + resolved phase-00 M3 (per-request tenant-tx strategy)
 
-**Slice B (next):**
-- [ ] Staff entity/repo/service/controller (user_id, membership guard)
-- [ ] StaffService capability link
-- [ ] WorkingHours CRUD + overlap validation
-- [ ] TimeOff CRUD
-- [ ] Migration: staff+schedule (+RLS on each, composite indexes)
-- [ ] Invite/refresh RLS carve-out decision (H2 from phase-01 review) — invites/refresh_tokens stay RLS-free (token = capability), documented
+**Slice B (done):**
+- [x] Staff module: entity/repo/`StaffService`/controller (user_id, membership guard)
+- [x] Capability as its own `staff-service` module: `StaffService` entity + `StaffServiceService` + controller (link/unlink/list)
+- [x] `working-hours` module: CRUD + half-open overlap rejection
+- [x] `time-off` module: CRUD + range validation
+- [x] Migration: staff + staff_services + working_hours + time_off (+RLS ENABLE/FORCE/policy each, composite indexes), reversible
+- [x] Layering audit + fixes: cross-module goes through services (auth→UserService, jwt→UserService, schedule→StaffService); tenant onboard documented as unit-of-work
+- [x] Naming: strict `XService` everywhere (`ServiceService`, `StaffService`, `StaffServiceService`, `WorkingHoursService`, `TimeOffService`)
+- [x] e2e: staff CRUD + isolation, capability link/unlink, working-hours overlap, time-off validation (38 integration green)
+- Invite/refresh stay RLS-free (token = capability), documented.
+
+**Phase 02 COMPLETE.** 13 unit + 38 integration green.
 
 ### Slice A note
 RLS is enforced per request via a tenant transaction; app connects as superuser in dev/test so Layer-1 is active there and Layer-2 (RLS) is proven at the DB layer. Production runs as a non-superuser role. `invites`/`refresh_tokens` intentionally RLS-free (global-lookup-by-secret).

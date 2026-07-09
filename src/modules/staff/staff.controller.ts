@@ -1,8 +1,8 @@
 import { BaseQuery } from '@common/base/query.base';
 import { paginated } from '@common/types/response';
-import { CreateServiceDto } from '@modules/service/dto/create-service.dto';
-import { UpdateServiceDto } from '@modules/service/dto/update-service.dto';
-import { ServiceService } from '@modules/service/service.service';
+import { CreateStaffDto } from '@modules/staff/dto/create-staff.dto';
+import { UpdateStaffDto } from '@modules/staff/dto/update-staff.dto';
+import { StaffService } from '@modules/staff/staff.service';
 import {
   Authorized,
   Body,
@@ -18,41 +18,40 @@ import {
 import { Service } from 'typedi';
 
 @Service()
-@JsonController('/services')
-export class ServiceController {
-  constructor(private readonly catalog: ServiceService) {}
+@JsonController('/staff')
+export class StaffController {
+  constructor(private readonly staff: StaffService) {}
 
-  // Any tenant member may read; only owners mutate the catalog.
   @Get()
   @Authorized()
   async list(@QueryParams() query: BaseQuery) {
-    const [items, total] = await this.catalog.list(query);
+    const [items, total] = await this.staff.list(query);
     return paginated(items, query.page, query.limit, total);
   }
 
   @Get('/:id')
   @Authorized()
   get(@Param('id') id: string) {
-    return this.catalog.getById(id);
+    return this.staff.getById(id);
   }
 
   @Post()
   @HttpCode(201)
   @Authorized(['owner'])
-  create(@Body() dto: CreateServiceDto) {
-    return this.catalog.create(dto);
+  create(@Body() dto: CreateStaffDto) {
+    return this.staff.create(dto);
   }
 
   @Patch('/:id')
   @Authorized(['owner'])
-  update(@Param('id') id: string, @Body() dto: UpdateServiceDto) {
-    return this.catalog.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateStaffDto) {
+    return this.staff.update(id, dto);
   }
 
   @Delete('/:id')
   @Authorized(['owner'])
   async remove(@Param('id') id: string) {
-    await this.catalog.remove(id);
+    await this.staff.remove(id);
     return { success: true };
   }
 }

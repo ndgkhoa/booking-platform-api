@@ -1,7 +1,7 @@
 ---
 title: "Multi-Tenant Booking SaaS API"
 description: "Evolve Express/TypeStack boilerplate into a phased, tenant-isolated booking platform with EXCLUDE-based double-booking prevention."
-status: pending
+status: in-progress (phases 00–02 done; phase 03 next)
 priority: P1
 effort: ~18-24d
 branch: main
@@ -23,10 +23,10 @@ Build ON existing stack (Express4 + routing-controllers + TypeDI + TypeORM + PG 
 
 | # | Phase | Status | Depends | File |
 |---|-------|--------|---------|------|
-| 00 | Foundation: tenant context (ALS), RLS mechanism, BaseTenant entity/repo, /api/v1, Tenant+Membership schema. (OTel/RFC7807/self-registration = follow-on slices) | ✅ core done | — | [phase-00](phase-00-tenant-foundation-and-rls.md) |
-| 01 | Auth + JWT `tenant_id` claim + **tenant-context middleware** + RBAC via Membership + **drop user.roles** + email invite + **refresh-token rotation & reuse detection** | pending | 00 | [phase-01](phase-01-auth-rbac-membership-invite.md) |
-| 02 | Services + Staff + staff-service link + working hours + time-off + **RLS policies & cross-tenant isolation test** (first tenant-scoped tables) | pending | 00,01 | [phase-02](phase-02-services-staff-working-hours.md) |
-| 03 | **CORE**: AvailabilityService + Booking + EXCLUDE + state machine + idempotency + optimistic lock (+ **ETag/If-Match**) + concurrency tests | pending | 02 | [phase-03](phase-03-availability-booking-core.md) |
+| 00 | Foundation: tenant context (ALS), RLS mechanism, BaseTenant entity/repo, /api/v1, Tenant+Membership schema, OTel, RFC 7807 | ✅ done | — | [phase-00](phase-00-tenant-foundation-and-rls.md) |
+| 01 | Auth + JWT `tenant_id` claim + tenant-context middleware + RBAC via Membership + drop user.roles + email invite + refresh-token rotation & reuse detection | ✅ done | 00 | [phase-01](phase-01-auth-rbac-membership-invite.md) |
+| 02 | Services + Staff + staff-service link + working hours + time-off + RLS policies & cross-tenant isolation (per-request tenant tx) | ✅ done | 00,01 | [phase-02](phase-02-services-staff-working-hours.md) |
+| 03 | **CORE**: AvailabilityService + Booking + EXCLUDE + state machine + idempotency + optimistic lock (+ **ETag/If-Match**) + concurrency tests | ⏭️ next | 02 | [phase-03](phase-03-availability-booking-core.md) |
 | 04 | Notifications: Outbox + email confirm/reminder + internal webhook | pending | 03 | [phase-04](phase-04-outbox-notifications-webhooks.md) |
 | 05 | Reporting/analytics (bookings/revenue by time/service/staff) | pending | 03 | [phase-05](phase-05-reporting-analytics.md) |
 | 06 | Recurring bookings | pending | 03 | [phase-06](phase-06-recurring-bookings.md) |

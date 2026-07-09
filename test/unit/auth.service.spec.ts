@@ -4,11 +4,11 @@ import type { RefreshTokenService } from '@modules/auth/refresh-token.service';
 import { TokenService } from '@modules/auth/token.service';
 import type { MembershipService } from '@modules/membership/membership.service';
 import type { User } from '@modules/user/user.entity';
-import type { UserRepository } from '@modules/user/user.repository';
+import type { UserService } from '@modules/user/user.service';
 import bcrypt from 'bcryptjs';
 
 describe('AuthService', () => {
-  let repo: jest.Mocked<Pick<UserRepository, 'findByEmail' | 'create'>>;
+  let repo: jest.Mocked<Pick<UserService, 'findByEmail' | 'create'>>;
   let memberships: jest.Mocked<Pick<MembershipService, 'listForUser' | 'resolveRole'>>;
   let refreshTokens: jest.Mocked<Pick<RefreshTokenService, 'issue' | 'claim' | 'revoke'>>;
   let service: AuthService;
@@ -27,7 +27,7 @@ describe('AuthService', () => {
       revoke: jest.fn(),
     };
     service = new AuthService(
-      repo as unknown as UserRepository,
+      repo as unknown as UserService,
       new TokenService(),
       memberships as unknown as MembershipService,
       refreshTokens as unknown as RefreshTokenService,

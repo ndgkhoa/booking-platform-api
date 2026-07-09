@@ -6,7 +6,7 @@
 
 ## Overview
 - **Priority:** P1
-- **Status:** pending
+- **Status:** ✅ Done
 - **Description:** Replace `users.roles`-based authz with Membership-derived RBAC scoped to active tenant. JWT carries `tenant_id`. Email invite flow (BullMQ) to add owner/staff to a tenant.
 
 ## Key Insights

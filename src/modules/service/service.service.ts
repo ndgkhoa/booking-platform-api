@@ -8,7 +8,7 @@ import { Service } from 'typedi';
 
 /** Application service managing the tenant's bookable-service catalog. */
 @Service()
-export class ServiceCatalog {
+export class ServiceService {
   constructor(private readonly services: ServiceRepository) {}
 
   async create(dto: CreateServiceDto): Promise<ServiceEntity> {

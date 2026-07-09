@@ -62,7 +62,8 @@ Layered (controller→service→repository) as the default, with a **pure domain
 - **Pure domain (framework-free, unit-tested in isolation):** availability engine, booking state machine, value objects (`Money`, `TimeRange`). No TypeORM/Express imports here.
 - **Framework edge:** controllers (HTTP), repositories (TypeORM), queues (BullMQ), adapters (payment/webhook clients).
 - **Dependency rule:** domain depends on nothing; services orchestrate domain + repositories; controllers depend on services.
-- One module per aggregate under `@modules/*` (`booking/`, `availability/`, `service/`, `staff/`, `tenant/`, `membership/`, `customer/`, `billing/`).
+- **Cross-module dependencies go through services, not repositories.** A service injects its OWN module's repositories, but reaches other modules only via their *service* (public API) — never their repository. Reaching into another module's repository bypasses that module's invariants and couples to its persistence. Example: `StaffCapabilityService` verifies a service via `ServiceCatalog.getById`, not `ServiceRepository`.
+- One module per aggregate under `@modules/*` — keep modules cohesive; split when a module accretes distinct concerns (e.g. `staff/` = profiles + capability, `schedule/` = working hours + time-off).
 
 ## Multi-tenant rules (non-negotiable)
 - Tenant-scoped entities extend `BaseTenantEntity` (adds `tenant_id` + composite lead index). All uniques scoped: `UNIQUE(tenant_id, …)`. Every composite index leads with `tenant_id`.

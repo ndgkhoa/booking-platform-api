@@ -18,7 +18,12 @@ export class TenantService {
     private readonly dataSource: DataSource,
   ) {}
 
-  /** Creates a tenant and its owner membership atomically. */
+  /**
+   * Creates a tenant and its owner membership atomically. This spans two
+   * aggregates in one transaction (a unit of work), so it uses the transaction
+   * manager directly rather than routing through MembershipService — going
+   * through another service would run on a separate connection and break atomicity.
+   */
   async onboard(userId: string, input: CreateTenantInput): Promise<Tenant> {
     try {
       return await this.dataSource.transaction(async (manager) => {

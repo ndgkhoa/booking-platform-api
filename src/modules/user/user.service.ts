@@ -9,8 +9,20 @@ import { Service } from 'typedi';
 export class UserService {
   constructor(private readonly users: UserRepository) {}
 
+  findById(id: string): Promise<User | null> {
+    return this.users.findById(id);
+  }
+
+  findByEmail(email: string): Promise<User | null> {
+    return this.users.findByEmail(email);
+  }
+
+  create(data: Pick<User, 'email' | 'name' | 'passwordHash'>): Promise<User> {
+    return this.users.create(data);
+  }
+
   async getById(id: string): Promise<User> {
-    const user = await this.users.findById(id);
+    const user = await this.findById(id);
     if (!user) {
       throw new NotFoundException(`User ${id} not found`);
     }

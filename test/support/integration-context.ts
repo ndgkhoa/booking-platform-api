@@ -2,15 +2,30 @@ import { RefreshToken } from '@modules/auth/refresh-token.entity';
 import { Invite } from '@modules/invite/invite.entity';
 import { Membership } from '@modules/membership/membership.entity';
 import { Service } from '@modules/service/service.entity';
+import { Staff } from '@modules/staff/staff.entity';
+import { StaffService } from '@modules/staff-service/staff-service.entity';
 import { Tenant } from '@modules/tenant/tenant.entity';
+import { TimeOff } from '@modules/time-off/time-off.entity';
 import { User } from '@modules/user/user.entity';
+import { WorkingHours } from '@modules/working-hours/working-hours.entity';
 import type { Express } from 'express';
 import { Container } from 'typedi';
 import { DataSource } from 'typeorm';
 import { createServer } from '@/server';
 
 /** Every entity the integration suite needs registered. Extend as modules land. */
-export const TEST_ENTITIES = [User, Membership, Tenant, RefreshToken, Invite, Service];
+export const TEST_ENTITIES = [
+  User,
+  Membership,
+  Tenant,
+  RefreshToken,
+  Invite,
+  Service,
+  Staff,
+  StaffService,
+  WorkingHours,
+  TimeOff,
+];
 
 export interface IntegrationContext {
   dataSource: DataSource;

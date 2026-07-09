@@ -6,7 +6,7 @@
 
 ## Overview
 - **Priority:** P1 (blocks everything)
-- **Status:** pending
+- **Status:** ✅ Done
 - **Description:** Establish tenant context propagation (AsyncLocalStorage), `BaseTenantEntity`/`BaseTenantRepository` auto-filter, Postgres RLS wiring, `/api/v1` versioning, `Tenant` + `Membership` entities, and rework `User` to remove `roles`.
 
 ## Key Insights

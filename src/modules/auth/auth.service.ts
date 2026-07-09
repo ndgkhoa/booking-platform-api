@@ -6,7 +6,7 @@ import { TokenService } from '@modules/auth/token.service';
 import type { MembershipRole } from '@modules/membership/membership.entity';
 import { MembershipService } from '@modules/membership/membership.service';
 import type { User } from '@modules/user/user.entity';
-import { UserRepository } from '@modules/user/user.repository';
+import { UserService } from '@modules/user/user.service';
 import bcrypt from 'bcryptjs';
 import { Service } from 'typedi';
 
@@ -24,7 +24,7 @@ export interface AuthResult extends SessionTokens {
 @Service()
 export class AuthService {
   constructor(
-    private readonly users: UserRepository,
+    private readonly users: UserService,
     private readonly tokens: TokenService,
     private readonly memberships: MembershipService,
     private readonly refreshTokens: RefreshTokenService,

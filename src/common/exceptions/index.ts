@@ -5,6 +5,7 @@ export {
   ForbiddenException,
   GoneException,
   NotFoundException,
+  PreconditionFailedException,
   UnauthorizedException,
   UnprocessableStateException,
   ValidationException,

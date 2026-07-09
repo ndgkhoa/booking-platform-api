@@ -6,7 +6,7 @@
 
 ## Overview
 - **Priority:** P0 (the differentiator)
-- **Status:** ⏭️ Next (in progress)
+- **Status:** ✅ Done
 - **Description:** `AvailabilityService` (hardest domain logic), `Booking` entity with Postgres `EXCLUDE` double-booking guard, explicit state machine, Idempotency-Key on POST, `@VersionColumn` optimistic lock for reschedule/cancel, and concurrency integration test proving exactly-1-wins.
 
 ## Key Insights
@@ -104,9 +104,14 @@ Transitions → BookingStateMachine.assertCanTransition(from,to) → update WHER
 - Buffer model: existing booking padded by the queried service's buffers on their correct sides (before at start, after at end); documented simplification (booking's own service buffers not loaded). Availability is UX pre-filter; EXCLUDE (no buffer) is the guarantee.
 - Review fixes (verified against luxon empirically): **H1 DST bug** — `localMinutesToUtc` used `.plus({minutes})` (absolute minutes) → wall-clock drifted ±1h on transition days; switched to `.set({hour,minute})` (wall-clock, DST-correct). **H2** — added spring-forward/fall-back unit regression tests + day-end minute-1440 test. **M1** — buffer no longer summed+doubled on both sides. **M2** — time-off query bounded (`overlapping(from,to)`) instead of load-all-then-filter. **M3** — `@IsTimeZone` on tenant onboarding + invalid-date → 400.
 
-**Slice C — idempotency + ETag (next):**
-- [ ] Idempotency-Key on POST /bookings (entity + helper)
-- [ ] ETag / If-Match on reschedule/cancel (from @VersionColumn)
+**Slice C — idempotency + ETag (done):**
+- [x] Idempotency-Key on POST /bookings — `@common/idempotency` (entity + repo + service), tenant-scoped + RLS, request-hash bound
+- [x] `INSERT ... ON CONFLICT DO NOTHING` claim (NOT caught 23505) so the per-request transaction isn't poisoned; runs inside the booking tx → replay returns the stored response, reused-key-different-body → 409, concurrent same-key → one booking
+- [x] ETag on GET /bookings/:id (from @VersionColumn) + If-Match on reschedule → 412 on mismatch (body version still 409)
+- [x] `PreconditionFailedException` (412); migration idempotency_keys (+RLS, reversible)
+- [x] e2e: replay / reused-key-409 / concurrent-dedup / ETag+If-Match(412); guarded EXCLUDE constraint in shared-container specs (drop-if-exists) — 50 integration + 23 unit green, stable across repeated runs
+
+**Phase 03 COMPLETE.** 23 unit + 50 integration green.
 
 ## Success Criteria
 - Concurrency test: 20 parallel identical bookings → exactly 1 persists, others 409 `BOOKING_SLOT_TAKEN`.

@@ -1,3 +1,4 @@
+import { IdempotencyKey } from '@common/idempotency/idempotency-key.entity';
 import { RefreshToken } from '@modules/auth/refresh-token.entity';
 import { Booking } from '@modules/booking/booking.entity';
 import { Customer } from '@modules/customer/customer.entity';
@@ -29,6 +30,7 @@ export const TEST_ENTITIES = [
   TimeOff,
   Customer,
   Booking,
+  IdempotencyKey,
 ];
 
 export interface IntegrationContext {

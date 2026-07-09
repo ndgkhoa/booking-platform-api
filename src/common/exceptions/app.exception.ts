@@ -49,6 +49,12 @@ export class GoneException extends AppException {
   }
 }
 
+export class PreconditionFailedException extends AppException {
+  constructor(message = 'Precondition failed', details?: unknown) {
+    super(412, 'PRECONDITION_FAILED', message, details);
+  }
+}
+
 export class UnprocessableStateException extends AppException {
   constructor(message = 'Unprocessable state transition', details?: unknown) {
     super(422, 'INVALID_STATE_TRANSITION', message, details);

@@ -2,8 +2,10 @@ import {
   AppException,
   BadRequestException,
   NotFoundException,
+  PreconditionFailedException,
   UnprocessableStateException,
 } from '@common/exceptions';
+import { IdempotencyService } from '@common/idempotency/idempotency.service';
 import type { Booking } from '@modules/booking/booking.entity';
 import { BookingRepository } from '@modules/booking/booking.repository';
 import { assertCanTransition } from '@modules/booking/booking-state-machine';
@@ -24,9 +26,15 @@ export class BookingService {
     private readonly services: ServiceService,
     private readonly capabilities: StaffServiceService,
     private readonly customers: CustomerService,
+    private readonly idempotency: IdempotencyService,
   ) {}
 
-  async create(dto: CreateBookingDto): Promise<Booking> {
+  /** Creates a booking, deduplicated by an optional Idempotency-Key. */
+  create(dto: CreateBookingDto, idempotencyKey?: string): Promise<Booking> {
+    return this.idempotency.run(idempotencyKey, dto, () => this.doCreate(dto));
+  }
+
+  private async doCreate(dto: CreateBookingDto): Promise<Booking> {
     const service = await this.services.getById(dto.serviceId); // 404 if missing in tenant
     if (!(await this.capabilities.canPerform(dto.staffId, dto.serviceId))) {
       throw new BadRequestException('This staff member cannot perform the selected service');
@@ -73,7 +81,17 @@ export class BookingService {
     return this.transition(id, version, BookingStatus.NoShow);
   }
 
-  async reschedule(id: string, dto: RescheduleBookingDto): Promise<Booking> {
+  /** `ifMatchVersion` (from the If-Match header) takes precedence and maps a
+   *  mismatch to 412; otherwise the body version maps a mismatch to 409. */
+  async reschedule(
+    id: string,
+    dto: RescheduleBookingDto,
+    ifMatchVersion?: number,
+  ): Promise<Booking> {
+    const version = ifMatchVersion ?? dto.version;
+    if (version == null) {
+      throw new BadRequestException('A version is required, via the If-Match header or the body');
+    }
     const booking = await this.getOrThrow(id);
     if (!ACTIVE_BOOKING_STATUSES.includes(booking.status)) {
       throw new UnprocessableStateException('Only active bookings can be rescheduled');
@@ -82,9 +100,11 @@ export class BookingService {
     const startsAt = new Date(dto.startsAt);
     const endsAt = new Date(startsAt.getTime() + service.durationMin * MINUTE_MS);
 
-    const applied = await this.bookings.applyReschedule(id, dto.version, startsAt, endsAt);
+    const applied = await this.bookings.applyReschedule(id, version, startsAt, endsAt);
     if (!applied) {
-      throw this.staleError();
+      throw ifMatchVersion != null
+        ? new PreconditionFailedException('Booking version does not match If-Match')
+        : this.staleError();
     }
     return this.getOrThrow(id);
   }

@@ -1,16 +1,20 @@
 import { UnprocessableStateException } from '@common/exceptions';
-import type { BookingStatus } from '@modules/booking/booking-status';
+import { BookingStatus } from '@modules/booking/booking-status';
 
 /**
  * Explicit booking lifecycle. All allowed status changes live here so transition
  * rules are one source of truth, not scattered `if`s across the service.
  */
 const TRANSITIONS: Record<BookingStatus, readonly BookingStatus[]> = {
-  pending: ['confirmed', 'cancelled', 'no_show'],
-  confirmed: ['completed', 'cancelled', 'no_show'],
-  completed: [],
-  cancelled: [],
-  no_show: [],
+  [BookingStatus.Pending]: [BookingStatus.Confirmed, BookingStatus.Cancelled, BookingStatus.NoShow],
+  [BookingStatus.Confirmed]: [
+    BookingStatus.Completed,
+    BookingStatus.Cancelled,
+    BookingStatus.NoShow,
+  ],
+  [BookingStatus.Completed]: [],
+  [BookingStatus.Cancelled]: [],
+  [BookingStatus.NoShow]: [],
 };
 
 export function canTransition(from: BookingStatus, to: BookingStatus): boolean {

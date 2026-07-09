@@ -1,6 +1,6 @@
 import { NotFoundException } from '@common/exceptions';
 import { type ApiResponse, paginated } from '@common/types/response';
-import type { ListUsersDto } from '@modules/user/dto/list-users.dto';
+import type { UserQuery } from '@modules/user/dto/user-query.dto';
 import type { User } from '@modules/user/user.entity';
 import { UserRepository } from '@modules/user/user.repository';
 import { Service } from 'typedi';
@@ -29,7 +29,7 @@ export class UserService {
     return user;
   }
 
-  async list(query: ListUsersDto): Promise<ApiResponse<User[]>> {
+  async list(query: UserQuery): Promise<ApiResponse<User[]>> {
     const [items, total] = await this.users.paginate(query);
     return paginated(items, query.page, query.limit, total);
   }

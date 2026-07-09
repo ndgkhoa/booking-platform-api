@@ -1,5 +1,5 @@
 import { SUPER_ADMIN_ONLY } from '@modules/auth/roles';
-import { ListUsersDto } from '@modules/user/dto/list-users.dto';
+import { UserQuery } from '@modules/user/dto/user-query.dto';
 import type { User } from '@modules/user/user.entity';
 import { UserService } from '@modules/user/user.service';
 import {
@@ -25,7 +25,7 @@ export class UserController {
 
   @Get()
   @Authorized(SUPER_ADMIN_ONLY)
-  list(@QueryParams() query: ListUsersDto) {
+  list(@QueryParams() query: UserQuery) {
     return this.users.list(query);
   }
 

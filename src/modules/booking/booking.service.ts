@@ -7,7 +7,7 @@ import {
 import type { Booking } from '@modules/booking/booking.entity';
 import { BookingRepository } from '@modules/booking/booking.repository';
 import { assertCanTransition } from '@modules/booking/booking-state-machine';
-import { ACTIVE_BOOKING_STATUSES, type BookingStatus } from '@modules/booking/booking-status';
+import { ACTIVE_BOOKING_STATUSES, BookingStatus } from '@modules/booking/booking-status';
 import type { CreateBookingDto } from '@modules/booking/dto/create-booking.dto';
 import type { RescheduleBookingDto } from '@modules/booking/dto/reschedule-booking.dto';
 import { CustomerService } from '@modules/customer/customer.service';
@@ -43,7 +43,7 @@ export class BookingService {
       customerId: dto.customerId,
       startsAt,
       endsAt,
-      status: 'pending',
+      status: BookingStatus.Pending,
       priceAmount: service.priceAmount,
       priceCurrency: service.priceCurrency,
     });
@@ -58,19 +58,19 @@ export class BookingService {
   }
 
   confirm(id: string, version: number): Promise<Booking> {
-    return this.transition(id, version, 'confirmed');
+    return this.transition(id, version, BookingStatus.Confirmed);
   }
 
   complete(id: string, version: number): Promise<Booking> {
-    return this.transition(id, version, 'completed');
+    return this.transition(id, version, BookingStatus.Completed);
   }
 
   cancel(id: string, version: number): Promise<Booking> {
-    return this.transition(id, version, 'cancelled');
+    return this.transition(id, version, BookingStatus.Cancelled);
   }
 
   noShow(id: string, version: number): Promise<Booking> {
-    return this.transition(id, version, 'no_show');
+    return this.transition(id, version, BookingStatus.NoShow);
   }
 
   async reschedule(id: string, dto: RescheduleBookingDto): Promise<Booking> {

@@ -26,6 +26,10 @@ export class TimeOffService {
     return this.timeOff.listForStaff(staffId);
   }
 
+  overlapping(staffId: string, from: Date, to: Date): Promise<TimeOff[]> {
+    return this.timeOff.overlapping(staffId, from, to);
+  }
+
   async remove(id: string): Promise<void> {
     if (!(await this.timeOff.remove(id))) {
       throw new NotFoundException('Time-off not found');

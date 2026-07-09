@@ -12,6 +12,25 @@ describe('local-time (DST-safe conversion)', () => {
     );
   });
 
+  it('keeps wall-clock time correct across DST transition days', () => {
+    // 09:00 local must map to the offset of the target date, not drift ±1h.
+    // Spring-forward (2026-03-08): after the jump New York is EDT (UTC-4).
+    expect(localMinutesToUtc('2026-03-08', 540, 'America/New_York').toISOString()).toBe(
+      '2026-03-08T13:00:00.000Z',
+    );
+    // Fall-back (2026-11-01): after the fall New York is EST (UTC-5).
+    expect(localMinutesToUtc('2026-11-01', 540, 'America/New_York').toISOString()).toBe(
+      '2026-11-01T14:00:00.000Z',
+    );
+  });
+
+  it('maps minute 1440 to the next local midnight (DST-aware day end)', () => {
+    // End of the spring-forward day → next local midnight is 04:00Z (EDT).
+    expect(localMinutesToUtc('2026-03-08', 1440, 'America/New_York').toISOString()).toBe(
+      '2026-03-09T04:00:00.000Z',
+    );
+  });
+
   it('maps weekday to 0=Sun..6=Sat', () => {
     expect(weekdayInZone('2026-01-04', 'UTC')).toBe(0); // Sunday
     expect(weekdayInZone('2026-01-05', 'UTC')).toBe(1); // Monday

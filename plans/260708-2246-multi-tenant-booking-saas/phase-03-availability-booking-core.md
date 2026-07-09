@@ -101,7 +101,8 @@ Transitions → BookingStateMachine.assertCanTransition(from,to) → update WHER
 - [x] pure helpers: `local-time` (localMinutesToUtc, weekdayInZone) + `slot-generator`
 - [x] GET /availability + query DTO; filter capable + active staff (skips soft-deleted/inactive)
 - [x] DST unit tests (EST/EDT offset) + slot-generator unit tests; e2e (UTC slice + booking removal + NY-timezone offset) — 46 integration green
-- Buffer model: existing booking blocks a candidate within ±(buffer_before+buffer_after); documented simplification (uses the queried service's buffers).
+- Buffer model: existing booking padded by the queried service's buffers on their correct sides (before at start, after at end); documented simplification (booking's own service buffers not loaded). Availability is UX pre-filter; EXCLUDE (no buffer) is the guarantee.
+- Review fixes (verified against luxon empirically): **H1 DST bug** — `localMinutesToUtc` used `.plus({minutes})` (absolute minutes) → wall-clock drifted ±1h on transition days; switched to `.set({hour,minute})` (wall-clock, DST-correct). **H2** — added spring-forward/fall-back unit regression tests + day-end minute-1440 test. **M1** — buffer no longer summed+doubled on both sides. **M2** — time-off query bounded (`overlapping(from,to)`) instead of load-all-then-filter. **M3** — `@IsTimeZone` on tenant onboarding + invalid-date → 400.
 
 **Slice C — idempotency + ETag (next):**
 - [ ] Idempotency-Key on POST /bookings (entity + helper)

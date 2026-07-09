@@ -1,7 +1,6 @@
-import { IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsTimeZone, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class CreateTenantDto {
-  @IsString()
   @MinLength(2)
   @MaxLength(80)
   name!: string;
@@ -11,7 +10,8 @@ export class CreateTenantDto {
   @MaxLength(40)
   slug!: string;
 
+  // IANA zone, validated up-front so availability never computes on a bad zone.
   @IsOptional()
-  @IsString()
+  @IsTimeZone()
   timezone?: string;
 }

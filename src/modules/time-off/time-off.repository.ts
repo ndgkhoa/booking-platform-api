@@ -1,7 +1,7 @@
 import { BaseTenantRepository } from '@common/base/tenant-repository.base';
 import { TimeOff } from '@modules/time-off/time-off.entity';
 import { Service } from 'typedi';
-import { DataSource, type FindOptionsWhere } from 'typeorm';
+import { DataSource, type FindOptionsWhere, LessThan, MoreThan } from 'typeorm';
 
 @Service()
 export class TimeOffRepository extends BaseTenantRepository<TimeOff> {
@@ -15,6 +15,11 @@ export class TimeOffRepository extends BaseTenantRepository<TimeOff> {
 
   listForStaff(staffId: string): Promise<TimeOff[]> {
     return this.findMany({ where: { staffId }, order: { startsAt: 'ASC' } });
+  }
+
+  /** Time-off for a staff overlapping [from, to) — bounded for availability. */
+  overlapping(staffId: string, from: Date, to: Date): Promise<TimeOff[]> {
+    return this.findMany({ where: { staffId, startsAt: LessThan(to), endsAt: MoreThan(from) } });
   }
 
   async remove(id: string): Promise<boolean> {

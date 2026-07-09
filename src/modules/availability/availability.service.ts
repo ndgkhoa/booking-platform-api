@@ -1,6 +1,11 @@
+import { BadRequestException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
 import type { AvailabilityQuery } from '@modules/availability/dto/availability-query.dto';
-import { localMinutesToUtc, weekdayInZone } from '@modules/availability/local-time';
+import {
+  isValidLocalDate,
+  localMinutesToUtc,
+  weekdayInZone,
+} from '@modules/availability/local-time';
 import { generateSlots, type MsInterval } from '@modules/availability/slot-generator';
 import { BookingService } from '@modules/booking/booking.service';
 import { ServiceService } from '@modules/service/service.service';
@@ -39,11 +44,15 @@ export class AvailabilityService {
   ) {}
 
   async compute(query: AvailabilityQuery): Promise<AvailabilitySlot[]> {
+    if (!isValidLocalDate(query.date)) {
+      throw new BadRequestException('date is not a valid calendar date');
+    }
     const service = await this.services.getById(query.serviceId);
     const zone = (await this.tenants.getById(getTenantId())).timezone;
     const weekday = weekdayInZone(query.date, zone);
     const durationMs = service.durationMin * MINUTE_MS;
-    const bufferMs = (service.bufferBeforeMin + service.bufferAfterMin) * MINUTE_MS;
+    const bufferBeforeMs = service.bufferBeforeMin * MINUTE_MS;
+    const bufferAfterMs = service.bufferAfterMin * MINUTE_MS;
 
     const staffIds = query.staffId
       ? [query.staffId]
@@ -67,7 +76,10 @@ export class AvailabilityService {
         continue;
       }
 
-      const blockers = await this.buildBlockers(staffId, dayStart, dayEnd, bufferMs);
+      const blockers = await this.buildBlockers(staffId, dayStart, dayEnd, {
+        before: bufferBeforeMs,
+        after: bufferAfterMs,
+      });
       for (const window of hours) {
         const windowInterval: MsInterval = {
           start: localMinutesToUtc(query.date, window.startMin, zone).getTime(),
@@ -87,22 +99,29 @@ export class AvailabilityService {
     return slots;
   }
 
-  /** Time-off (as-is) + existing bookings expanded by the service's buffers. */
+  /**
+   * Time-off (as-is) + existing bookings padded by the queried service's buffers
+   * on their correct sides (before at the start, after at the end). Simplification:
+   * a booking's OWN service buffers aren't loaded; the queried service's buffers
+   * proxy for the required gap. This only pre-filters UX — the EXCLUDE constraint
+   * (which has no buffer) is the actual booking guarantee.
+   */
   private async buildBlockers(
     staffId: string,
     dayStart: Date,
     dayEnd: Date,
-    bufferMs: number,
+    buffer: { before: number; after: number },
   ): Promise<MsInterval[]> {
-    const timeOffs = (await this.timeOff.list(staffId)).filter(
-      (t) => t.startsAt < dayEnd && dayStart < t.endsAt,
-    );
+    const timeOffs = (await this.timeOff.overlapping(staffId, dayStart, dayEnd)).map((t) => ({
+      start: t.startsAt.getTime(),
+      end: t.endsAt.getTime(),
+    }));
     const bookings = await this.bookings.activeForStaffBetween(staffId, dayStart, dayEnd);
     return [
-      ...timeOffs.map((t) => ({ start: t.startsAt.getTime(), end: t.endsAt.getTime() })),
+      ...timeOffs,
       ...bookings.map((b) => ({
-        start: b.startsAt.getTime() - bufferMs,
-        end: b.endsAt.getTime() + bufferMs,
+        start: b.startsAt.getTime() - buffer.before,
+        end: b.endsAt.getTime() + buffer.after,
       })),
     ];
   }

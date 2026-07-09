@@ -11,7 +11,8 @@ export class MembershipRepository {
   }
 
   findByUser(userId: string): Promise<Membership[]> {
-    return this.repo.find({ where: { userId } });
+    // Oldest first — the first membership is treated as the user's primary tenant.
+    return this.repo.find({ where: { userId }, order: { createdAt: 'ASC' } });
   }
 
   findByUserAndTenant(userId: string, tenantId: string): Promise<Membership | null> {

@@ -79,6 +79,8 @@ Invite: POST /tenants/:id/invites (owner) → InviteToken row + enqueue email
 ### Slice notes
 - Slice 1: auth/tenant-activation core (deferred phase-00 items + onboarding + switch-tenant).
 - Slice 2: refresh-token rotation — opaque token, SHA-256 at rest, `family_id` chain; replay of a rotated token burns the family (theft response). `POST /auth/refresh` + `/auth/logout`. Access token TTL stays short; refresh TTL `REFRESH_TOKEN_TTL_DAYS` (30d). Known simplification: `switch-tenant` scopes the access token for its lifetime; a later refresh re-derives scope from the token's stored snapshot.
+- Slice 2 review fixes: refresh `claim()` is atomic (conditional UPDATE) so rotation races/replays burn the family (was TOCTOU); `refresh` re-resolves live membership and revokes the family if gone (removed/downgraded members can't mint old-privilege tokens past the 15m access window); onboarding returns access+refresh; slug race → 409 (DB unique + 23505 catch); primary membership ordered by createdAt.
+- Intended-by-design (reviewer flagged, kept): logout is **per-session** (burns only the presented family) — multi-device sessions survive; access-token staleness is bounded to the 15m TTL. Expired refresh does not burn the family. Deferred: expired-token cleanup job; IANA timezone validation (when tenant tz is consumed in phase-02/03).
 - Remaining: invite flow.
 
 ## Success Criteria

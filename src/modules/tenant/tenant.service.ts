@@ -20,18 +20,23 @@ export class TenantService {
 
   /** Creates a tenant and its owner membership atomically. */
   async onboard(userId: string, input: CreateTenantInput): Promise<Tenant> {
-    return this.dataSource.transaction(async (manager) => {
-      const tenantRepo = manager.getRepository(Tenant);
-      if (await tenantRepo.findOne({ where: { slug: input.slug } })) {
+    try {
+      return await this.dataSource.transaction(async (manager) => {
+        const tenantRepo = manager.getRepository(Tenant);
+        const tenant = await tenantRepo.save(tenantRepo.create(input));
+        const membershipRepo = manager.getRepository(Membership);
+        await membershipRepo.save(
+          membershipRepo.create({ userId, tenantId: tenant.id, role: 'owner' }),
+        );
+        return tenant;
+      });
+    } catch (error) {
+      // Unique slug is enforced by the DB; a concurrent insert surfaces here.
+      if ((error as { code?: string }).code === '23505') {
         throw new ConflictException('Tenant slug already in use');
       }
-      const tenant = await tenantRepo.save(tenantRepo.create(input));
-      const membershipRepo = manager.getRepository(Membership);
-      await membershipRepo.save(
-        membershipRepo.create({ userId, tenantId: tenant.id, role: 'owner' }),
-      );
-      return tenant;
-    });
+      throw error;
+    }
   }
 
   async getById(id: string): Promise<Tenant> {

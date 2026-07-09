@@ -11,9 +11,9 @@ export interface SessionScope {
   role?: MembershipRole;
 }
 
-export interface RotatedSession extends SessionScope {
+export interface ClaimedSession extends SessionScope {
   userId: string;
-  refreshToken: string;
+  familyId: string;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -36,28 +36,34 @@ export class RefreshTokenService {
     return plaintext;
   }
 
-  /** Validates + rotates a refresh token, with theft detection on reuse. */
-  async rotate(plaintext: string): Promise<RotatedSession> {
+  /**
+   * Validates and atomically consumes a refresh token, returning the session it
+   * belonged to. The caller re-derives live authority and issues the successor.
+   * Replay of an already-consumed token burns the whole family (theft response).
+   */
+  async claim(plaintext: string): Promise<ClaimedSession> {
     const record = await this.tokens.findByHash(sha256(plaintext));
     if (!record || record.revokedAt) {
       throw new UnauthorizedException('Invalid refresh token');
     }
-    if (record.usedAt) {
-      // A rotated token presented again ⇒ likely stolen — burn the whole family.
-      await this.tokens.revokeFamily(record.familyId, new Date());
-      throw new UnauthorizedException('Refresh token reuse detected');
-    }
     if (record.expiresAt.getTime() < Date.now()) {
       throw new UnauthorizedException('Refresh token expired');
     }
-
-    await this.tokens.markUsed(record.id, new Date());
-    const scope: SessionScope = {
+    // Atomic consume: losing a race (or replaying) claims 0 rows ⇒ reuse.
+    if (!(await this.tokens.markUsedIfUnused(record.id, new Date()))) {
+      await this.tokens.revokeFamily(record.familyId, new Date());
+      throw new UnauthorizedException('Refresh token reuse detected');
+    }
+    return {
+      userId: record.userId,
+      familyId: record.familyId,
       tenantId: record.tenantId ?? undefined,
       role: record.role ?? undefined,
     };
-    const refreshToken = await this.issue(record.userId, scope, record.familyId);
-    return { userId: record.userId, ...scope, refreshToken };
+  }
+
+  revokeFamily(familyId: string): Promise<void> {
+    return this.tokens.revokeFamily(familyId, new Date());
   }
 
   /** Revokes the token's whole family (logout). No-op if the token is unknown. */

@@ -3,6 +3,7 @@ import type { LoginDto } from '@modules/auth/dto/login.dto';
 import type { RegisterDto } from '@modules/auth/dto/register.dto';
 import { RefreshTokenService, type SessionScope } from '@modules/auth/refresh-token.service';
 import { TokenService } from '@modules/auth/token.service';
+import type { MembershipRole } from '@modules/membership/membership.entity';
 import { MembershipService } from '@modules/membership/membership.service';
 import type { User } from '@modules/user/user.entity';
 import { UserRepository } from '@modules/user/user.repository';
@@ -36,7 +37,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
     const user = await this.users.create({ email: dto.email, name: dto.name, passwordHash });
     // No tenant yet — the session carries only identity until onboarding/invite.
-    return { user, ...(await this.issueSession(user, {})) };
+    return { user, ...(await this.issueSession(user.id, {})) };
   }
 
   async login(dto: LoginDto): Promise<AuthResult> {
@@ -46,7 +47,7 @@ export class AuthService {
     }
     const [primary] = await this.memberships.listForUser(user.id);
     const scope: SessionScope = primary ? { tenantId: primary.tenantId, role: primary.role } : {};
-    return { user, ...(await this.issueSession(user, scope)) };
+    return { user, ...(await this.issueSession(user.id, scope)) };
   }
 
   async switchTenant(user: User, tenantId: string): Promise<AuthResult> {
@@ -54,27 +55,52 @@ export class AuthService {
     if (!role && !user.isSuperAdmin) {
       throw new UnauthorizedException('Not a member of this tenant');
     }
-    return { user, ...(await this.issueSession(user, { tenantId, role: role ?? undefined })) };
+    return { user, ...(await this.issueSession(user.id, { tenantId, role: role ?? undefined })) };
   }
 
-  /** Rotates the refresh token and returns a fresh access + refresh pair. */
+  /** Public session mint for callers that already established the scope (onboarding). */
+  startTenantSession(
+    userId: string,
+    tenantId: string,
+    role: MembershipRole,
+  ): Promise<SessionTokens> {
+    return this.issueSession(userId, { tenantId, role });
+  }
+
+  /**
+   * Rotates the refresh token. Live authority is re-resolved from membership so a
+   * removed/downgraded member cannot keep minting old-privilege access tokens for
+   * the refresh window — the family is burned if the membership is gone.
+   */
   async refresh(refreshToken: string): Promise<SessionTokens> {
-    const rotated = await this.refreshTokens.rotate(refreshToken);
+    const claimed = await this.refreshTokens.claim(refreshToken);
+
+    let scope: SessionScope = {};
+    if (claimed.tenantId) {
+      const role = await this.memberships.resolveRole(claimed.userId, claimed.tenantId);
+      if (!role) {
+        await this.refreshTokens.revokeFamily(claimed.familyId);
+        throw new UnauthorizedException('Membership no longer valid');
+      }
+      scope = { tenantId: claimed.tenantId, role };
+    }
+
     const token = this.tokens.sign({
-      sub: rotated.userId,
-      tenantId: rotated.tenantId,
-      role: rotated.role,
+      sub: claimed.userId,
+      tenantId: scope.tenantId,
+      role: scope.role,
     });
-    return { token, refreshToken: rotated.refreshToken };
+    const nextRefresh = await this.refreshTokens.issue(claimed.userId, scope, claimed.familyId);
+    return { token, refreshToken: nextRefresh };
   }
 
   logout(refreshToken: string): Promise<void> {
     return this.refreshTokens.revoke(refreshToken);
   }
 
-  private async issueSession(user: User, scope: SessionScope): Promise<SessionTokens> {
-    const token = this.tokens.sign({ sub: user.id, tenantId: scope.tenantId, role: scope.role });
-    const refreshToken = await this.refreshTokens.issue(user.id, scope);
+  private async issueSession(userId: string, scope: SessionScope): Promise<SessionTokens> {
+    const token = this.tokens.sign({ sub: userId, tenantId: scope.tenantId, role: scope.role });
+    const refreshToken = await this.refreshTokens.issue(userId, scope);
     return { token, refreshToken };
   }
 }

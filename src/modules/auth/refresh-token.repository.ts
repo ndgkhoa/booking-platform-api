@@ -18,8 +18,13 @@ export class RefreshTokenRepository {
     return this.repo.save(this.repo.create(data));
   }
 
-  async markUsed(id: string, usedAt: Date): Promise<void> {
-    await this.repo.update(id, { usedAt });
+  /**
+   * Atomically claims an unused token. Returns false if it was already used —
+   * the guard against a rotation race / replay (only one caller can win).
+   */
+  async markUsedIfUnused(id: string, usedAt: Date): Promise<boolean> {
+    const result = await this.repo.update({ id, usedAt: IsNull() }, { usedAt });
+    return (result.affected ?? 0) > 0;
   }
 
   async revokeFamily(familyId: string, revokedAt: Date): Promise<void> {

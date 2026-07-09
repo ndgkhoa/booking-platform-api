@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { Membership } from '@modules/membership/membership.entity';
 import type { Express } from 'express';
 import request from 'supertest';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
@@ -62,6 +63,22 @@ describe('Refresh-token rotation & reuse detection e2e', () => {
     const res = await request(app)
       .post('/api/v1/auth/refresh')
       .send({ refreshToken: 'x'.repeat(64) });
+    expect(res.status).toBe(401);
+  });
+
+  it('burns the family on refresh when the membership was revoked', async () => {
+    const { token } = await register();
+    const onboard = await request(app)
+      .post('/api/v1/tenants')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Revoked Co', slug: `t-${randomUUID().slice(0, 20)}` });
+    const refreshToken = onboard.body.data.refreshToken;
+    const tenantId = onboard.body.data.tenant.id;
+
+    // Member is removed out-of-band; the tenant-scoped refresh must stop working.
+    await ctx.dataSource.getRepository(Membership).delete({ tenantId });
+
+    const res = await request(app).post('/api/v1/auth/refresh').send({ refreshToken });
     expect(res.status).toBe(401);
   });
 

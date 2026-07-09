@@ -10,7 +10,7 @@ import bcrypt from 'bcryptjs';
 describe('AuthService', () => {
   let repo: jest.Mocked<Pick<UserRepository, 'findByEmail' | 'create'>>;
   let memberships: jest.Mocked<Pick<MembershipService, 'listForUser' | 'resolveRole'>>;
-  let refreshTokens: jest.Mocked<Pick<RefreshTokenService, 'issue' | 'rotate' | 'revoke'>>;
+  let refreshTokens: jest.Mocked<Pick<RefreshTokenService, 'issue' | 'claim' | 'revoke'>>;
   let service: AuthService;
   let passwordHash: string;
 
@@ -23,7 +23,7 @@ describe('AuthService', () => {
     memberships = { listForUser: jest.fn().mockResolvedValue([]), resolveRole: jest.fn() };
     refreshTokens = {
       issue: jest.fn().mockResolvedValue('refresh-plaintext'),
-      rotate: jest.fn(),
+      claim: jest.fn(),
       revoke: jest.fn(),
     };
     service = new AuthService(

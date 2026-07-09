@@ -8,6 +8,7 @@ export const env = cleanEnv(process.env, {
   }),
   PORT: port({ default: 3000 }),
   CORS_ORIGIN: str({ default: '*' }),
+  APP_URL: str({ default: 'http://localhost:3000' }),
 
   DB_HOST: host({ default: 'localhost' }),
   DB_PORT: port({ default: 5432 }),
@@ -19,7 +20,6 @@ export const env = cleanEnv(process.env, {
   JWT_EXPIRES_IN: str({ default: '15m' }),
   REFRESH_TOKEN_TTL_DAYS: num({ default: 30 }),
   INVITE_TTL_DAYS: num({ default: 7 }),
-  APP_URL: str({ default: 'http://localhost:3000' }),
 
   REDIS_HOST: host({ default: 'localhost' }),
   REDIS_PORT: port({ default: 6379 }),

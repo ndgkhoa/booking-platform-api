@@ -66,8 +66,14 @@ Layered (controller→service→repository) as the default, with a **pure domain
 
 ## Multi-tenant rules (non-negotiable)
 - Tenant-scoped entities extend `BaseTenantEntity` (adds `tenant_id` + composite lead index). All uniques scoped: `UNIQUE(tenant_id, …)`. Every composite index leads with `tenant_id`.
-- Tenant context via AsyncLocalStorage (Layer 1) + Postgres RLS `SET LOCAL app.tenant_id` (Layer 2). Repositories never accept a raw `tenant_id` param — it comes from context.
+- Tenant context via AsyncLocalStorage (Layer 1) + Postgres RLS (Layer 2). Repositories never accept a raw `tenant_id` param — it comes from context.
 - Never write a query that could read another tenant's rows; RLS is the backstop, not the excuse.
+
+### RLS execution model
+- `TenantContextMiddleware` opens a per-request transaction for tenant-scoped tokens and pins it with `SET LOCAL app.tenant_id`; it commits on a 2xx/3xx response and rolls back on 4xx/5xx or abort (also giving request-wide write atomicity). `BaseTenantRepository` runs on this request-scoped manager so RLS gates every statement.
+- RLS policies (`ENABLE`/`FORCE` + `tenant_isolation`) fail closed: `current_setting('app.tenant_id', true)` is NULL when unset → zero rows.
+- **Caveat:** superusers and table owners with BYPASSRLS ignore RLS. Dev/test connect as a superuser, so Layer-1 (app filter) is the active guard there; RLS is proven at the DB layer in `rls-isolation.e2e` via `SET ROLE` to a non-superuser. **Production must run the app as a non-superuser role** for RLS to take effect.
+- Global-lookup-by-secret tables (`invites`, `refresh_tokens`) use plain repositories (not `BaseTenantRepository`) and are intentionally NOT under RLS — the secret token is the capability.
 
 ## Design patterns
 Catalogued with real call-sites in [`design-patterns.md`](./design-patterns.md). Patterns are used where they remove duplication or isolate change — never for show.

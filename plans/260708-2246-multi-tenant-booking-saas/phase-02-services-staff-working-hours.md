@@ -66,15 +66,24 @@ Tenant
 8. Tests: CRUD, capability gating, working-hours overlap rejection, tenant isolation.
 
 ## Todo
-- [ ] Money VO + tests
-- [ ] TimeRange VO + tests
-- [ ] Service entity/repo/service/controller/DTOs
-- [ ] Staff entity/repo/service/controller
+**Slice A (done):**
+- [x] Money VO + TimeRange VO + unit tests (13 unit green)
+- [x] Service entity/repo/service/controller/DTOs (CRUD, owner-gated mutations)
+- [x] **Per-request tenant transaction middleware** (SET LOCAL app.tenant_id, commit 2xx/rollback 4xx+) — the RLS execution model
+- [x] Migration: services + RLS ENABLE/FORCE/policy (reversible)
+- [x] Cross-tenant isolation: Layer-1 e2e (service catalog) + Layer-2 DB RLS proof (rls-isolation via SET ROLE) — 31 integration green
+- [x] Documented RLS superuser caveat + resolved phase-00 M3 (per-request tenant-tx strategy)
+
+**Slice B (next):**
+- [ ] Staff entity/repo/service/controller (user_id, membership guard)
 - [ ] StaffService capability link
 - [ ] WorkingHours CRUD + overlap validation
 - [ ] TimeOff CRUD
-- [ ] Migration: catalog+staff+schedule (+RLS, composite indexes)
-- [ ] Tests incl. tenant isolation
+- [ ] Migration: staff+schedule (+RLS on each, composite indexes)
+- [ ] Invite/refresh RLS carve-out decision (H2 from phase-01 review) — invites/refresh_tokens stay RLS-free (token = capability), documented
+
+### Slice A note
+RLS is enforced per request via a tenant transaction; app connects as superuser in dev/test so Layer-1 is active there and Layer-2 (RLS) is proven at the DB layer. Production runs as a non-superuser role. `invites`/`refresh_tokens` intentionally RLS-free (global-lookup-by-secret).
 
 ## Success Criteria
 - Owner can define a service, staff, link them, set weekly hours + time-off.

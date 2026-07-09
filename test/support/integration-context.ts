@@ -1,6 +1,7 @@
 import { RefreshToken } from '@modules/auth/refresh-token.entity';
 import { Invite } from '@modules/invite/invite.entity';
 import { Membership } from '@modules/membership/membership.entity';
+import { Service } from '@modules/service/service.entity';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { User } from '@modules/user/user.entity';
 import type { Express } from 'express';
@@ -9,7 +10,7 @@ import { DataSource } from 'typeorm';
 import { createServer } from '@/server';
 
 /** Every entity the integration suite needs registered. Extend as modules land. */
-export const TEST_ENTITIES = [User, Membership, Tenant, RefreshToken, Invite];
+export const TEST_ENTITIES = [User, Membership, Tenant, RefreshToken, Invite, Service];
 
 export interface IntegrationContext {
   dataSource: DataSource;

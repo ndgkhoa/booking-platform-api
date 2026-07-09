@@ -111,6 +111,9 @@ Transitions → BookingStateMachine.assertCanTransition(from,to) → update WHER
 - [x] `PreconditionFailedException` (412); migration idempotency_keys (+RLS, reversible)
 - [x] e2e: replay / reused-key-409 / concurrent-dedup / ETag+If-Match(412); guarded EXCLUDE constraint in shared-container specs (drop-if-exists) — 50 integration + 23 unit green, stable across repeated runs
 
+- [x] Slice C review fixes: store the class-transformer-serialised response (`instanceToPlain`) so a replay matches a fresh response exactly (guards future `@Exclude` drift; replay test now `toEqual`); reused-key-different-body → **422 `IDEMPOTENCY_KEY_REUSED`** (aligns with plan, more idiomatic than 409).
+- Deferred to phase-08 (documented, not blockers): `idempotency_keys` retention sweep (unbounded growth without TTL); malformed `If-Match` currently falls back to body version rather than 400; no length cap on the Idempotency-Key header.
+
 **Phase 03 COMPLETE.** 23 unit + 50 integration green.
 
 ## Success Criteria

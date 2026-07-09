@@ -94,10 +94,11 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
       .set('Idempotency-Key', key)
       .send(payload);
     expect(replay.status).toBe(201);
-    expect(replay.body.data.id).toBe(first.body.data.id); // same booking, no new row
+    // Replay must match the original response exactly (guards serialization drift).
+    expect(replay.body).toEqual(first.body);
   });
 
-  it('rejects a reused Idempotency-Key with a different body (409)', async () => {
+  it('rejects a reused Idempotency-Key with a different body (422)', async () => {
     const f = await fixture();
     const key = randomUUID();
     await request(app)
@@ -111,7 +112,8 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
       .set(auth(f.token))
       .set('Idempotency-Key', key)
       .send(body(f, '2026-10-02T05:00:00.000Z'));
-    expect(conflicting.status).toBe(409);
+    expect(conflicting.status).toBe(422);
+    expect(conflicting.body.code).toBe('IDEMPOTENCY_KEY_REUSED');
   });
 
   it('deduplicates concurrent same-key requests to a single booking', async () => {

@@ -1,4 +1,6 @@
 import { RefreshToken } from '@modules/auth/refresh-token.entity';
+import { Booking } from '@modules/booking/booking.entity';
+import { Customer } from '@modules/customer/customer.entity';
 import { Invite } from '@modules/invite/invite.entity';
 import { Membership } from '@modules/membership/membership.entity';
 import { Service } from '@modules/service/service.entity';
@@ -25,6 +27,8 @@ export const TEST_ENTITIES = [
   StaffService,
   WorkingHours,
   TimeOff,
+  Customer,
+  Booking,
 ];
 
 export interface IntegrationContext {
@@ -49,6 +53,8 @@ export async function initIntegrationContext(): Promise<IntegrationContext> {
     url,
     entities: TEST_ENTITIES,
     synchronize: true,
+    // Headroom for concurrency tests where each request holds a tenant-tx connection.
+    poolSize: 25,
   });
   await dataSource.initialize();
   Container.set(DataSource, dataSource);

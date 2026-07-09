@@ -49,6 +49,12 @@ export class GoneException extends AppException {
   }
 }
 
+export class UnprocessableStateException extends AppException {
+  constructor(message = 'Unprocessable state transition', details?: unknown) {
+    super(422, 'INVALID_STATE_TRANSITION', message, details);
+  }
+}
+
 export class ValidationException extends AppException {
   constructor(message = 'Validation failed', details?: unknown) {
     super(422, 'VALIDATION_ERROR', message, details);

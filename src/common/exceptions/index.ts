@@ -6,5 +6,6 @@ export {
   GoneException,
   NotFoundException,
   UnauthorizedException,
+  UnprocessableStateException,
   ValidationException,
 } from '@common/exceptions/app.exception';

@@ -83,17 +83,25 @@ Transitions → BookingStateMachine.assertCanTransition(from,to) → update WHER
 10. DST unit tests: booking across spring-forward/fall-back day; assert correct UTC + slot counts.
 
 ## Todo
-- [ ] customers table (tenant-scoped)
-- [ ] Booking entity (+VersionColumn, status enum, Money snapshot)
-- [ ] Migration: bookings + EXCLUDE (gist) + idempotency_keys + RLS
-- [ ] 23P01 → ConflictException mapping in repository
-- [ ] BookingStateMachine + assertCanTransition
-- [ ] Idempotency entity + middleware/helper
-- [ ] AvailabilityService (windows/slots/tz helpers, luxon)
-- [ ] Booking transition endpoints + optimistic lock
-- [ ] Concurrency integration test (exactly-1-wins)
+**Slice A — booking core (done):**
+- [x] customers module (tenant-scoped, RLS, partial-unique email)
+- [x] Booking entity (+VersionColumn, status, Money snapshot) + booking-status + state machine
+- [x] Migration: bookings + **EXCLUDE (gist, tstzrange) double-booking guard** + RLS (reversible)
+- [x] 23P01 → 409 `BOOKING_SLOT_TAKEN` mapping in repository
+- [x] BookingStateMachine + assertCanTransition (+ UnprocessableStateException 422)
+- [x] Transition endpoints (confirm/complete/cancel/no-show) + reschedule, optimistic version lock (409 `STALE_BOOKING`)
+- [x] Capability gate (staff canPerform service) + tenant-scoped customer/service checks
+- [x] **Concurrency e2e: 10 parallel → exactly 1 wins**, freed-slot rebook, illegal transition (422), stale version (409), cannot-perform (400) — 44 integration green
+- [x] state-machine unit tests
+
+**Slice B — availability (next):**
+- [ ] AvailabilityService (windows − timeOff − bookings ± buffer; slot slicing; luxon DST-safe local→UTC)
+- [ ] GET /availability + query DTO; filter capable + active staff (excl. soft-deleted)
 - [ ] DST availability unit tests
-- [ ] UnprocessableStateException added
+
+**Slice C — idempotency + ETag (next):**
+- [ ] Idempotency-Key on POST /bookings (entity + helper)
+- [ ] ETag / If-Match on reschedule/cancel (from @VersionColumn)
 
 ## Success Criteria
 - Concurrency test: 20 parallel identical bookings → exactly 1 persists, others 409 `BOOKING_SLOT_TAKEN`.

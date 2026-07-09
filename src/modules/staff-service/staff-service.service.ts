@@ -36,4 +36,8 @@ export class StaffServiceService {
   list(staffId: string): Promise<StaffServiceEntity[]> {
     return this.staffServices.listForStaff(staffId);
   }
+
+  async canPerform(staffId: string, serviceId: string): Promise<boolean> {
+    return (await this.staffServices.findLink(staffId, serviceId)) !== null;
+  }
 }

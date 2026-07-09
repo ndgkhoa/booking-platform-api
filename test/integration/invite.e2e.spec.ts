@@ -115,12 +115,12 @@ describe('Invite flow e2e', () => {
     expect(reuse.status).toBe(409);
   });
 
-  it('rejects an unknown invite token (401)', async () => {
+  it('rejects an unknown invite token (404)', async () => {
     const user = await registerUser(`u-${randomUUID()}@test.com`);
     const res = await request(app)
       .post('/api/v1/invites/accept')
       .set('Authorization', `Bearer ${user}`)
       .send({ token: 'x'.repeat(64) });
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(404);
   });
 });

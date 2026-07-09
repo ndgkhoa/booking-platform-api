@@ -26,6 +26,7 @@ const STATUS_TITLES: Record<number, string> = {
   403: 'Forbidden',
   404: 'Not Found',
   409: 'Conflict',
+  410: 'Gone',
   412: 'Precondition Failed',
   422: 'Unprocessable Entity',
   429: 'Too Many Requests',

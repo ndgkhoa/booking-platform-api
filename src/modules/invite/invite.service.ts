@@ -1,5 +1,10 @@
 import { randomBytes } from 'node:crypto';
-import { ConflictException, ForbiddenException, UnauthorizedException } from '@common/exceptions';
+import {
+  ConflictException,
+  ForbiddenException,
+  GoneException,
+  NotFoundException,
+} from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
 import { sha256 } from '@common/utils/hash';
 import { env } from '@config/env';
@@ -47,24 +52,33 @@ export class InviteService {
     return { invite, token };
   }
 
-  /** Redeems an invite for the authenticated recipient, creating a membership. */
+  /**
+   * Redeems an invite for the authenticated recipient, joining the tenant.
+   * The membership is created BEFORE the invite is marked used, so a transient
+   * failure can never consume the invite while leaving the user without a
+   * membership (which would lock them out). Single-use is guaranteed by the
+   * unique (user, tenant) membership plus the email binding, not by the flag.
+   */
   async accept(user: User, token: string): Promise<Membership> {
     const invite = await this.invites.findByHash(sha256(token));
     if (!invite) {
-      throw new UnauthorizedException('Invalid invite token');
+      throw new NotFoundException('Invalid invite token');
+    }
+    // Blocks re-use, including rejoining with an old token after removal.
+    if (invite.acceptedAt) {
+      throw new ConflictException('Invite already used');
     }
     if (invite.expiresAt.getTime() < Date.now()) {
-      throw new UnauthorizedException('Invite expired');
+      throw new GoneException('Invite expired');
     }
     if (invite.email.toLowerCase() !== user.email.toLowerCase()) {
       throw new ForbiddenException('Invite was issued to a different email');
     }
-    // Claim atomically so a token cannot be redeemed twice under a race.
-    if (!(await this.invites.markAcceptedIfPending(invite.id, new Date()))) {
-      throw new ConflictException('Invite already used');
-    }
+
     try {
-      return await this.memberships.create(user.id, invite.tenantId, invite.role);
+      const membership = await this.memberships.create(user.id, invite.tenantId, invite.role);
+      await this.invites.markAcceptedIfPending(invite.id, new Date());
+      return membership;
     } catch (error) {
       if ((error as { code?: string }).code === '23505') {
         throw new ConflictException('Already a member of this tenant');

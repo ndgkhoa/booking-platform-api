@@ -43,6 +43,12 @@ export class ConflictException extends AppException {
   }
 }
 
+export class GoneException extends AppException {
+  constructor(message = 'Gone', details?: unknown) {
+    super(410, 'GONE', message, details);
+  }
+}
+
 export class ValidationException extends AppException {
   constructor(message = 'Validation failed', details?: unknown) {
     super(422, 'VALIDATION_ERROR', message, details);

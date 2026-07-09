@@ -3,6 +3,7 @@ export {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  GoneException,
   NotFoundException,
   UnauthorizedException,
   ValidationException,

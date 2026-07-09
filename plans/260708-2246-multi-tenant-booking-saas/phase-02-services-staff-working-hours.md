@@ -10,6 +10,7 @@
 - **Description:** Bookable catalog. `Service` (duration, price, buffer), `Staff` (linked to a Membership user), staff↔service capability link, weekly `WorkingHours`, and `TimeOff` overrides. Pure CRUD + constraints; no availability computation yet (phase-03).
 
 ## Key Insights
+- **[Blocker from phase-01 invite review] RLS rollout must handle `invites` + `refresh_tokens`:** when enabling RLS/FORCE on tenant tables, `InviteRepository.create` must run inside `runInTenantContext` (else `WITH CHECK` rejects the INSERT), and the intentional cross-tenant `InviteRepository.findByHash` (accept-by-token) needs an explicit RLS carve-out (SECURITY DEFINER function, a `BYPASSRLS` read path, or a policy allowing token-hash lookup). Same consideration for any global-lookup-by-secret table. Settle the per-request RLS strategy (M3 from phase-00 review: fail-fast vs. tenant-tx-per-request) here.
 - Staff = a Membership user (role staff/owner) who performs services. Model `Staff` as tenant-scoped profile referencing `user_id`, NOT a duplicate identity.
 - `Money` VO (integer minor units) introduced here for service price; never float.
 - WorkingHours modeled per weekday (0-6) with local `HH:mm` open/close; interpreted in `tenant.timezone` (phase-03 converts). Store as minutes-from-midnight or time columns — pick time columns for clarity.

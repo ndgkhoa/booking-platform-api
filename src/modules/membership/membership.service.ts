@@ -14,4 +14,8 @@ export class MembershipService {
     const membership = await this.memberships.findByUserAndTenant(userId, tenantId);
     return membership?.role ?? null;
   }
+
+  create(userId: string, tenantId: string, role: MembershipRole): Promise<Membership> {
+    return this.memberships.create({ userId, tenantId, role });
+  }
 }

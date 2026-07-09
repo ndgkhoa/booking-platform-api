@@ -27,4 +27,7 @@ module.exports = {
       globalTeardown: '<rootDir>/test/support/global-teardown.ts',
     },
   ],
+  // The shared BullMQ queue keeps a Redis connection open during integration
+  // runs; force-exit after the suite so it doesn't hold the process open.
+  forceExit: true,
 };

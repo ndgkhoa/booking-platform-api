@@ -73,8 +73,11 @@ Invite: POST /tenants/:id/invites (owner) → InviteToken row + enqueue email
 - [x] Tenant onboarding: POST /tenants (atomic tenant + owner membership) → owner-scoped token
 - [x] Shared integration harness (one testcontainer for the whole suite) + onboarding e2e (12 tests green)
 - [x] Refresh-token rotation + reuse detection (family revoke on replay) + logout — 5 e2e green
-- [ ] Invite entity/repo/service/controller + DTOs — **next slice**
-- [ ] Invite email job (generalized payload) — next slice
+- [x] Invite entity/repo/service/controller + DTOs (tenant-scoped, SHA-256 token, single-use, email-bound)
+- [x] Invite email job (generalized `EmailJob` union, best-effort enqueue)
+- [x] Migration: invites table (reversible); shared integration harness closes cleanly (forceExit)
+
+**Phase 01 COMPLETE.** 24 integration + 5 unit green.
 
 ### Slice notes
 - Slice 1: auth/tenant-activation core (deferred phase-00 items + onboarding + switch-tenant).

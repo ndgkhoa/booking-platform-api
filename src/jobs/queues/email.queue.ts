@@ -2,21 +2,38 @@ import { redisConnectionOptions } from '@config/redis';
 import { Queue } from 'bullmq';
 
 export interface WelcomeEmailJob {
+  type: 'welcome';
   userId: string;
   email: string;
 }
 
+export interface InviteEmailJob {
+  type: 'invite';
+  email: string;
+  tenantName: string;
+  role: string;
+  acceptUrl: string;
+}
+
+export type EmailJob = WelcomeEmailJob | InviteEmailJob;
+
 export const EMAIL_QUEUE = 'email';
 
-export const emailQueue = new Queue<WelcomeEmailJob>(EMAIL_QUEUE, {
+export const emailQueue = new Queue<EmailJob>(EMAIL_QUEUE, {
   connection: redisConnectionOptions,
 });
 
-export function enqueueWelcomeEmail(data: WelcomeEmailJob) {
-  return emailQueue.add('welcome', data, {
-    attempts: 3,
-    backoff: { type: 'exponential', delay: 1000 },
-    removeOnComplete: true,
-    removeOnFail: 100,
-  });
+const JOB_OPTIONS = {
+  attempts: 3,
+  backoff: { type: 'exponential' as const, delay: 1000 },
+  removeOnComplete: true,
+  removeOnFail: 100,
+};
+
+export function enqueueWelcomeEmail(data: Omit<WelcomeEmailJob, 'type'>) {
+  return emailQueue.add('welcome', { type: 'welcome', ...data }, JOB_OPTIONS);
+}
+
+export function enqueueInviteEmail(data: Omit<InviteEmailJob, 'type'>) {
+  return emailQueue.add('invite', { type: 'invite', ...data }, JOB_OPTIONS);
 }

@@ -15,7 +15,15 @@ export interface InviteEmailJob {
   acceptUrl: string;
 }
 
-export type EmailJob = WelcomeEmailJob | InviteEmailJob;
+export interface BookingEmailJob {
+  type: 'booking';
+  eventType: string;
+  tenantId: string;
+  bookingId: string;
+  customerId: string;
+}
+
+export type EmailJob = WelcomeEmailJob | InviteEmailJob | BookingEmailJob;
 
 export const EMAIL_QUEUE = 'email';
 
@@ -36,4 +44,8 @@ export function enqueueWelcomeEmail(data: Omit<WelcomeEmailJob, 'type'>) {
 
 export function enqueueInviteEmail(data: Omit<InviteEmailJob, 'type'>) {
   return emailQueue.add('invite', { type: 'invite', ...data }, JOB_OPTIONS);
+}
+
+export function enqueueBookingEmail(data: Omit<BookingEmailJob, 'type'>) {
+  return emailQueue.add('booking', { type: 'booking', ...data }, JOB_OPTIONS);
 }

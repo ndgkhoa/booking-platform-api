@@ -7,12 +7,7 @@ export function startEmailWorker(): Worker<EmailJob> {
   const worker = new Worker<EmailJob>(
     EMAIL_QUEUE,
     async (job: Job<EmailJob>) => {
-      const data = job.data;
-      const target =
-        data.type === 'invite'
-          ? `invite to ${data.email} for ${data.tenantName} (${data.role})`
-          : `welcome email to ${data.email}`;
-      logger.info(`Sending ${target} (job ${job.id})`);
+      logger.info(`Sending ${describe(job.data)} (job ${job.id})`);
       // TODO: integrate a real email provider here.
     },
     { connection: redisConnectionOptions, concurrency: 5 },
@@ -22,4 +17,15 @@ export function startEmailWorker(): Worker<EmailJob> {
   worker.on('failed', (job, err) => logger.error(`Email job ${job?.id} failed: ${err.message}`));
 
   return worker;
+}
+
+function describe(data: EmailJob): string {
+  switch (data.type) {
+    case 'invite':
+      return `invite to ${data.email} for ${data.tenantName} (${data.role})`;
+    case 'booking':
+      return `${data.eventType} notification for booking ${data.bookingId}`;
+    default:
+      return `welcome email to ${data.email}`;
+  }
 }

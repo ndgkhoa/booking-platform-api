@@ -4,6 +4,7 @@ import { Booking } from '@modules/booking/booking.entity';
 import { Customer } from '@modules/customer/customer.entity';
 import { Invite } from '@modules/invite/invite.entity';
 import { Membership } from '@modules/membership/membership.entity';
+import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
 import { Service } from '@modules/service/service.entity';
 import { Staff } from '@modules/staff/staff.entity';
 import { StaffService } from '@modules/staff-service/staff-service.entity';
@@ -31,6 +32,7 @@ export const TEST_ENTITIES = [
   Customer,
   Booking,
   IdempotencyKey,
+  OutboxEvent,
 ];
 
 export interface IntegrationContext {

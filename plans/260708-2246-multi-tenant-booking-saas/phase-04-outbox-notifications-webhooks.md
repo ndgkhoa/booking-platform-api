@@ -70,15 +70,18 @@ Webhook worker: POST signed payload to tenant webhook URL, retry/backoff
 8. Tests: atomicity (rollback → no event), relay exactly-processes-once-ish (idempotent consumer), reminder skip on cancel, webhook signature.
 
 ## Todo
-- [ ] OutboxEvent entity + repo (claim SKIP LOCKED)
-- [ ] Migration: outbox_events + webhook_endpoints (+RLS)
-- [ ] Booking tx writes outbox event atomically
-- [ ] OutboxRelay worker (poller + backoff + dead-letter)
-- [ ] Email payload generalized + confirm/reminder templates
-- [ ] Reminder scheduling + status re-check
-- [ ] Webhook endpoint config + signed delivery worker
-- [ ] Outbox metrics
-- [ ] Atomicity + delivery tests
+**Slice A — outbox core (done):**
+- [x] OutboxEvent entity + repository (`record` on the active tenant tx; `claimBatch` FOR UPDATE SKIP LOCKED; `markDispatched`/`markFailed` with backoff + dead-letter at MAX_ATTEMPTS)
+- [x] Migration: outbox_events — infrastructure table, intentionally NOT RLS (system relay drains cross-tenant), dispatch index (reversible)
+- [x] Booking writes an event atomically on create + every status change + reschedule (same request tx)
+- [x] OutboxRelay service (`processBatch`, dispatch injected → testable Redis-free) + outbox-relay.worker poller (drain loop, interval) wired in worker.ts
+- [x] Email payload generalized (BookingEmailJob); relay dispatch enqueues booking notifications
+- [x] Atomicity e2e: rollback → zero events; status-change emits; relay drains + SKIP LOCKED, tenant-scoped assertions — 53 integration green, stable
+
+**Slice B — notifications + webhooks (next):**
+- [ ] Confirmation + reminder templates; reminder scheduling + status re-check on send
+- [ ] Webhook endpoint config (owner) + signed (HMAC) delivery worker + SSRF guard + retry/dead-letter
+- [ ] Outbox metrics (pending count, oldest-pending age, dispatch success/fail)
 
 ## Success Criteria
 - Booking tx rollback leaves zero outbox rows (atomicity test).

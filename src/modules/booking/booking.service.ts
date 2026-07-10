@@ -13,6 +13,7 @@ import { ACTIVE_BOOKING_STATUSES, BookingStatus } from '@modules/booking/booking
 import type { CreateBookingDto } from '@modules/booking/dto/create-booking.dto';
 import type { RescheduleBookingDto } from '@modules/booking/dto/reschedule-booking.dto';
 import { CustomerService } from '@modules/customer/customer.service';
+import { OutboxRepository } from '@modules/outbox/outbox.repository';
 import { ServiceService } from '@modules/service/service.service';
 import { StaffServiceService } from '@modules/staff-service/staff-service.service';
 import { Service } from 'typedi';
@@ -27,7 +28,25 @@ export class BookingService {
     private readonly capabilities: StaffServiceService,
     private readonly customers: CustomerService,
     private readonly idempotency: IdempotencyService,
+    private readonly outbox: OutboxRepository,
   ) {}
+
+  /** Emits a booking event on the current transaction — atomic with the change. */
+  private emit(booking: Booking, eventType: string): Promise<unknown> {
+    return this.outbox.record({
+      aggregateType: 'booking',
+      aggregateId: booking.id,
+      eventType,
+      payload: {
+        bookingId: booking.id,
+        staffId: booking.staffId,
+        serviceId: booking.serviceId,
+        customerId: booking.customerId,
+        startsAt: booking.startsAt.toISOString(),
+        status: booking.status,
+      },
+    });
+  }
 
   /** Creates a booking, deduplicated by an optional Idempotency-Key. */
   create(dto: CreateBookingDto, idempotencyKey?: string): Promise<Booking> {
@@ -45,7 +64,7 @@ export class BookingService {
     const endsAt = new Date(startsAt.getTime() + service.durationMin * MINUTE_MS);
 
     // Price is snapshotted from the service at booking time.
-    return this.bookings.create({
+    const booking = await this.bookings.create({
       staffId: dto.staffId,
       serviceId: dto.serviceId,
       customerId: dto.customerId,
@@ -55,6 +74,8 @@ export class BookingService {
       priceAmount: service.priceAmount,
       priceCurrency: service.priceCurrency,
     });
+    await this.emit(booking, 'booking.created');
+    return booking;
   }
 
   getById(id: string): Promise<Booking> {
@@ -106,7 +127,9 @@ export class BookingService {
         ? new PreconditionFailedException('Booking version does not match If-Match')
         : this.staleError();
     }
-    return this.getOrThrow(id);
+    const updated = await this.getOrThrow(id);
+    await this.emit(updated, 'booking.rescheduled');
+    return updated;
   }
 
   private async transition(id: string, version: number, to: BookingStatus): Promise<Booking> {
@@ -116,7 +139,9 @@ export class BookingService {
     if (!applied) {
       throw this.staleError();
     }
-    return this.getOrThrow(id);
+    const updated = await this.getOrThrow(id);
+    await this.emit(updated, `booking.${to}`);
+    return updated;
   }
 
   private async getOrThrow(id: string): Promise<Booking> {

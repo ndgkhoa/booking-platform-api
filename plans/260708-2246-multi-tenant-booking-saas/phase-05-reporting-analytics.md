@@ -6,7 +6,7 @@
 
 ## Overview
 - **Priority:** P2
-- **Status:** pending
+- **Status:** ✅ Done
 - **Description:** Tenant-scoped reporting: bookings & revenue aggregated by time period, service, and staff. Read-only aggregation endpoints for owners.
 
 ## Key Insights
@@ -53,12 +53,16 @@ GET /reports/* → ReportingController → ReportingService → ReportingReposit
 6. Tests: known dataset → expected buckets; DST week boundary; empty range.
 
 ## Todo
-- [ ] Report query + result DTOs (bounded range validation)
-- [ ] Bookings aggregation (by day/week/month/service/staff)
-- [ ] Revenue aggregation (counted-status set, integer money)
-- [ ] TZ-aware bucketing
-- [ ] Owner RBAC + RLS scope
-- [ ] Aggregation tests
+- [x] Report query DTO (from/to ISO, groupBy enum, optional staff/service filters); bounded range validation (≤1 year, from<to → 400)
+- [x] Bookings aggregation (day/week/month/service/staff) with per-status breakdown via `COUNT(*) FILTER`
+- [x] Revenue aggregation — integer minor units, counted status = **`completed`** (earned/delivered; documented decision resolving the open question)
+- [x] TZ-aware bucketing: `date_trunc(unit, starts_at AT TIME ZONE tenant_tz)` → local calendar day (DST-aware)
+- [x] Owner-only RBAC + tenant-scoped query (app filter + RLS backstop)
+- [x] e2e: daily counts + status breakdown, revenue-completed-only, NY-timezone local-day bucketing, range 400, non-owner 403 — 29 unit + 62 integration green
+
+**Resolved open question:** revenue counts `completed` bookings only (money earned). Confirmed can be added later if "expected revenue" is needed.
+
+**Phase 05 COMPLETE.**
 
 ## Success Criteria
 - Reports match hand-computed expectations on seeded data.

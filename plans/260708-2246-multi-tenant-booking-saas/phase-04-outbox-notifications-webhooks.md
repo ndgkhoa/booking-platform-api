@@ -6,7 +6,7 @@
 
 ## Overview
 - **Priority:** P1
-- **Status:** pending
+- **Status:** ✅ Done
 - **Description:** Reliable event delivery via Transactional Outbox. Booking status changes write an `outbox_events` row in the SAME transaction as the state change; a relay dispatches to BullMQ (email: confirm/reminder) and internal webhooks. Avoids dual-write inconsistency.
 
 ## Key Insights

@@ -1,7 +1,7 @@
 ---
 title: "Multi-Tenant Booking SaaS API"
 description: "Evolve Express/TypeStack boilerplate into a phased, tenant-isolated booking platform with EXCLUDE-based double-booking prevention."
-status: in-progress (phases 00–03 done; phase 04 next)
+status: in-progress (phases 00–05 done; phase 06 next)
 priority: P1
 effort: ~18-24d
 branch: main
@@ -27,8 +27,8 @@ Build ON existing stack (Express4 + routing-controllers + TypeDI + TypeORM + PG 
 | 01 | Auth + JWT `tenant_id` claim + tenant-context middleware + RBAC via Membership + drop user.roles + email invite + refresh-token rotation & reuse detection | ✅ done | 00 | [phase-01](phase-01-auth-rbac-membership-invite.md) |
 | 02 | Services + Staff + staff-service link + working hours + time-off + RLS policies & cross-tenant isolation (per-request tenant tx) | ✅ done | 00,01 | [phase-02](phase-02-services-staff-working-hours.md) |
 | 03 | **CORE**: AvailabilityService + Booking + EXCLUDE + state machine + idempotency + optimistic lock + ETag/If-Match + DST + concurrency | ✅ done | 02 | [phase-03](phase-03-availability-booking-core.md) |
-| 04 | Notifications: Outbox + email confirm/reminder + internal webhook | pending | 03 | [phase-04](phase-04-outbox-notifications-webhooks.md) |
-| 05 | Reporting/analytics (bookings/revenue by time/service/staff) | pending | 03 | [phase-05](phase-05-reporting-analytics.md) |
+| 04 | Transactional Outbox + email dispatch + signed webhooks (HMAC + SSRF guard) + outbox metrics (reminders deferred) | ✅ done | 03 | [phase-04](phase-04-outbox-notifications-webhooks.md) |
+| 05 | Reporting/analytics (bookings/revenue by time/service/staff, TZ-bucketed) | ✅ done | 03 | [phase-05](phase-05-reporting-analytics.md) |
 | 06 | Recurring bookings | pending | 03 | [phase-06](phase-06-recurring-bookings.md) |
 | 07 | Billing + subscription + super-admin tenant management | pending | 01,03 | [phase-07](phase-07-billing-subscription-superadmin.md) |
 | 08 | Hardening: k6 load test, ADRs, docs sync, OpenAPI polish, **README diagrams + engineering narrative, live demo deploy, security scan CI, CI quality gates** | pending | all | [phase-08](phase-08-hardening-k6-adr-docs.md) |

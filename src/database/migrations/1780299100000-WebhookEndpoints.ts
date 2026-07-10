@@ -21,6 +21,10 @@ export class WebhookEndpoints1780299100000 implements MigrationInterface {
     await queryRunner.query(
       'CREATE INDEX "IDX_webhook_endpoints_tenant" ON "webhook_endpoints" ("tenant_id")',
     );
+    // At most one active endpoint per tenant — closes the create() TOCTOU race.
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "UQ_webhook_endpoints_active" ON "webhook_endpoints" ("tenant_id") WHERE "active" AND "deleted_at" IS NULL`,
+    );
 
     await queryRunner.query('ALTER TABLE "webhook_endpoints" ENABLE ROW LEVEL SECURITY');
     await queryRunner.query('ALTER TABLE "webhook_endpoints" FORCE ROW LEVEL SECURITY');

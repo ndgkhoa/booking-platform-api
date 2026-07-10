@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import { AppDataSource } from '@config/data-source';
 import { logger } from '@config/logger';
 import { redis } from '@config/redis';
+import { startWorkerMetricsServer } from '@jobs/metrics-server';
 import { startEmailWorker } from '@jobs/workers/email.worker';
 import { startOutboxRelay } from '@jobs/workers/outbox-relay.worker';
 import { startWebhookWorker } from '@jobs/workers/webhook.worker';
@@ -17,12 +18,14 @@ async function bootstrap(): Promise<void> {
   const emailWorker = startEmailWorker();
   const webhookWorker = startWebhookWorker();
   const stopRelay = startOutboxRelay();
+  const metricsServer = startWorkerMetricsServer();
   logger.info('Workers started');
 
   async function shutdown(signal: string): Promise<void> {
     logger.info(`${signal} received — closing workers`);
     await stopRelay();
     await Promise.all([emailWorker.close(), webhookWorker.close()]);
+    metricsServer.close();
     await AppDataSource.destroy();
     await redis.quit();
     process.exit(0);

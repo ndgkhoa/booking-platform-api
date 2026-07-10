@@ -88,7 +88,9 @@ Webhook worker: POST signed payload to tenant webhook URL, retry/backoff
 - [x] Outbox metrics: `outbox_events_dispatched_total{result}` counter + `outbox_events_pending` / `outbox_oldest_pending_seconds` gauges (relay updates each tick)
 - [x] Migration webhook_endpoints (+RLS, reversible); unit (signer + SSRF) + e2e (CRUD, secret-once, SSRF-reject, single-active, send-time block) — 29 unit + 57 integration green
 
-**Deferred (documented):** reminder scheduling + status-re-check (delayed BullMQ job; Redis/time-coupled — best with a scheduler, low test value here); outbox/webhook retention sweep → phase-08; real email provider integration.
+- [x] Slice B review fixes (SSRF hardening): rewrote guard with a full IP classifier — whole 127/8, 10/8, 172.16/12, 192.168/16, 169.254/16, 0/8, CGNAT, and **all IPv6** (::1, fc/fd, fe80 link-local, and IPv4-mapped ::ffff: incl. WHATWG hex-normalised form). Split into sync `validateWebhookUrl` (registration, no DNS) + async `assertSafeWebhookUrl` (delivery, resolves DNS → blocks internal hostname / naive rebind). `redirect: 'error'` (no redirect-to-internal). AbortController timeout (no socket leak). Signature now covers `<timestamp>.<body>` (replay resistance) with `sha256=` wire prefix + prefix-tolerant verify. Partial unique index `(tenant_id) WHERE active` closes the single-active TOCTOU (+23505→409). **Worker exposes its own `/metrics`** so outbox counters/gauges (set in the worker process) are actually scrapeable.
+
+**Deferred (documented):** reminder scheduling + status-re-check (delayed BullMQ job; Redis/time-coupled — best with a scheduler, low test value here); outbox/webhook retention sweep → phase-08; real email provider integration; full DNS-rebinding pinning (residual resolve-vs-connect TOCTOU accepted).
 
 **Phase 04 COMPLETE (core delivery).** Reminders are the one remaining optional piece.
 

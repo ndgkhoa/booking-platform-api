@@ -29,6 +29,7 @@ export const env = cleanEnv(process.env, {
   LOG_LEVEL: str({ default: 'info' }),
   SWAGGER_ENABLED: bool({ default: true }),
   METRICS_ENABLED: bool({ default: true }),
+  WORKER_METRICS_PORT: port({ default: 9100 }),
 
   OTEL_ENABLED: bool({ default: false }),
   OTEL_SERVICE_NAME: str({ default: 'booking-platform-api' }),

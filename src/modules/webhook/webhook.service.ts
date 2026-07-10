@@ -3,7 +3,7 @@ import { ConflictException, NotFoundException } from '@common/exceptions';
 import type { CreateWebhookDto } from '@modules/webhook/dto/create-webhook.dto';
 import { WebhookRepository } from '@modules/webhook/webhook.repository';
 import type { WebhookEndpoint } from '@modules/webhook/webhook-endpoint.entity';
-import { assertSafeWebhookUrl } from '@modules/webhook/webhook-url';
+import { validateWebhookUrl } from '@modules/webhook/webhook-url';
 import { Service } from 'typedi';
 
 @Service()
@@ -21,13 +21,21 @@ export class WebhookService {
     active: boolean;
     secret: string;
   }> {
-    assertSafeWebhookUrl(dto.url); // https + no private/loopback target (SSRF guard)
+    validateWebhookUrl(dto.url); // https + no literal private/loopback target (DNS re-checked at send)
     if (await this.webhooks.findActive()) {
       throw new ConflictException('A webhook endpoint is already configured');
     }
     const secret = randomBytes(32).toString('hex');
-    const endpoint = await this.webhooks.createOne({ url: dto.url, secret });
-    return { id: endpoint.id, url: endpoint.url, active: endpoint.active, secret };
+    try {
+      const endpoint = await this.webhooks.createOne({ url: dto.url, secret });
+      return { id: endpoint.id, url: endpoint.url, active: endpoint.active, secret };
+    } catch (error) {
+      // The partial unique index is the race-proof backstop for the check above.
+      if ((error as { code?: string }).code === '23505') {
+        throw new ConflictException('A webhook endpoint is already configured');
+      }
+      throw error;
+    }
   }
 
   list(): Promise<WebhookEndpoint[]> {

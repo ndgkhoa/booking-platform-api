@@ -2,7 +2,7 @@ import { getTenantId, getTenantManager } from '@common/tenant/tenant-context';
 import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
 import { OutboxStatus } from '@modules/outbox/outbox-status';
 import { Service } from 'typedi';
-import { DataSource, type EntityManager } from 'typeorm';
+import type { EntityManager } from 'typeorm';
 
 export interface RecordEventInput {
   aggregateType: string;
@@ -16,14 +16,17 @@ const MAX_ATTEMPTS = 5;
 
 @Service()
 export class OutboxRepository {
-  constructor(private readonly dataSource: DataSource) {}
-
   /**
    * Writes an event on the ACTIVE tenant transaction (the request's manager), so
-   * it commits atomically with the state change. tenant_id comes from context.
+   * it commits atomically with the state change. Requires an in-flight tenant
+   * transaction — falling back to autocommit would break atomicity, so it fails
+   * fast instead.
    */
   record(input: RecordEventInput): Promise<OutboxEvent> {
-    const manager: EntityManager = getTenantManager() ?? this.dataSource.manager;
+    const manager = getTenantManager();
+    if (!manager) {
+      throw new Error('Outbox record must run inside a tenant transaction');
+    }
     const repo = manager.getRepository(OutboxEvent);
     return repo.save(repo.create({ ...input, tenantId: getTenantId() }));
   }
@@ -39,6 +42,7 @@ export class OutboxRepository {
       .where('e.status = :status', { status: OutboxStatus.Pending })
       .andWhere('e.available_at <= now()')
       .orderBy('e.created_at', 'ASC')
+      .addOrderBy('e.id', 'ASC') // stable tiebreaker for same-timestamp rows
       .limit(limit)
       .setLock('pessimistic_write')
       .setOnLocked('skip_locked')

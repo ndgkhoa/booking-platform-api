@@ -24,9 +24,10 @@ export class OutboxEvents1780299000000 implements MigrationInterface {
         CONSTRAINT "FK_outbox_events_tenant" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE
       )
     `);
-    // Supports the relay's "due pending, oldest first" claim scan.
+    // Partial index for the relay's "due pending, oldest first" claim scan —
+    // stays small as dispatched/dead rows accumulate.
     await queryRunner.query(
-      'CREATE INDEX "IDX_outbox_events_dispatch" ON "outbox_events" ("status", "available_at")',
+      `CREATE INDEX "IDX_outbox_events_dispatch" ON "outbox_events" ("available_at") WHERE "status" = 'pending'`,
     );
   }
 

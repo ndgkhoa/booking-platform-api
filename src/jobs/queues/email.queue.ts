@@ -46,6 +46,8 @@ export function enqueueInviteEmail(data: Omit<InviteEmailJob, 'type'>) {
   return emailQueue.add('invite', { type: 'invite', ...data }, JOB_OPTIONS);
 }
 
-export function enqueueBookingEmail(data: Omit<BookingEmailJob, 'type'>) {
-  return emailQueue.add('booking', { type: 'booking', ...data }, JOB_OPTIONS);
+export function enqueueBookingEmail(data: Omit<BookingEmailJob, 'type'>, jobId?: string) {
+  // jobId (the outbox event id) makes the at-least-once relay redelivery a no-op:
+  // BullMQ ignores a second add with the same jobId.
+  return emailQueue.add('booking', { type: 'booking', ...data }, { ...JOB_OPTIONS, jobId });
 }

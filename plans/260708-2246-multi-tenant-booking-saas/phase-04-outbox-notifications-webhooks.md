@@ -77,6 +77,8 @@ Webhook worker: POST signed payload to tenant webhook URL, retry/backoff
 - [x] OutboxRelay service (`processBatch`, dispatch injected → testable Redis-free) + outbox-relay.worker poller (drain loop, interval) wired in worker.ts
 - [x] Email payload generalized (BookingEmailJob); relay dispatch enqueues booking notifications
 - [x] Atomicity e2e: rollback → zero events; status-change emits; relay drains + SKIP LOCKED, tenant-scoped assertions — 53 integration green, stable
+- [x] Review fixes: dedupe redelivery via `jobId = event.id` (BullMQ ignores duplicate) so at-least-once relay ≈ effectively-once for the queue; graceful shutdown now awaits the in-flight relay tick before destroying the DataSource; `record()` fails fast if not inside a tenant transaction (removes the autocommit atomicity trap); partial claim index `WHERE status='pending'`; stable `created_at, id` claim order.
+- Consumer contract: side-effect handlers must be idempotent (at-least-once); the current email handler is a stub — real dedupe/templating is Slice B. Retention/cleanup of dispatched/dead rows deferred to phase-08.
 
 **Slice B — notifications + webhooks (next):**
 - [ ] Confirmation + reminder templates; reminder scheduling + status re-check on send

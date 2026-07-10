@@ -9,7 +9,7 @@ import { Column, Entity, Index } from 'typeorm';
  * NOT under RLS so the system relay can drain it across tenants.
  */
 @Entity('outbox_events')
-@Index(['status', 'availableAt'])
+@Index(['availableAt'], { where: `"status" = 'pending'` })
 export class OutboxEvent extends BaseTenantEntity {
   @Column({ name: 'aggregate_type' })
   aggregateType!: string;

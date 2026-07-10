@@ -19,7 +19,7 @@ async function bootstrap(): Promise<void> {
 
   async function shutdown(signal: string): Promise<void> {
     logger.info(`${signal} received — closing workers`);
-    stopRelay();
+    await stopRelay();
     await emailWorker.close();
     await AppDataSource.destroy();
     await redis.quit();

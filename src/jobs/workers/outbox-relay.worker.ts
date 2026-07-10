@@ -10,36 +10,49 @@ const POLL_INTERVAL_MS = 2_000;
 /** Maps a committed outbox event to a queued side effect (at-least-once). */
 async function dispatch(event: OutboxEvent): Promise<void> {
   if (event.aggregateType === 'booking') {
-    await enqueueBookingEmail({
-      eventType: event.eventType,
-      tenantId: event.tenantId,
-      bookingId: String(event.payload.bookingId),
-      customerId: String(event.payload.customerId),
-    });
+    await enqueueBookingEmail(
+      {
+        eventType: event.eventType,
+        tenantId: event.tenantId,
+        bookingId: String(event.payload.bookingId),
+        customerId: String(event.payload.customerId),
+      },
+      event.id, // dedupe key: a redelivered event enqueues the same job once
+    );
   }
 }
 
-/** Starts the outbox poller; returns a stop function for graceful shutdown. */
-export function startOutboxRelay(): () => void {
+/** Starts the outbox poller; returns an async stop that drains the in-flight tick. */
+export function startOutboxRelay(): () => Promise<void> {
   const relay = Container.get(OutboxRelay);
-  let running = false;
+  let inFlight: Promise<void> | null = null;
+  let stopped = false;
 
   const tick = async (): Promise<void> => {
-    if (running) return;
-    running = true;
-    try {
-      let processed: number;
-      do {
-        processed = await relay.processBatch(AppDataSource, dispatch);
-      } while (processed > 0);
-    } catch (error) {
-      logger.error(`Outbox relay tick failed: ${(error as Error).message}`);
-    } finally {
-      running = false;
-    }
+    if (inFlight || stopped) return;
+    inFlight = (async () => {
+      try {
+        let processed: number;
+        do {
+          processed = await relay.processBatch(AppDataSource, dispatch);
+        } while (processed > 0 && !stopped);
+      } catch (error) {
+        logger.error(`Outbox relay tick failed: ${(error as Error).message}`);
+      } finally {
+        inFlight = null;
+      }
+    })();
+    await inFlight;
   };
 
   const timer = setInterval(() => void tick(), POLL_INTERVAL_MS);
   logger.info('Outbox relay started');
-  return () => clearInterval(timer);
+
+  // Stop accepting new work and let any running tick finish before the caller
+  // tears down the DataSource, so no live transaction is aborted mid-flight.
+  return async () => {
+    stopped = true;
+    clearInterval(timer);
+    if (inFlight) await inFlight;
+  };
 }

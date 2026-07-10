@@ -11,6 +11,7 @@ import { StaffService } from '@modules/staff-service/staff-service.entity';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { TimeOff } from '@modules/time-off/time-off.entity';
 import { User } from '@modules/user/user.entity';
+import { WebhookEndpoint } from '@modules/webhook/webhook-endpoint.entity';
 import { WorkingHours } from '@modules/working-hours/working-hours.entity';
 import type { Express } from 'express';
 import { Container } from 'typedi';
@@ -33,6 +34,7 @@ export const TEST_ENTITIES = [
   Booking,
   IdempotencyKey,
   OutboxEvent,
+  WebhookEndpoint,
 ];
 
 export interface IntegrationContext {

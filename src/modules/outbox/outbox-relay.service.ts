@@ -1,3 +1,4 @@
+import { outboxDispatched } from '@common/monitoring/metrics';
 import { logger } from '@config/logger';
 import { OutboxRepository } from '@modules/outbox/outbox.repository';
 import type { OutboxEvent } from '@modules/outbox/outbox-event.entity';
@@ -32,10 +33,12 @@ export class OutboxRelay {
         try {
           await dispatch(event);
           await this.outbox.markDispatched(manager, event.id);
+          outboxDispatched.inc({ result: 'success' });
           dispatched += 1;
         } catch (error) {
           logger.warn(`Outbox dispatch failed for ${event.id}: ${(error as Error).message}`);
           await this.outbox.markFailed(manager, event);
+          outboxDispatched.inc({ result: 'failure' });
         }
       }
       return dispatched;

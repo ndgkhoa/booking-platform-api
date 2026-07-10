@@ -5,6 +5,7 @@ import { logger } from '@config/logger';
 import { redis } from '@config/redis';
 import { startEmailWorker } from '@jobs/workers/email.worker';
 import { startOutboxRelay } from '@jobs/workers/outbox-relay.worker';
+import { startWebhookWorker } from '@jobs/workers/webhook.worker';
 import { Container } from 'typedi';
 import { DataSource } from 'typeorm';
 
@@ -14,13 +15,14 @@ async function bootstrap(): Promise<void> {
   logger.info('Worker database connected');
 
   const emailWorker = startEmailWorker();
+  const webhookWorker = startWebhookWorker();
   const stopRelay = startOutboxRelay();
   logger.info('Workers started');
 
   async function shutdown(signal: string): Promise<void> {
     logger.info(`${signal} received — closing workers`);
     await stopRelay();
-    await emailWorker.close();
+    await Promise.all([emailWorker.close(), webhookWorker.close()]);
     await AppDataSource.destroy();
     await redis.quit();
     process.exit(0);

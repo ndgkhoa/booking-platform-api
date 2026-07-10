@@ -1,30 +1,49 @@
+import { outboxOldestPendingSeconds, outboxPending } from '@common/monitoring/metrics';
 import { AppDataSource } from '@config/data-source';
 import { logger } from '@config/logger';
 import { enqueueBookingEmail } from '@jobs/queues/email.queue';
+import { enqueueWebhook } from '@jobs/queues/webhook.queue';
+import { OutboxRepository } from '@modules/outbox/outbox.repository';
 import type { OutboxEvent } from '@modules/outbox/outbox-event.entity';
 import { OutboxRelay } from '@modules/outbox/outbox-relay.service';
 import { Container } from 'typedi';
 
 const POLL_INTERVAL_MS = 2_000;
 
-/** Maps a committed outbox event to a queued side effect (at-least-once). */
+/**
+ * Maps a committed outbox event to queued side effects (at-least-once). jobId is
+ * derived from the event id so a redelivery enqueues the same job once. Webhook
+ * jobs are always enqueued; the worker no-ops if the tenant has no endpoint.
+ */
 async function dispatch(event: OutboxEvent): Promise<void> {
-  if (event.aggregateType === 'booking') {
-    await enqueueBookingEmail(
-      {
-        eventType: event.eventType,
-        tenantId: event.tenantId,
-        bookingId: String(event.payload.bookingId),
-        customerId: String(event.payload.customerId),
-      },
-      event.id, // dedupe key: a redelivered event enqueues the same job once
-    );
+  if (event.aggregateType !== 'booking') {
+    return;
   }
+  await enqueueBookingEmail(
+    {
+      eventType: event.eventType,
+      tenantId: event.tenantId,
+      bookingId: String(event.payload.bookingId),
+      customerId: String(event.payload.customerId),
+    },
+    `email:${event.id}`,
+  );
+  await enqueueWebhook(
+    {
+      tenantId: event.tenantId,
+      eventType: event.eventType,
+      aggregateType: event.aggregateType,
+      aggregateId: event.aggregateId,
+      data: event.payload,
+    },
+    `webhook:${event.id}`,
+  );
 }
 
 /** Starts the outbox poller; returns an async stop that drains the in-flight tick. */
 export function startOutboxRelay(): () => Promise<void> {
   const relay = Container.get(OutboxRelay);
+  const outbox = Container.get(OutboxRepository);
   let inFlight: Promise<void> | null = null;
   let stopped = false;
 
@@ -36,6 +55,9 @@ export function startOutboxRelay(): () => Promise<void> {
         do {
           processed = await relay.processBatch(AppDataSource, dispatch);
         } while (processed > 0 && !stopped);
+        const backlog = await outbox.backlogStats(AppDataSource.manager);
+        outboxPending.set(backlog.pending);
+        outboxOldestPendingSeconds.set(backlog.oldestAgeSeconds);
       } catch (error) {
         logger.error(`Outbox relay tick failed: ${(error as Error).message}`);
       } finally {

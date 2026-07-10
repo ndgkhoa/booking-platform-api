@@ -53,6 +53,23 @@ export class OutboxRepository {
     return manager.getRepository(OutboxEvent).update(id, { status: OutboxStatus.Dispatched });
   }
 
+  /** Backlog snapshot for metrics: pending count + age of the oldest pending row. */
+  async backlogStats(
+    manager: EntityManager,
+  ): Promise<{ pending: number; oldestAgeSeconds: number }> {
+    const row = await manager
+      .getRepository(OutboxEvent)
+      .createQueryBuilder('e')
+      .select('COUNT(*)', 'pending')
+      .addSelect('COALESCE(EXTRACT(EPOCH FROM now() - MIN(e.created_at)), 0)', 'age')
+      .where('e.status = :status', { status: OutboxStatus.Pending })
+      .getRawOne<{ pending: string; age: string }>();
+    return {
+      pending: Number(row?.pending ?? 0),
+      oldestAgeSeconds: Number(row?.age ?? 0),
+    };
+  }
+
   /** Bumps attempts; schedules a backoff retry, or marks dead past the cap. */
   markFailed(manager: EntityManager, event: OutboxEvent): Promise<unknown> {
     const attempts = event.attempts + 1;

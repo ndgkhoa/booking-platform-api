@@ -80,10 +80,17 @@ Webhook worker: POST signed payload to tenant webhook URL, retry/backoff
 - [x] Review fixes: dedupe redelivery via `jobId = event.id` (BullMQ ignores duplicate) so at-least-once relay ≈ effectively-once for the queue; graceful shutdown now awaits the in-flight relay tick before destroying the DataSource; `record()` fails fast if not inside a tenant transaction (removes the autocommit atomicity trap); partial claim index `WHERE status='pending'`; stable `created_at, id` claim order.
 - Consumer contract: side-effect handlers must be idempotent (at-least-once); the current email handler is a stub — real dedupe/templating is Slice B. Retention/cleanup of dispatched/dead rows deferred to phase-08.
 
-**Slice B — notifications + webhooks (next):**
-- [ ] Confirmation + reminder templates; reminder scheduling + status re-check on send
-- [ ] Webhook endpoint config (owner) + signed (HMAC) delivery worker + SSRF guard + retry/dead-letter
-- [ ] Outbox metrics (pending count, oldest-pending age, dispatch success/fail)
+**Slice B — webhooks + metrics (done):**
+- [x] Webhook module: tenant-scoped RLS `webhook_endpoints`, owner CRUD, single active per tenant; secret generated + returned once (plain object), `@Exclude` on reads
+- [x] SSRF guard `assertSafeWebhookUrl` (https-only, blocks loopback/private/link-local/metadata) — single URL authority (→400); enforced at registration AND at send time
+- [x] HMAC-SHA256 signing (`x-webhook-signature: sha256=…`) + constant-time verify helper
+- [x] Webhook queue + worker: reads endpoint in tenant context (RLS), POSTs signed payload with 5-attempt backoff → dead-letter; relay enqueues email + webhook per booking event (jobId-deduped)
+- [x] Outbox metrics: `outbox_events_dispatched_total{result}` counter + `outbox_events_pending` / `outbox_oldest_pending_seconds` gauges (relay updates each tick)
+- [x] Migration webhook_endpoints (+RLS, reversible); unit (signer + SSRF) + e2e (CRUD, secret-once, SSRF-reject, single-active, send-time block) — 29 unit + 57 integration green
+
+**Deferred (documented):** reminder scheduling + status-re-check (delayed BullMQ job; Redis/time-coupled — best with a scheduler, low test value here); outbox/webhook retention sweep → phase-08; real email provider integration.
+
+**Phase 04 COMPLETE (core delivery).** Reminders are the one remaining optional piece.
 
 ## Success Criteria
 - Booking tx rollback leaves zero outbox rows (atomicity test).

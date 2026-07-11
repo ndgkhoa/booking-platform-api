@@ -21,6 +21,7 @@ export const env = cleanEnv(process.env, {
   JWT_EXPIRES_IN: str({ default: '15m' }),
   REFRESH_TOKEN_TTL_DAYS: num({ default: 30 }),
   INVITE_TTL_DAYS: num({ default: 7 }),
+  BILLING_WEBHOOK_SECRET: str({ default: 'dev-billing-secret' }),
 
   REDIS_HOST: host({ default: 'localhost' }),
   REDIS_PORT: port({ default: 6379 }),

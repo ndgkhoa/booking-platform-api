@@ -18,6 +18,10 @@ export class StaffRepository extends BaseTenantRepository<Staff> {
     return this.findOne({ where: { id } });
   }
 
+  count(): Promise<number> {
+    return this.repo.count({ where: this.scopedWhere() });
+  }
+
   paginate(query: BaseQuery): Promise<[Staff[], number]> {
     return this.findAndCount({
       skip: (query.page - 1) * query.limit,

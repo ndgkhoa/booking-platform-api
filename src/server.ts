@@ -68,7 +68,15 @@ export function createServer(): Express {
   app.disable('x-powered-by');
   app.use(helmet());
   app.use(cors({ origin: env.CORS_ORIGIN }));
-  app.use(express.json({ limit: '1mb' }));
+  app.use(
+    express.json({
+      limit: '1mb',
+      // Keep the raw bytes so webhook signatures verify against exactly what was sent.
+      verify: (req, _res, buf) => {
+        (req as Request).rawBody = buf.toString('utf8');
+      },
+    }),
+  );
   app.use(express.urlencoded({ extended: true }));
   app.use(hpp());
   app.use(httpLogger);

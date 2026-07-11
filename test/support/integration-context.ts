@@ -1,5 +1,8 @@
 import { IdempotencyKey } from '@common/idempotency/idempotency-key.entity';
 import { RefreshToken } from '@modules/auth/refresh-token.entity';
+import { Plan } from '@modules/billing/plan.entity';
+import { Subscription } from '@modules/billing/subscription.entity';
+import { WebhookReceipt } from '@modules/billing/webhook-receipt.entity';
 import { Booking } from '@modules/booking/booking.entity';
 import { Customer } from '@modules/customer/customer.entity';
 import { Invite } from '@modules/invite/invite.entity';
@@ -37,6 +40,9 @@ export const TEST_ENTITIES = [
   OutboxEvent,
   WebhookEndpoint,
   Recurrence,
+  Plan,
+  Subscription,
+  WebhookReceipt,
 ];
 
 export interface IntegrationContext {

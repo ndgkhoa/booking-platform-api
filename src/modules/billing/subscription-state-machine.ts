@@ -1,0 +1,20 @@
+import { UnprocessableStateException } from '@common/exceptions';
+import { SubscriptionStatus } from '@modules/billing/subscription-status';
+
+/** Explicit subscription lifecycle mirroring provider states. */
+const TRANSITIONS: Record<SubscriptionStatus, readonly SubscriptionStatus[]> = {
+  [SubscriptionStatus.Trialing]: [SubscriptionStatus.Active, SubscriptionStatus.Canceled],
+  [SubscriptionStatus.Active]: [SubscriptionStatus.PastDue, SubscriptionStatus.Canceled],
+  [SubscriptionStatus.PastDue]: [SubscriptionStatus.Active, SubscriptionStatus.Canceled],
+  [SubscriptionStatus.Canceled]: [],
+};
+
+export function canTransition(from: SubscriptionStatus, to: SubscriptionStatus): boolean {
+  return from === to || TRANSITIONS[from].includes(to);
+}
+
+export function assertCanTransition(from: SubscriptionStatus, to: SubscriptionStatus): void {
+  if (!canTransition(from, to)) {
+    throw new UnprocessableStateException(`Cannot move a ${from} subscription to ${to}`);
+  }
+}

@@ -1,6 +1,7 @@
 import type { BaseQuery } from '@common/base/query.base';
 import { BadRequestException, ConflictException, NotFoundException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
+import { EntitlementService } from '@modules/billing/entitlement.service';
 import { MembershipService } from '@modules/membership/membership.service';
 import type { CreateStaffDto } from '@modules/staff/dto/create-staff.dto';
 import type { UpdateStaffDto } from '@modules/staff/dto/update-staff.dto';
@@ -14,6 +15,7 @@ export class StaffService {
   constructor(
     private readonly staff: StaffRepository,
     private readonly memberships: MembershipService,
+    private readonly entitlements: EntitlementService,
   ) {}
 
   async create(dto: CreateStaffDto): Promise<Staff> {
@@ -22,6 +24,7 @@ export class StaffService {
     if (!role) {
       throw new BadRequestException('User is not a member of this tenant');
     }
+    await this.entitlements.assertWithinStaffLimit(await this.staff.count());
     try {
       return await this.staff.createOne({ userId: dto.userId, displayName: dto.displayName });
     } catch (error) {

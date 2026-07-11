@@ -12,6 +12,8 @@ declare global {
       // by TenantTransactionInterceptor on success, rolled back otherwise.
       tenantTx?: QueryRunner;
       tenantTxSettled?: boolean;
+      // Raw request body bytes, captured for webhook signature verification.
+      rawBody?: string;
     }
   }
 }

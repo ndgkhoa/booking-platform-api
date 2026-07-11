@@ -62,15 +62,23 @@ super_admin console → SET app.tenant_id per target (audited) OR system role
 6. Super-admin: list/suspend/reactivate tenants via audited privileged DB path; audit-log every action.
 7. Tests: webhook signature + idempotency, entitlement overage block, subscription transitions, super-admin audit + isolation.
 
+## Resolved open questions
+- **Payment provider:** BOTH SePay + Stripe behind a `PaymentProvider` **Strategy** (ADR 0007). No lock-in; adapters isolate checkout shape, signature scheme, event format.
+- **super_admin cross-tenant:** explicit per-tenant `SET app.tenant_id` + audit log (NOT blanket BYPASSRLS) — Slice B.
+
 ## Todo
-- [ ] ADR 0007 payment provider (resolve open question)
-- [ ] PaymentProvider interface + chosen adapter
-- [ ] Plans + Subscriptions entities + migration
-- [ ] Subscription state machine
-- [ ] Inbound billing webhook (signed + idempotent)
-- [ ] EntitlementService + guard wired into limited ops
-- [ ] Super-admin console + audit log
-- [ ] Billing/entitlement/admin tests
+**Slice A — billing (done):**
+- [x] ADR `docs/adr/0007-payment-provider.md` (Strategy decision)
+- [x] `PaymentProvider` interface (Strategy) + `SepayProvider` (VietQR checkout, HMAC-SHA256 sig) + `StripeProvider` (hosted checkout, `t=,v1=` sig) + `PaymentProviderRegistry` (Factory/Registry selecting by name)
+- [x] Plans (global) + Subscriptions (tenant-scoped, RLS, one active per tenant) + subscription state machine (trialing→active→past_due→canceled)
+- [x] Inbound billing webhook: raw-body signature verify + system-level idempotency (`webhook_receipts` unique on provider+event id) → state machine
+- [x] EntitlementService (fail-closed, unmetered when no plan) wired into StaffService.create (402 PLAN_LIMIT_EXCEEDED over plan cap)
+- [x] Migration billing (+RLS, seed free/pro plans, reversible)
+- [x] Unit: both providers' signature+event parse; e2e: subscribe→signed-webhook→active, bad-sig 401, idempotent replay, entitlement 402, unknown-provider 422 — 40 unit + 72 integration green
+
+**Slice B — super-admin (next):**
+- [ ] Super-admin console: list/suspend/reactivate tenants via audited explicit-tenant-set path
+- [ ] `admin_audit_logs` immutable audit of every cross-tenant action
 
 ## Success Criteria
 - Subscribe → webhook → subscription active; replayed webhook is no-op.

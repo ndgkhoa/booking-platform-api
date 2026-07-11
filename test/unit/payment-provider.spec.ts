@@ -1,18 +1,19 @@
 import { createHmac } from 'node:crypto';
-import { SepayProvider } from '@modules/billing/providers/sepay.provider';
-import { StripeProvider } from '@modules/billing/providers/stripe.provider';
+import { env } from '@config/env';
+import { SepayProvider } from '@modules/payment/providers/sepay.provider';
+import { StripeProvider } from '@modules/payment/providers/stripe.provider';
 
 describe('SepayProvider', () => {
   const provider = new SepayProvider();
-  const secret = 'sepay-secret';
+  const secret = env.SEPAY_WEBHOOK_SECRET;
 
   it('verifies an HMAC-signed body and rejects tampering', () => {
     const body = JSON.stringify({ id: 'e1', status: 'success', content: 'sub_123' });
     const sig = createHmac('sha256', secret).update(body).digest('hex');
-    expect(provider.verifyWebhook(body, sig, secret)).toBe(true);
-    expect(provider.verifyWebhook(body, `sha256=${sig}`, secret)).toBe(true);
-    expect(provider.verifyWebhook(`${body} `, sig, secret)).toBe(false);
-    expect(provider.verifyWebhook(body, sig, 'wrong')).toBe(false);
+    expect(provider.verifyWebhook(body, sig)).toBe(true);
+    expect(provider.verifyWebhook(body, `sha256=${sig}`)).toBe(true);
+    expect(provider.verifyWebhook(`${body} `, sig)).toBe(false);
+    expect(provider.verifyWebhook(body, sig.replace(/.$/, '0'))).toBe(false);
   });
 
   it('parses success/failure events and ignores others', () => {
@@ -30,16 +31,23 @@ describe('SepayProvider', () => {
 
 describe('StripeProvider', () => {
   const provider = new StripeProvider();
-  const secret = 'whsec_test';
+  const secret = env.STRIPE_WEBHOOK_SECRET;
+  const now = () => Math.floor(Date.now() / 1000);
 
-  const sign = (body: string, ts = '1700000000') =>
+  const sign = (body: string, ts: number) =>
     `t=${ts},v1=${createHmac('sha256', secret).update(`${ts}.${body}`).digest('hex')}`;
 
-  it('verifies the t=,v1= signature scheme', () => {
+  it('verifies the t=,v1= signature scheme within the freshness window', () => {
     const body = JSON.stringify({ id: 'evt_1', type: 'invoice.paid' });
-    expect(provider.verifyWebhook(body, sign(body), secret)).toBe(true);
-    expect(provider.verifyWebhook(body, sign(body).replace('v1=', 'v1=00'), secret)).toBe(false);
-    expect(provider.verifyWebhook(body, 'garbage', secret)).toBe(false);
+    expect(provider.verifyWebhook(body, sign(body, now()))).toBe(true);
+    expect(provider.verifyWebhook(body, sign(body, now()).replace('v1=', 'v1=00'))).toBe(false);
+    expect(provider.verifyWebhook(body, 'garbage')).toBe(false);
+  });
+
+  it('rejects a stale signature outside the tolerance window', () => {
+    const body = JSON.stringify({ id: 'evt_1', type: 'invoice.paid' });
+    const stale = now() - env.STRIPE_WEBHOOK_TOLERANCE_SECONDS - 60;
+    expect(provider.verifyWebhook(body, sign(body, stale))).toBe(false);
   });
 
   it('maps stripe event types to normalised payment events', () => {

@@ -6,9 +6,3 @@ export const SubscriptionStatus = {
 } as const;
 
 export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
-
-/** Statuses that entitle a tenant to plan features. */
-export const ENTITLED_STATUSES: readonly SubscriptionStatus[] = [
-  SubscriptionStatus.Trialing,
-  SubscriptionStatus.Active,
-];

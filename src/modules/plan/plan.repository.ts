@@ -1,4 +1,4 @@
-import { Plan } from '@modules/billing/plan.entity';
+import { Plan } from '@modules/plan/plan.entity';
 import { Service } from 'typedi';
 import { DataSource, type Repository } from 'typeorm';
 

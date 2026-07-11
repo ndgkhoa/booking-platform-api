@@ -5,7 +5,7 @@ import type {
   CheckoutSession,
   PaymentEvent,
   PaymentProvider,
-} from '@modules/billing/payment-provider.interface';
+} from '@modules/payment/payment-provider.interface';
 import { Service } from 'typedi';
 
 /**
@@ -19,15 +19,14 @@ export class SepayProvider implements PaymentProvider {
   readonly name = 'sepay' as const;
 
   createCheckout(input: CheckoutInput): CheckoutSession {
-    const reference = `sub_${input.subscriptionId}`;
     const url = new URL(`${env.APP_URL}/pay/sepay`);
-    url.searchParams.set('ref', reference);
+    url.searchParams.set('ref', input.reference);
     url.searchParams.set('amount', String(input.amount));
-    return { provider: this.name, reference, checkoutUrl: url.toString() };
+    return { provider: this.name, reference: input.reference, checkoutUrl: url.toString() };
   }
 
-  verifyWebhook(rawBody: string, signature: string, secret: string): boolean {
-    const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
+  verifyWebhook(rawBody: string, signature: string): boolean {
+    const expected = createHmac('sha256', env.SEPAY_WEBHOOK_SECRET).update(rawBody).digest('hex');
     const received = signature.replace(/^sha256=/, '');
     if (expected.length !== received.length) return false;
     return timingSafeEqual(Buffer.from(expected), Buffer.from(received));

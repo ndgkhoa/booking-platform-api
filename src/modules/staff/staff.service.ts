@@ -1,12 +1,12 @@
 import type { BaseQuery } from '@common/base/query.base';
 import { BadRequestException, ConflictException, NotFoundException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
-import { EntitlementService } from '@modules/billing/entitlement.service';
 import { MembershipService } from '@modules/membership/membership.service';
 import type { CreateStaffDto } from '@modules/staff/dto/create-staff.dto';
 import type { UpdateStaffDto } from '@modules/staff/dto/update-staff.dto';
 import type { Staff } from '@modules/staff/staff.entity';
 import { StaffRepository } from '@modules/staff/staff.repository';
+import { EntitlementService } from '@modules/subscription/entitlement.service';
 import { Service } from 'typedi';
 
 /** Manages the tenant's staff directory (profiles). Capabilities live in StaffServiceService. */

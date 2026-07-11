@@ -2,7 +2,7 @@
 export type PaymentProviderName = 'sepay' | 'stripe';
 
 export interface CheckoutInput {
-  subscriptionId: string;
+  reference: string; // caller-built correlation id (encodes the tenant)
   amount: number; // integer minor units
   currency: string;
   description: string;
@@ -34,8 +34,8 @@ export interface PaymentProvider {
   /** Creates a provider-hosted checkout for a subscription. */
   createCheckout(input: CheckoutInput): CheckoutSession;
 
-  /** Constant-time verification of an inbound webhook against the shared secret. */
-  verifyWebhook(rawBody: string, signature: string, secret: string): boolean;
+  /** Constant-time verification of an inbound webhook using the provider's own secret. */
+  verifyWebhook(rawBody: string, signature: string): boolean;
 
   /** Normalises a verified webhook body into a PaymentEvent, or null if irrelevant. */
   parseEvent(rawBody: string): PaymentEvent | null;

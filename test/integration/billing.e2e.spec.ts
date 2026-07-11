@@ -1,11 +1,11 @@
 import { createHmac, randomUUID } from 'node:crypto';
-import { Plan } from '@modules/billing/plan.entity';
+import { Plan } from '@modules/plan/plan.entity';
 import type { Express } from 'express';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
-const WEBHOOK_SECRET = 'dev-billing-secret'; // matches env default
+const SEPAY_SECRET = 'dev-sepay-secret'; // matches SEPAY_WEBHOOK_SECRET env default
 
 describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
   let ctx: IntegrationContext;
@@ -64,12 +64,12 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
   }
 
   const sepaySig = (body: object) =>
-    createHmac('sha256', WEBHOOK_SECRET).update(JSON.stringify(body)).digest('hex');
+    createHmac('sha256', SEPAY_SECRET).update(JSON.stringify(body)).digest('hex');
 
   it('subscribes via a chosen provider and activates on a signed webhook', async () => {
     const { token } = await owner();
     const sub = await request(app)
-      .post('/api/v1/billing/subscribe')
+      .post('/api/v1/subscriptions')
       .set(auth(token))
       .send({ planId: proPlanId, provider: 'sepay' });
     expect(sub.status).toBe(201);
@@ -78,26 +78,26 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
 
     const event = { id: `evt_${randomUUID()}`, status: 'success', content: reference };
     const hook = await request(app)
-      .post('/api/v1/billing/webhooks/sepay')
+      .post('/api/v1/payments/webhooks/sepay')
       .set('x-webhook-signature', sepaySig(event))
       .send(event);
     expect(hook.status).toBe(200);
 
-    const current = await request(app).get('/api/v1/billing/subscription').set(auth(token));
+    const current = await request(app).get('/api/v1/subscriptions/current').set(auth(token));
     expect(current.body.data.status).toBe('active');
   });
 
   it('rejects a webhook with a bad signature (401) and is idempotent on replay', async () => {
     const { token } = await owner();
     const sub = await request(app)
-      .post('/api/v1/billing/subscribe')
+      .post('/api/v1/subscriptions')
       .set(auth(token))
       .send({ planId: proPlanId, provider: 'sepay' });
     const reference = sub.body.data.checkout.reference;
     const event = { id: `evt_${randomUUID()}`, status: 'success', content: reference };
 
     const bad = await request(app)
-      .post('/api/v1/billing/webhooks/sepay')
+      .post('/api/v1/payments/webhooks/sepay')
       .set('x-webhook-signature', 'deadbeef')
       .send(event);
     expect(bad.status).toBe(401);
@@ -105,15 +105,15 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
     // Two valid deliveries of the same event → still exactly one activation, no error.
     const sig = sepaySig(event);
     await request(app)
-      .post('/api/v1/billing/webhooks/sepay')
+      .post('/api/v1/payments/webhooks/sepay')
       .set('x-webhook-signature', sig)
       .send(event);
     const replay = await request(app)
-      .post('/api/v1/billing/webhooks/sepay')
+      .post('/api/v1/payments/webhooks/sepay')
       .set('x-webhook-signature', sig)
       .send(event);
     expect(replay.status).toBe(200);
-    const current = await request(app).get('/api/v1/billing/subscription').set(auth(token));
+    const current = await request(app).get('/api/v1/subscriptions/current').set(auth(token));
     expect(current.body.data.status).toBe('active');
   });
 
@@ -121,13 +121,13 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
     const { token, userId } = await owner();
     // Subscribe to the free plan (maxStaff=1) and activate it.
     const sub = await request(app)
-      .post('/api/v1/billing/subscribe')
+      .post('/api/v1/subscriptions')
       .set(auth(token))
       .send({ planId: freePlanId, provider: 'sepay' });
     const reference = sub.body.data.checkout.reference;
     const event = { id: `evt_${randomUUID()}`, status: 'success', content: reference };
     await request(app)
-      .post('/api/v1/billing/webhooks/sepay')
+      .post('/api/v1/payments/webhooks/sepay')
       .set('x-webhook-signature', sepaySig(event))
       .send(event);
 
@@ -168,7 +168,7 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
   it('rejects an unknown provider (400)', async () => {
     const { token } = await owner();
     const res = await request(app)
-      .post('/api/v1/billing/subscribe')
+      .post('/api/v1/subscriptions')
       .set(auth(token))
       .send({ planId: proPlanId, provider: 'paypal' });
     expect(res.status).toBe(422); // DTO @IsIn rejects before the registry

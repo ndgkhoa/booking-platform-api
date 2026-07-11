@@ -1,6 +1,6 @@
 import { IsIn, IsUUID } from 'class-validator';
 
-export class SubscribeDto {
+export class CreateSubscriptionDto {
   @IsUUID()
   planId!: string;
 

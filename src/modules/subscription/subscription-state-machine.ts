@@ -1,9 +1,13 @@
 import { UnprocessableStateException } from '@common/exceptions';
-import { SubscriptionStatus } from '@modules/billing/subscription-status';
+import { SubscriptionStatus } from '@modules/subscription/subscription-status';
 
 /** Explicit subscription lifecycle mirroring provider states. */
 const TRANSITIONS: Record<SubscriptionStatus, readonly SubscriptionStatus[]> = {
-  [SubscriptionStatus.Trialing]: [SubscriptionStatus.Active, SubscriptionStatus.Canceled],
+  [SubscriptionStatus.Trialing]: [
+    SubscriptionStatus.Active,
+    SubscriptionStatus.PastDue,
+    SubscriptionStatus.Canceled,
+  ],
   [SubscriptionStatus.Active]: [SubscriptionStatus.PastDue, SubscriptionStatus.Canceled],
   [SubscriptionStatus.PastDue]: [SubscriptionStatus.Active, SubscriptionStatus.Canceled],
   [SubscriptionStatus.Canceled]: [],

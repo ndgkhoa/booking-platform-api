@@ -23,14 +23,21 @@ PaymentProviderRegistry.get(name) → PaymentProvider   (Registry/Factory)
 ```
 
 The interface is intentionally minimal and provider-agnostic:
-- `createCheckout(input)` → a `CheckoutSession` (reference + instructions).
-- `verifyWebhook(rawBody, signature, secret)` → boolean (constant-time).
+- `createCheckout(input)` → a `CheckoutSession` (reference + instructions). The
+  caller supplies a `sub_<tenantId>_<random>` reference so the tenant travels
+  with the payment and can be recovered on the (auth-less) webhook.
+- `verifyWebhook(rawBody, signature)` → boolean (constant-time). Each adapter
+  owns its own webhook secret (`SEPAY_WEBHOOK_SECRET` / `STRIPE_WEBHOOK_SECRET`)
+  so a leak of one provider's secret cannot forge the other's events. Stripe
+  additionally rejects signatures outside a freshness window to bound replay.
 - `parseEvent(rawBody)` → a normalised `PaymentEvent` (`payment.succeeded` /
   `payment.failed` + subscription reference), or null if irrelevant.
 
 Inbound webhooks are unauthenticated but **signature-gated** and consumed
-**idempotently** (reuse the idempotency-key store keyed by the provider event id),
-then applied to the subscription state machine.
+**idempotently**. The tenant is decoded from the event reference, then the
+receipt claim (event-id dedup) and the subscription state-machine transition run
+in **one tenant-scoped transaction** — RLS covers the write, and a failed apply
+rolls the claim back so the provider's retry can re-process it.
 
 ## Consequences
 

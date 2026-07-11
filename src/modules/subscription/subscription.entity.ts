@@ -1,6 +1,6 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
-import type { PaymentProviderName } from '@modules/billing/payment-provider.interface';
-import type { SubscriptionStatus } from '@modules/billing/subscription-status';
+import type { PaymentProviderName } from '@modules/payment/payment-provider.interface';
+import type { SubscriptionStatus } from '@modules/subscription/subscription-status';
 import { Column, Entity, Index } from 'typeorm';
 
 /**

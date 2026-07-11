@@ -1,6 +1,6 @@
 import { getTenantId, getTenantManager } from '@common/tenant/tenant-context';
-import { Subscription } from '@modules/billing/subscription.entity';
-import type { SubscriptionStatus } from '@modules/billing/subscription-status';
+import { Subscription } from '@modules/subscription/subscription.entity';
+import type { SubscriptionStatus } from '@modules/subscription/subscription-status';
 import { Service } from 'typedi';
 import { DataSource, type EntityManager } from 'typeorm';
 
@@ -26,21 +26,17 @@ export class SubscriptionRepository {
   }
 
   /**
-   * System lookup by provider reference for the inbound webhook — runs OUTSIDE a
-   * tenant context (the tenant is unknown until found). In production this system
-   * path requires a role permitted to read across tenants; the subsequent write
-   * is applied under the resolved tenant's context.
+   * Lookup by provider reference for the inbound webhook. The caller resolves the
+   * tenant from the reference and re-enters that tenant's context first, so this
+   * runs RLS-scoped on the tenant transaction — the reference alone can never read
+   * another tenant's subscription.
    */
   findByReference(providerReference: string): Promise<Subscription | null> {
-    return this.dataSource.getRepository(Subscription).findOne({ where: { providerReference } });
+    return this.manager.getRepository(Subscription).findOne({ where: { providerReference } });
   }
 
-  async updateReference(id: string, providerReference: string): Promise<void> {
-    await this.manager.getRepository(Subscription).update(id, { providerReference });
-  }
-
-  /** Status update on the system path (webhook) — resolves via the raw manager. */
+  /** Status update on the webhook path — runs on the tenant transaction (RLS-scoped). */
   async updateStatus(id: string, status: SubscriptionStatus): Promise<void> {
-    await this.dataSource.getRepository(Subscription).update(id, { status });
+    await this.manager.getRepository(Subscription).update(id, { status });
   }
 }

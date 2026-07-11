@@ -2,9 +2,9 @@ import { BadRequestException } from '@common/exceptions';
 import type {
   PaymentProvider,
   PaymentProviderName,
-} from '@modules/billing/payment-provider.interface';
-import { SepayProvider } from '@modules/billing/providers/sepay.provider';
-import { StripeProvider } from '@modules/billing/providers/stripe.provider';
+} from '@modules/payment/payment-provider.interface';
+import { SepayProvider } from '@modules/payment/providers/sepay.provider';
+import { StripeProvider } from '@modules/payment/providers/stripe.provider';
 import { Service } from 'typedi';
 
 /**

@@ -21,7 +21,9 @@ export const env = cleanEnv(process.env, {
   JWT_EXPIRES_IN: str({ default: '15m' }),
   REFRESH_TOKEN_TTL_DAYS: num({ default: 30 }),
   INVITE_TTL_DAYS: num({ default: 7 }),
-  BILLING_WEBHOOK_SECRET: str({ default: 'dev-billing-secret' }),
+  SEPAY_WEBHOOK_SECRET: str(),
+  STRIPE_WEBHOOK_SECRET: str(),
+  STRIPE_WEBHOOK_TOLERANCE_SECONDS: num({ default: 300 }),
 
   REDIS_HOST: host({ default: 'localhost' }),
   REDIS_PORT: port({ default: 6379 }),
@@ -34,5 +36,5 @@ export const env = cleanEnv(process.env, {
 
   OTEL_ENABLED: bool({ default: false }),
   OTEL_SERVICE_NAME: str({ default: 'booking-platform-api' }),
-  OTEL_EXPORTER_OTLP_ENDPOINT: str({ default: 'http://localhost:4318/v1/traces' }),
+  OTEL_EXPORTER_OTLP_ENDPOINT: str(),
 });

@@ -123,28 +123,41 @@ describe('Reporting e2e', () => {
     expect(res.body.data[0].currency).toBe('VND');
   });
 
-  it('buckets by the tenant timezone (local day, not UTC)', async () => {
+  it('buckets and bounds by the tenant timezone, not UTC', async () => {
     const f = await fixture('America/New_York');
-    // 2027-02-02T02:00Z is 2027-02-01 21:00 in New York → local day is Feb 1.
-    await bookCompleted(f, '2027-02-02T02:00:00.000Z');
+    // 2027-03-01T04:00Z is 2027-02-28 23:00 in New York → local Feb 28.
+    // A UTC-interpreted range [.., 2027-03-01) would WRONGLY exclude it; a
+    // tenant-local range must include it and bucket it under 2027-02-28.
+    await bookCompleted(f, '2027-03-01T04:00:00.000Z');
 
     const res = await request(app)
-      .get('/api/v1/reports/bookings?from=2027-01-25&to=2027-02-10&groupBy=day')
+      .get('/api/v1/reports/bookings?from=2027-02-01&to=2027-03-01&groupBy=day')
       .set(auth(f.token));
-    expect(res.body.data.map((r: { bucket: string }) => r.bucket)).toContain('2027-02-01');
+    const buckets = res.body.data.map((r: { bucket: string }) => r.bucket);
+    expect(buckets).toContain('2027-02-28');
   });
 
-  it('rejects an oversized or inverted range (400)', async () => {
+  it('groups revenue by currency (never sums across currencies)', async () => {
+    const f = await fixture('UTC');
+    await bookCompleted(f, '2027-04-04T03:00:00.000Z');
+    const res = await request(app)
+      .get('/api/v1/reports/revenue?from=2027-04-01&to=2027-04-30&groupBy=month')
+      .set(auth(f.token));
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual([expect.objectContaining({ amount: 100000, currency: 'VND' })]);
+  });
+
+  it('rejects an oversized or inverted range (422)', async () => {
     const f = await fixture('UTC');
     const tooBig = await request(app)
       .get('/api/v1/reports/bookings?from=2020-01-01&to=2026-01-01&groupBy=month')
       .set(auth(f.token));
-    expect(tooBig.status).toBe(400);
+    expect(tooBig.status).toBe(422);
 
     const inverted = await request(app)
       .get('/api/v1/reports/bookings?from=2027-02-01&to=2027-01-01&groupBy=day')
       .set(auth(f.token));
-    expect(inverted.status).toBe(400);
+    expect(inverted.status).toBe(422);
   });
 
   it('forbids non-owner access (403)', async () => {

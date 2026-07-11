@@ -62,7 +62,13 @@ GET /reports/* → ReportingController → ReportingService → ReportingReposit
 
 **Resolved open question:** revenue counts `completed` bookings only (money earned). Confirmed can be added later if "expected revenue" is needed.
 
-**Phase 05 COMPLETE.**
+**Review fixes (H1/H2/M1/M2):**
+- Revenue grouped by currency — amounts in different currencies are never summed together (a tenant can price services per-currency).
+- from/to are interpreted as **tenant-local** calendar dates in SQL (`:from::timestamp AT TIME ZONE :tz`), so range boundaries align with the local buckets (no off-by-a-day at edges for non-UTC tenants). Boundary e2e added.
+- `bucketExpr` uses constant SQL fragments per unit — the enum is never string-interpolated (injection defense-in-depth).
+- Range errors return 422 (ValidationException), consistent with DTO validation.
+
+**Phase 05 COMPLETE (reviewed).** 29 unit + 63 integration green.
 
 ## Success Criteria
 - Reports match hand-computed expectations on seeded data.

@@ -5,8 +5,9 @@ import { Service } from 'typedi';
 import { DataSource, type EntityManager, type SelectQueryBuilder } from 'typeorm';
 
 export interface ReportFilters {
-  from: Date;
-  to: Date;
+  /** Local calendar dates (YYYY-MM-DD) interpreted in the tenant timezone. */
+  from: string;
+  to: string;
   timezone: string;
   staffId?: string;
   serviceId?: string;
@@ -59,15 +60,20 @@ export class ReportingRepository {
     }));
   }
 
-  /** Summed price snapshot (integer minor units) for revenue-counted statuses. */
+  /**
+   * Summed price snapshot (integer minor units) for revenue-counted statuses,
+   * grouped by currency — amounts in different currencies are never added together.
+   */
   async revenue(groupBy: ReportGroupBy, filters: ReportFilters): Promise<RevenueBucketRow[]> {
     const rows = await this.baseQuery(filters)
       .andWhere('b.status IN (:...statuses)', { statuses: REVENUE_STATUSES })
       .addSelect(this.bucketExpr(groupBy), 'bucket')
+      .addSelect('b.price_currency', 'currency')
       .addSelect('COALESCE(SUM(b.price_amount), 0)', 'amount')
-      .addSelect('MAX(b.price_currency)', 'currency')
       .groupBy('bucket')
+      .addGroupBy('b.price_currency')
       .orderBy('bucket', 'ASC')
+      .addOrderBy('currency', 'ASC')
       .getRawMany<Record<string, string>>();
     return rows.map((r) => ({
       bucket: String(r.bucket),
@@ -79,15 +85,17 @@ export class ReportingRepository {
   /** Tenant-scoped, date-bounded query base (RLS is the backstop; app filter here). */
   private baseQuery(filters: ReportFilters): SelectQueryBuilder<Booking> {
     const manager: EntityManager = getTenantManager() ?? this.dataSource.manager;
+    // from/to are tenant-LOCAL calendar dates: cast to a naive timestamp, then
+    // interpret in the tenant tz so the range boundaries match the local buckets.
     const qb = manager
       .getRepository(Booking)
       .createQueryBuilder('b')
       .where('b.tenant_id = :tenantId', { tenantId: getTenantId() })
       .andWhere('b.deleted_at IS NULL')
-      .andWhere('b.starts_at >= :from AND b.starts_at < :to', {
-        from: filters.from,
-        to: filters.to,
-      })
+      .andWhere(
+        'b.starts_at >= (:from::timestamp AT TIME ZONE :tz) AND b.starts_at < (:to::timestamp AT TIME ZONE :tz)',
+        { from: filters.from, to: filters.to },
+      )
       .setParameter('tz', filters.timezone);
     if (filters.staffId) qb.andWhere('b.staff_id = :staffId', { staffId: filters.staffId });
     if (filters.serviceId)
@@ -95,16 +103,23 @@ export class ReportingRepository {
     return qb.select([]);
   }
 
-  /** Bucket key: a tenant-local truncated date for time groups, or the entity id. */
+  /**
+   * Bucket key: a tenant-local truncated date for time groups (DST-aware), or the
+   * entity id. Each branch is a CONSTANT SQL fragment — the enum unit is never
+   * interpolated, so this can't become an injection vector under refactoring.
+   */
   private bucketExpr(groupBy: ReportGroupBy): string {
     switch (groupBy) {
       case 'service':
         return 'b.service_id::text';
       case 'staff':
         return 'b.staff_id::text';
-      default:
-        // Truncate in the tenant timezone so day/week/month align to local calendar (DST-aware).
-        return `to_char(date_trunc('${groupBy}', b.starts_at AT TIME ZONE :tz), 'YYYY-MM-DD')`;
+      case 'day':
+        return `to_char(date_trunc('day', b.starts_at AT TIME ZONE :tz), 'YYYY-MM-DD')`;
+      case 'week':
+        return `to_char(date_trunc('week', b.starts_at AT TIME ZONE :tz), 'YYYY-MM-DD')`;
+      case 'month':
+        return `to_char(date_trunc('month', b.starts_at AT TIME ZONE :tz), 'YYYY-MM-DD')`;
     }
   }
 }

@@ -1,4 +1,4 @@
-import { BadRequestException } from '@common/exceptions';
+import { ValidationException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
 import type { ReportQuery } from '@modules/reporting/dto/report-query.dto';
 import {
@@ -28,15 +28,23 @@ export class ReportingService {
   }
 
   private async run<T>(query: ReportQuery, exec: (f: ReportFilters) => Promise<T>): Promise<T> {
+    // Validate the span with plain UTC parsing; the actual bucketing/filtering
+    // interprets the raw dates in the tenant timezone (see the repository).
     const from = new Date(query.from);
     const to = new Date(query.to);
     if (to.getTime() <= from.getTime()) {
-      throw new BadRequestException('`to` must be after `from`');
+      throw new ValidationException('`to` must be after `from`');
     }
     if (to.getTime() - from.getTime() > MAX_RANGE_MS) {
-      throw new BadRequestException('Report range must not exceed one year');
+      throw new ValidationException('Report range must not exceed one year');
     }
     const { timezone } = await this.tenants.getById(getTenantId());
-    return exec({ from, to, timezone, staffId: query.staffId, serviceId: query.serviceId });
+    return exec({
+      from: query.from,
+      to: query.to,
+      timezone,
+      staffId: query.staffId,
+      serviceId: query.serviceId,
+    });
   }
 }

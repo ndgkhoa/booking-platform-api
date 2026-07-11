@@ -5,7 +5,7 @@
 
 ## Overview
 - **Priority:** P2
-- **Status:** pending
+- **Status:** ✅ Done
 - **Description:** Repeating appointments (e.g. weekly). A recurrence definition expands into individual `Booking` rows, each still guarded by the EXCLUDE constraint and state machine. Partial-conflict handling defined.
 
 ## Key Insights
@@ -62,13 +62,19 @@ POST /bookings/recurring → RecurrenceService.expand(rule, horizon)
 7. Tests: expander correctness incl. DST; skip_conflicts vs all_or_nothing; series cancel.
 
 ## Todo
-- [ ] Recurrence entity + migration (+ bookings.recurrence_id)
-- [ ] Pure recurrence-expander (DST-safe, bounded) + tests
-- [ ] RecurrenceService with conflict policy
-- [ ] Recurring create endpoint + DTO caps
-- [ ] Cancel series / cancel occurrence
-- [ ] Per-occurrence outbox events
-- [ ] Conflict-policy tests
+- [x] Recurrence entity + migration (+ nullable bookings.recurrence_id FK ON DELETE SET NULL, +RLS, reversible)
+- [x] Pure `recurrence-expander` (daily/weekly, interval, weekdays, count|until) — DST-safe via luxon calendar math, hard-capped at MAX_OCCURRENCES(100); 6 unit tests incl. DST-constant weekly
+- [x] RecurrenceService conflict policy: **skip_conflicts uses per-occurrence SAVEPOINT** so a 23P01 rolls back to the savepoint and is skipped without poisoning the request tx; **all_or_nothing** lets the 409 roll back the whole series
+- [x] `POST /recurrences` (DTO caps: interval ≤52, count ≤100, weekdays 0-6) → { recurrenceId, created[], skipped[] }
+- [x] `POST /recurrences/:id/cancel` — bulk-cancels future active occurrences
+- [x] Per-occurrence outbox `booking.created` events (via BookingService.createOccurrence → EXCLUDE + emit)
+- [x] e2e: weekly expand, skip_conflicts skips the clash, all_or_nothing 409+rollback, series cancel — 35 unit + 67 integration green
+
+**Key correctness win:** each occurrence is a normal EXCLUDE-guarded Booking (no constraint bypass); the SAVEPOINT pattern is what lets skip_conflicts catch-and-continue inside the single per-request transaction.
+
+**Deferred:** "this & future" per-occurrence editing; recurrence list/get endpoints (YAGNI).
+
+**Phase 06 COMPLETE.**
 
 ## Success Criteria
 - Weekly series across DST keeps local time constant.

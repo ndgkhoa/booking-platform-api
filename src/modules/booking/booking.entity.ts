@@ -35,6 +35,10 @@ export class Booking extends BaseTenantEntity {
   @Column({ name: 'price_currency', type: 'varchar', length: 3 })
   priceCurrency!: string;
 
+  // Set when this booking is one occurrence of a recurrence series.
+  @Column({ name: 'recurrence_id', type: 'uuid', nullable: true })
+  recurrenceId?: string | null;
+
   @VersionColumn()
   version!: number;
 }

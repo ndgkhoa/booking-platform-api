@@ -25,6 +25,22 @@ export class BookingRepository extends BaseTenantRepository<Booking> {
     return this.findOne({ where: { id } });
   }
 
+  /** Cancels every future still-active occurrence of a series; returns the count. */
+  async cancelFutureSeries(recurrenceId: string, now: Date): Promise<number> {
+    const result = await this.repo
+      .createQueryBuilder()
+      .update(Booking)
+      .set({ status: 'cancelled', version: () => '"version" + 1' })
+      .where('recurrence_id = :recurrenceId AND tenant_id = :tenantId', {
+        recurrenceId,
+        tenantId: getTenantId(),
+      })
+      .andWhere('status IN (:...active)', { active: [...ACTIVE_BOOKING_STATUSES] })
+      .andWhere('starts_at > :now', { now })
+      .execute();
+    return result.affected ?? 0;
+  }
+
   /** Active bookings for a staff overlapping [from, to) — for availability. */
   findActiveForStaffBetween(staffId: string, from: Date, to: Date): Promise<Booking[]> {
     return this.findMany({

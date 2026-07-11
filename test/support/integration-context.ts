@@ -5,6 +5,7 @@ import { Customer } from '@modules/customer/customer.entity';
 import { Invite } from '@modules/invite/invite.entity';
 import { Membership } from '@modules/membership/membership.entity';
 import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
+import { Recurrence } from '@modules/recurrence/recurrence.entity';
 import { Service } from '@modules/service/service.entity';
 import { Staff } from '@modules/staff/staff.entity';
 import { StaffService } from '@modules/staff-service/staff-service.entity';
@@ -35,6 +36,7 @@ export const TEST_ENTITIES = [
   IdempotencyKey,
   OutboxEvent,
   WebhookEndpoint,
+  Recurrence,
 ];
 
 export interface IntegrationContext {

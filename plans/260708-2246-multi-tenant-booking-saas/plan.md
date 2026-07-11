@@ -1,7 +1,7 @@
 ---
 title: "Multi-Tenant Booking SaaS API"
 description: "Evolve Express/TypeStack boilerplate into a phased, tenant-isolated booking platform with EXCLUDE-based double-booking prevention."
-status: in-progress (phases 00–05 done; phase 06 next)
+status: in-progress (phases 00–06 done; phase 07 next)
 priority: P1
 effort: ~18-24d
 branch: main
@@ -29,7 +29,7 @@ Build ON existing stack (Express4 + routing-controllers + TypeDI + TypeORM + PG 
 | 03 | **CORE**: AvailabilityService + Booking + EXCLUDE + state machine + idempotency + optimistic lock + ETag/If-Match + DST + concurrency | ✅ done | 02 | [phase-03](phase-03-availability-booking-core.md) |
 | 04 | Transactional Outbox + email dispatch + signed webhooks (HMAC + SSRF guard) + outbox metrics (reminders deferred) | ✅ done | 03 | [phase-04](phase-04-outbox-notifications-webhooks.md) |
 | 05 | Reporting/analytics (bookings/revenue by time/service/staff, TZ-bucketed) | ✅ done | 03 | [phase-05](phase-05-reporting-analytics.md) |
-| 06 | Recurring bookings | pending | 03 | [phase-06](phase-06-recurring-bookings.md) |
+| 06 | Recurring bookings (expander DST-safe, EXCLUDE per occurrence, skip vs all-or-nothing via savepoints) | ✅ done | 03 | [phase-06](phase-06-recurring-bookings.md) |
 | 07 | Billing + subscription + super-admin tenant management | pending | 01,03 | [phase-07](phase-07-billing-subscription-superadmin.md) |
 | 08 | Hardening: k6 load test, ADRs, docs sync, OpenAPI polish, **README diagrams + engineering narrative, live demo deploy, security scan CI, CI quality gates** | pending | all | [phase-08](phase-08-hardening-k6-adr-docs.md) |
 

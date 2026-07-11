@@ -20,6 +20,16 @@ import { Service } from 'typedi';
 
 const MINUTE_MS = 60_000;
 
+export interface OccurrenceSpec {
+  staffId: string;
+  serviceId: string;
+  customerId: string;
+  startsAt: Date;
+  endsAt: Date;
+  priceAmount: number;
+  priceCurrency: string;
+}
+
 @Service()
 export class BookingService {
   constructor(
@@ -80,6 +90,36 @@ export class BookingService {
 
   getById(id: string): Promise<Booking> {
     return this.getOrThrow(id);
+  }
+
+  /**
+   * Inserts one recurrence occurrence (pre-validated by the caller) on the
+   * current transaction and emits its event. Throws the mapped 409 on slot
+   * conflict — the caller decides skip vs abort.
+   */
+  async createOccurrence(spec: OccurrenceSpec, recurrenceId: string): Promise<Booking> {
+    const booking = await this.bookings.create({
+      staffId: spec.staffId,
+      serviceId: spec.serviceId,
+      customerId: spec.customerId,
+      startsAt: spec.startsAt,
+      endsAt: spec.endsAt,
+      status: BookingStatus.Pending,
+      priceAmount: spec.priceAmount,
+      priceCurrency: spec.priceCurrency,
+      recurrenceId,
+    });
+    await this.emit(booking, 'booking.created');
+    return booking;
+  }
+
+  /** True if the error is the EXCLUDE slot conflict (409 BOOKING_SLOT_TAKEN). */
+  isSlotTaken(error: unknown): boolean {
+    return error instanceof AppException && error.errorCode === 'BOOKING_SLOT_TAKEN';
+  }
+
+  cancelSeries(recurrenceId: string): Promise<number> {
+    return this.bookings.cancelFutureSeries(recurrenceId, new Date());
   }
 
   activeForStaffBetween(staffId: string, from: Date, to: Date): Promise<Booking[]> {

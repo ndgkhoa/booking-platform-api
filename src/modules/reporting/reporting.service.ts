@@ -1,6 +1,6 @@
 import { ValidationException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
-import type { ReportQuery } from '@modules/reporting/dto/report-query.dto';
+import type { ReportQueryDto } from '@modules/reporting/dto/report-query.dto';
 import {
   type BookingBucketRow,
   type ReportFilters,
@@ -19,15 +19,15 @@ export class ReportingService {
     private readonly tenants: TenantService,
   ) {}
 
-  bookings(query: ReportQuery): Promise<BookingBucketRow[]> {
+  bookings(query: ReportQueryDto): Promise<BookingBucketRow[]> {
     return this.run(query, (f) => this.reporting.bookings(query.groupBy, f));
   }
 
-  revenue(query: ReportQuery): Promise<RevenueBucketRow[]> {
+  revenue(query: ReportQueryDto): Promise<RevenueBucketRow[]> {
     return this.run(query, (f) => this.reporting.revenue(query.groupBy, f));
   }
 
-  private async run<T>(query: ReportQuery, exec: (f: ReportFilters) => Promise<T>): Promise<T> {
+  private async run<T>(query: ReportQueryDto, exec: (f: ReportFilters) => Promise<T>): Promise<T> {
     // Validate the span with plain UTC parsing; the actual bucketing/filtering
     // interprets the raw dates in the tenant timezone (see the repository).
     const from = new Date(query.from);

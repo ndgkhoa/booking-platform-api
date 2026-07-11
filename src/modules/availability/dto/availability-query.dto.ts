@@ -1,6 +1,6 @@
 import { IsOptional, IsUUID, Matches } from 'class-validator';
 
-export class AvailabilityQuery {
+export class AvailabilityQueryDto {
   @IsUUID()
   serviceId!: string;
 

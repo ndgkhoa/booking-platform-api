@@ -2,7 +2,7 @@ import { IsIn, IsISO8601, IsOptional, IsUUID } from 'class-validator';
 
 export type ReportGroupBy = 'day' | 'week' | 'month' | 'service' | 'staff';
 
-export class ReportQuery {
+export class ReportQueryDto {
   @IsISO8601()
   from!: string;
 

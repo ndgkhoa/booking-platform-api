@@ -1,5 +1,5 @@
 import { AvailabilityService } from '@modules/availability/availability.service';
-import { AvailabilityQuery } from '@modules/availability/dto/availability-query.dto';
+import { AvailabilityQueryDto } from '@modules/availability/dto/availability-query.dto';
 import { Authorized, Get, JsonController, QueryParams } from 'routing-controllers';
 import { Service } from 'typedi';
 
@@ -10,7 +10,7 @@ export class AvailabilityController {
 
   @Get()
   @Authorized()
-  compute(@QueryParams() query: AvailabilityQuery) {
+  compute(@QueryParams() query: AvailabilityQueryDto) {
     return this.availability.compute(query);
   }
 }

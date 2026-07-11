@@ -1,6 +1,6 @@
 import { BadRequestException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
-import type { AvailabilityQuery } from '@modules/availability/dto/availability-query.dto';
+import type { AvailabilityQueryDto } from '@modules/availability/dto/availability-query.dto';
 import {
   isValidLocalDate,
   localMinutesToUtc,
@@ -43,7 +43,7 @@ export class AvailabilityService {
     private readonly bookings: BookingService,
   ) {}
 
-  async compute(query: AvailabilityQuery): Promise<AvailabilitySlot[]> {
+  async compute(query: AvailabilityQueryDto): Promise<AvailabilitySlot[]> {
     if (!isValidLocalDate(query.date)) {
       throw new BadRequestException('date is not a valid calendar date');
     }

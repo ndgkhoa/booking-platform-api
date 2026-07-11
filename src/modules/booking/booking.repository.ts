@@ -2,7 +2,7 @@ import { BaseTenantRepository } from '@common/base/tenant-repository.base';
 import { AppException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
 import { Booking } from '@modules/booking/booking.entity';
-import { ACTIVE_BOOKING_STATUSES, type BookingStatus } from '@modules/booking/booking-status';
+import { ACTIVE_BOOKING_STATUSES, BookingStatus } from '@modules/booking/booking-status';
 import { Service } from 'typedi';
 import { DataSource, In, LessThan, MoreThan } from 'typeorm';
 
@@ -25,20 +25,21 @@ export class BookingRepository extends BaseTenantRepository<Booking> {
     return this.findOne({ where: { id } });
   }
 
-  /** Cancels every future still-active occurrence of a series; returns the count. */
-  async cancelFutureSeries(recurrenceId: string, now: Date): Promise<number> {
+  /** Cancels every future still-active occurrence of a series; returns their ids. */
+  async cancelFutureSeries(recurrenceId: string, now: Date): Promise<string[]> {
     const result = await this.repo
       .createQueryBuilder()
       .update(Booking)
-      .set({ status: 'cancelled', version: () => '"version" + 1' })
+      .set({ status: BookingStatus.Cancelled, version: () => '"version" + 1' })
       .where('recurrence_id = :recurrenceId AND tenant_id = :tenantId', {
         recurrenceId,
         tenantId: getTenantId(),
       })
       .andWhere('status IN (:...active)', { active: [...ACTIVE_BOOKING_STATUSES] })
       .andWhere('starts_at > :now', { now })
+      .returning('id')
       .execute();
-    return result.affected ?? 0;
+    return (result.raw as Array<{ id: string }>).map((r) => r.id);
   }
 
   /** Active bookings for a staff overlapping [from, to) — for availability. */

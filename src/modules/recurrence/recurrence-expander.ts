@@ -15,7 +15,6 @@ export interface RecurrenceRule {
 
 /** Safety bound so an open-ended rule can never scan/emit without limit. */
 export const MAX_OCCURRENCES = 100;
-const MAX_SCAN_DAYS = 800;
 
 /**
  * Expands a recurrence rule into individual UTC start instants. Times are
@@ -68,9 +67,14 @@ function expandWeekly(
   const weekdays = new Set(rule.weekdays?.length ? rule.weekdays : [toSun0(start)]);
   const anchorWeek = start.startOf('week'); // Monday of the start week
 
+  // Enough days to reach `limit` emitted occurrences given the interval and how
+  // many weekdays fire per active week — never a fixed silent cap.
+  const perActiveWeek = Math.max(weekdays.size, 1);
+  const maxScanDays = Math.ceil(limit / perActiveWeek) * rule.interval * 7 + 7;
+
   const out: Date[] = [];
   let cursor = start;
-  for (let scanned = 0; out.length < limit && scanned < MAX_SCAN_DAYS; scanned++) {
+  for (let scanned = 0; out.length < limit && scanned < maxScanDays; scanned++) {
     if (until && cursor > until) break;
     const weekIndex = Math.floor(cursor.startOf('week').diff(anchorWeek, 'weeks').weeks);
     if (weekIndex % rule.interval === 0 && weekdays.has(toSun0(cursor))) {

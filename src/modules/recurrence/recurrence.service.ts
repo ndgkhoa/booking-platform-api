@@ -30,6 +30,9 @@ export class RecurrenceService {
   ) {}
 
   async create(dto: CreateRecurrenceDto): Promise<RecurrenceResult> {
+    if (dto.freq === 'daily' && dto.weekdays?.length) {
+      throw new BadRequestException('weekdays only applies to a weekly recurrence');
+    }
     const service = await this.services.getById(dto.serviceId);
     if (!(await this.capabilities.canPerform(dto.staffId, dto.serviceId))) {
       throw new BadRequestException('This staff member cannot perform the selected service');

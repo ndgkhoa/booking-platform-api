@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Booking } from '@modules/booking/booking.entity';
+import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
 import type { Express } from 'express';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
@@ -171,5 +172,26 @@ describe('Recurring bookings e2e', () => {
 
     const rows = await bookings().find({ where: { recurrenceId } });
     expect(rows.every((b) => b.status === 'cancelled')).toBe(true);
+
+    // A cancelled event is emitted per occurrence so downstream consumers update.
+    const events = ctx.dataSource.getRepository(OutboxEvent);
+    const cancelledEvents = await events
+      .createQueryBuilder('e')
+      .where(`e.event_type = 'booking.cancelled'`)
+      .andWhere(`e.payload->>'bookingId' IN (:...ids)`, { ids: rows.map((r) => r.id) })
+      .getCount();
+    expect(cancelledEvents).toBe(3);
+  });
+
+  it('rejects weekdays on a daily recurrence (400)', async () => {
+    const f = await fixture();
+    const res = await createRecurring(f, {
+      freq: 'daily',
+      interval: 1,
+      weekdays: [1],
+      startDate: '2028-06-01',
+      count: 2,
+    });
+    expect(res.status).toBe(400);
   });
 });

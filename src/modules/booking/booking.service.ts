@@ -118,8 +118,14 @@ export class BookingService {
     return error instanceof AppException && error.errorCode === 'BOOKING_SLOT_TAKEN';
   }
 
-  cancelSeries(recurrenceId: string): Promise<number> {
-    return this.bookings.cancelFutureSeries(recurrenceId, new Date());
+  /** Cancels future occurrences of a series and emits a cancelled event for each. */
+  async cancelSeries(recurrenceId: string): Promise<number> {
+    const ids = await this.bookings.cancelFutureSeries(recurrenceId, new Date());
+    for (const id of ids) {
+      const booking = await this.getOrThrow(id);
+      await this.emit(booking, 'booking.cancelled');
+    }
+    return ids.length;
   }
 
   activeForStaffBetween(staffId: string, from: Date, to: Date): Promise<Booking[]> {

@@ -86,6 +86,20 @@ describe('recurrence expander', () => {
     expect(out.map(iso)).toEqual(['2026-03-01T15:00:00.000Z', '2026-03-08T14:00:00.000Z']);
   });
 
+  it('reaches the full count for a sparse weekly rule (no silent truncation)', () => {
+    // Every 3 weeks, one weekday, 20 occurrences → ~60 weeks; must not stop short.
+    const out = expandRecurrence({
+      freq: 'weekly',
+      interval: 3,
+      weekdays: [1],
+      startDate: '2026-01-05', // Monday
+      startMinutes: 540,
+      count: 20,
+      timezone: 'UTC',
+    });
+    expect(out).toHaveLength(20);
+  });
+
   it('is bounded by MAX_OCCURRENCES for an open-ended count', () => {
     const out = expandRecurrence({
       freq: 'daily',

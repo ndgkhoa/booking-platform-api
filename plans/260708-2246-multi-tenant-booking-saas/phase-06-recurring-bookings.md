@@ -74,7 +74,13 @@ POST /bookings/recurring → RecurrenceService.expand(rule, horizon)
 
 **Deferred:** "this & future" per-occurrence editing; recurrence list/get endpoints (YAGNI).
 
-**Phase 06 COMPLETE.**
+**Review fixes (H1/M1/L3/L5):**
+- Series cancel now emits `booking.cancelled` per cancelled occurrence (`cancelFutureSeries` returns ids via `RETURNING id`; service emits per id) — closes the event-contract gap so webhooks/projections see the cancellation. e2e asserts 3 events.
+- Weekly expander scan bound is derived from `interval × count` (no fixed `MAX_SCAN_DAYS` truncation) — a sparse rule (e.g. every 3 weeks × 20) reaches the full count. Unit test added.
+- Reject `weekdays` on a `daily` recurrence (400) instead of silently ignoring; `BookingStatus.Cancelled` const used in the bulk update.
+- Verified-correct (kept): SAVEPOINT lifecycle + per-occurrence rollback, all_or_nothing atomicity, DST anchoring. M2 (≤100 inserts/tx) and orphan-recurrence-on-0-created accepted for now.
+
+**Phase 06 COMPLETE (reviewed).** 36 unit + 68 integration green.
 
 ## Success Criteria
 - Weekly series across DST keeps local time constant.

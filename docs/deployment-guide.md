@@ -20,7 +20,7 @@ The app **fails fast** at startup if a required var is missing or malformed.
 
 ## Local infrastructure
 ```bash
-docker compose up -d        # Postgres 17 + Redis 7 (reads .env)
+docker compose up -d        # Postgres 18.4 + Redis 8.8.0 (reads .env)
 ```
 `docker-compose.yml` substitutes `${DB_*}` / `${REDIS_*}` from `.env`. `POSTGRES_PASSWORD` only applies on first volume creation — change it ⇒ `docker compose down -v` to reset.
 

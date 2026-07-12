@@ -6,7 +6,7 @@
 
 ## Overview
 - **Priority:** P2
-- **Status:** pending
+- **Status:** done (k6 proof, ADRs, OpenAPI, docs sync)
 - **Description:** Prove the flagship guarantee under load (k6, 0 double-booking), write ADRs for the locked decisions, sync `docs/`, and polish OpenAPI. Cross-cutting quality gate.
 
 ## Key Insights
@@ -62,13 +62,17 @@ OpenAPI → swagger buildOpenApiSpec reflects v1
 7. Final review pass: file sizes <200 lines, no phase/finding refs in code/migration names.
 
 ## Todo
-- [ ] k6 double-booking script + run docs
-- [ ] Run k6, capture 0-double-booking proof + README screenshot
-- [ ] ADR 0001-0006 (0007 in phase-07)
-- [ ] Sync docs/ (architecture, summary, standards, pdr)
-- [ ] OpenAPI polish (v1, headers, error schema)
-- [ ] CI runs integration/RLS/concurrency tests on fresh PG
-- [ ] Final lint: file sizes + naming compliance
+- [x] k6 double-booking script + run docs (`load-tests/`)
+- [x] Ran k6 at 50 VUs → exactly 1 booking wins, 49 clean 409s; proof captured in `README.md`
+- [x] ADR 0001-0006 (+ index; 0007 in phase-07)
+- [x] Sync docs/ (architecture, summary, standards, pdr) to the multi-tenant reality + ADR links
+- [x] OpenAPI polish (v1 prefix, RFC 7807 ProblemDetails, default error response, Idempotency-Key/auth documented)
+- [x] CI already runs lint/typecheck/unit/build/integration on testcontainers PG (btree_gist via migration); no change needed
+- [x] Final sweep: only `booking.service.ts` marginally over 200 lines (cohesive, kept); naming compliant
+
+## Follow-ups discovered
+- Rate limit externalized to `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` (was hardcoded) so load tests can lift the per-IP cap.
+- Fixed `AdminAuditLog.action` column to explicit `varchar` (union type reflected as `Object` and broke the ts-node bootstrap; swc-based tests had masked it).
 
 ## Success Criteria
 - k6 at high concurrency → DB shows exactly 1 booking for contested slot; screenshot in README.

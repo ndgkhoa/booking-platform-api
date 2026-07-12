@@ -6,7 +6,6 @@ import {
   PreconditionFailedException,
   UnprocessableStateException,
 } from '@common/exceptions';
-import { IdempotencyService } from '@common/idempotency/idempotency.service';
 import { ACTIVE_BOOKING_STATUSES, BookingStatus } from '@common/types';
 import type { Booking } from '@modules/booking/booking.entity';
 import { BookingRepository } from '@modules/booking/booking.repository';
@@ -14,6 +13,7 @@ import { assertCanTransition } from '@modules/booking/booking-state-machine';
 import type { CreateBookingDto } from '@modules/booking/dto/create-booking.dto';
 import type { RescheduleBookingDto } from '@modules/booking/dto/reschedule-booking.dto';
 import { CustomerService } from '@modules/customer/customer.service';
+import { IdempotencyService } from '@modules/idempotency/idempotency.service';
 import { OutboxRepository } from '@modules/outbox/outbox.repository';
 import { ServiceService } from '@modules/service/service.service';
 import { StaffServiceService } from '@modules/staff-service/staff-service.service';

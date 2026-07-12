@@ -1,6 +1,6 @@
 import { BaseTenantRepository } from '@common/base/tenant-repository.base';
-import { IdempotencyKey } from '@common/idempotency/idempotency-key.entity';
 import { getTenantId } from '@common/tenant/tenant-context';
+import { IdempotencyKey } from '@modules/idempotency/idempotency-key.entity';
 import { Service } from 'typedi';
 import { DataSource } from 'typeorm';
 

@@ -1,8 +1,8 @@
-import { IdempotencyKey } from '@common/idempotency/idempotency-key.entity';
 import { AdminAuditLog } from '@modules/admin/admin-audit-log.entity';
 import { RefreshToken } from '@modules/auth/refresh-token.entity';
 import { Booking } from '@modules/booking/booking.entity';
 import { Customer } from '@modules/customer/customer.entity';
+import { IdempotencyKey } from '@modules/idempotency/idempotency-key.entity';
 import { Invite } from '@modules/invite/invite.entity';
 import { Membership } from '@modules/membership/membership.entity';
 import { OutboxEvent } from '@modules/outbox/outbox-event.entity';

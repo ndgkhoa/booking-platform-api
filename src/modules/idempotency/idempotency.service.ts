@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { AppException, ConflictException } from '@common/exceptions';
-import { IdempotencyRepository } from '@common/idempotency/idempotency.repository';
+import { IdempotencyRepository } from '@modules/idempotency/idempotency.repository';
 import { instanceToPlain } from 'class-transformer';
 import { Service } from 'typedi';
 

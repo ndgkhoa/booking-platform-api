@@ -6,7 +6,7 @@ import type { CreateStaffDto } from '@modules/staff/dto/create-staff.dto';
 import type { UpdateStaffDto } from '@modules/staff/dto/update-staff.dto';
 import type { Staff } from '@modules/staff/staff.entity';
 import { StaffRepository } from '@modules/staff/staff.repository';
-import { EntitlementService } from '@modules/subscription/entitlement.service';
+import { SubscriptionService } from '@modules/subscription/subscription.service';
 import { Service } from 'typedi';
 
 /** Manages the tenant's staff directory (profiles). Capabilities live in StaffServiceService. */
@@ -15,7 +15,7 @@ export class StaffService {
   constructor(
     private readonly staff: StaffRepository,
     private readonly memberships: MembershipService,
-    private readonly entitlements: EntitlementService,
+    private readonly subscriptions: SubscriptionService,
   ) {}
 
   async create(dto: CreateStaffDto): Promise<Staff> {
@@ -24,7 +24,7 @@ export class StaffService {
     if (!role) {
       throw new BadRequestException('User is not a member of this tenant');
     }
-    await this.entitlements.assertWithinStaffLimit(await this.staff.count());
+    await this.subscriptions.assertWithinStaffLimit(await this.staff.count());
     try {
       return await this.staff.createOne({ userId: dto.userId, displayName: dto.displayName });
     } catch (error) {

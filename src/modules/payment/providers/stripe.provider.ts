@@ -1,5 +1,4 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { safeJsonParse } from '@common/utils/safe-json-parse';
 import { env } from '@config/env';
 import type {
   CheckoutInput,
@@ -49,13 +48,18 @@ export class StripeProvider implements PaymentProvider {
 
   parseEvent(rawBody: string): PaymentEvent | null {
     // Stripe event: { id, type, data: { object: { metadata: { reference } } } }.
-    const body = safeJsonParse<{
+    let body: {
       id?: string;
       type?: string;
       data?: { object?: { metadata?: { reference?: string } } };
-    }>(rawBody);
-    const reference = body?.data?.object?.metadata?.reference;
-    if (!body?.id || !reference) return null;
+    };
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return null;
+    }
+    const reference = body.data?.object?.metadata?.reference;
+    if (!body.id || !reference) return null;
     if (body.type === 'checkout.session.completed' || body.type === 'invoice.paid') {
       return { id: body.id, type: 'payment.succeeded', subscriptionReference: reference };
     }

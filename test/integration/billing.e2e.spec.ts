@@ -66,6 +66,26 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
   const sepaySig = (body: object) =>
     createHmac('sha256', SEPAY_SECRET).update(JSON.stringify(body)).digest('hex');
 
+  /** Registers a new user and makes them a staff-role member of the owner's tenant. */
+  async function addMember(ownerToken: string): Promise<string> {
+    const email = `m-${randomUUID()}@test.com`;
+    await request(app)
+      .post('/api/v1/auth/register')
+      .send({ email, name: 'Member', password: 'password123' });
+    const invite = await request(app)
+      .post('/api/v1/invites')
+      .set(auth(ownerToken))
+      .send({ email, role: 'staff' });
+    const login = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email, password: 'password123' });
+    await request(app)
+      .post('/api/v1/invites/accept')
+      .set(auth(login.body.data.token))
+      .send({ token: invite.body.data.token });
+    return (jwt.decode(login.body.data.token) as { sub: string }).sub;
+  }
+
   it('subscribes via a chosen provider and activates on a signed webhook', async () => {
     const { token } = await owner();
     const sub = await request(app)
@@ -138,25 +158,26 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
       .send({ userId, displayName: 'One' });
     expect(first.status).toBe(201);
 
-    // Add a second tenant member to attempt a second staff profile.
-    const otherEmail = `m-${randomUUID()}@test.com`;
-    await request(app)
-      .post('/api/v1/auth/register')
-      .send({ email: otherEmail, name: 'Two', password: 'password123' });
-    // Invite + accept to make them a member (owner invites staff).
-    const invite = await request(app)
-      .post('/api/v1/invites')
+    // A second member exceeds the cap.
+    const otherUserId = await addMember(token);
+    const second = await request(app)
+      .post('/api/v1/staff')
       .set(auth(token))
-      .send({ email: otherEmail, role: 'staff' });
-    const otherLogin = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email: otherEmail, password: 'password123' });
-    await request(app)
-      .post('/api/v1/invites/accept')
-      .set(auth(otherLogin.body.data.token))
-      .send({ token: invite.body.data.token });
-    const otherUserId = (jwt.decode(otherLogin.body.data.token) as { sub: string }).sub;
+      .send({ userId: otherUserId, displayName: 'Two' });
+    expect(second.status).toBe(402);
+    expect(second.body.code).toBe('PLAN_LIMIT_EXCEEDED');
+  });
 
+  it('caps an unsubscribed tenant at the default free plan', async () => {
+    // No subscription: the seeded free plan (maxStaff=1) applies by default.
+    const { token, userId } = await owner();
+    const first = await request(app)
+      .post('/api/v1/staff')
+      .set(auth(token))
+      .send({ userId, displayName: 'One' });
+    expect(first.status).toBe(201);
+
+    const otherUserId = await addMember(token);
     const second = await request(app)
       .post('/api/v1/staff')
       .set(auth(token))

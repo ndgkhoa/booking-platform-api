@@ -15,6 +15,10 @@ export class PlanRepository {
     return this.repo.findOne({ where: { id } });
   }
 
+  findByCode(code: string): Promise<Plan | null> {
+    return this.repo.findOne({ where: { code } });
+  }
+
   list(): Promise<Plan[]> {
     return this.repo.find({ order: { priceAmount: 'ASC' } });
   }

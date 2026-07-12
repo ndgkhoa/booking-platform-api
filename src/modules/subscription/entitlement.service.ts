@@ -10,7 +10,7 @@ import { Service } from 'typedi';
  * `capped` ever enforces a ceiling.
  */
 type StaffEntitlement =
-  | { kind: 'unmetered' } // never subscribed or canceled → no limit applies
+  | { kind: 'unmetered' } // no plan configured at all → fail open, no limit
   | { kind: 'unlimited' } // a plan is in force and grants unlimited staff
   | { kind: 'capped'; max: number };
 
@@ -37,17 +37,22 @@ export class EntitlementService {
   }
 
   /**
-   * A tenant with no plan in force is unmetered; a past_due subscription still
-   * enforces its plan cap — a failed payment must not loosen limits. A negative
-   * plan cap denotes an unlimited plan.
+   * Resolves the plan whose caps apply, then maps it to an entitlement. A tenant
+   * with no active subscription falls back to the default free tier (canceled
+   * counts as unsubscribed); a past_due subscription still enforces its own plan
+   * cap — a failed payment must not loosen limits. A negative cap denotes an
+   * unlimited plan; no plan configured at all is unmetered (fail open).
    */
   private async resolveStaffEntitlement(): Promise<StaffEntitlement> {
     const subscription = await this.subscriptions.currentSubscription();
-    if (!subscription || subscription.status === SubscriptionStatus.Canceled) {
+    const plan =
+      subscription && subscription.status !== SubscriptionStatus.Canceled
+        ? await this.plans.findById(subscription.planId)
+        : await this.plans.getDefaultPlan();
+    if (!plan) {
       return { kind: 'unmetered' };
     }
-    const plan = await this.plans.findById(subscription.planId);
-    if (!plan || plan.maxStaff < 0) {
+    if (plan.maxStaff < 0) {
       return { kind: 'unlimited' };
     }
     return { kind: 'capped', max: plan.maxStaff };

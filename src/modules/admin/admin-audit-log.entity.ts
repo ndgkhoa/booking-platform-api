@@ -20,7 +20,7 @@ export class AdminAuditLog {
   @Column({ name: 'actor_user_id', type: 'uuid' })
   actorUserId!: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   action!: AdminAction;
 
   @Column({ name: 'target_tenant_id', type: 'uuid' })

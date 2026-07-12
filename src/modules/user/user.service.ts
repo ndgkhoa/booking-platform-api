@@ -1,5 +1,5 @@
 import { NotFoundException } from '@common/exceptions';
-import { type ApiResponse, paginated } from '@common/types/interfaces/response';
+import { type ApiResponse, paginated } from '@common/types';
 import type { UserQueryDto } from '@modules/user/dto/user-query.dto';
 import type { User } from '@modules/user/user.entity';
 import { UserRepository } from '@modules/user/user.repository';

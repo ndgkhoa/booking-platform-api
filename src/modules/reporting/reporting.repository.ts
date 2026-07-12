@@ -1,4 +1,5 @@
 import { getTenantId, getTenantManager } from '@common/tenant/tenant-context';
+import { BookingStatus } from '@common/types';
 import { Booking } from '@modules/booking/booking.entity';
 import type { ReportGroupBy } from '@modules/reporting/dto/report-query.dto';
 import { Service } from 'typedi';
@@ -30,7 +31,7 @@ export interface RevenueBucketRow {
 }
 
 /** Statuses whose price snapshot counts toward earned revenue (service delivered). */
-const REVENUE_STATUSES = ['completed'];
+const REVENUE_STATUSES = [BookingStatus.Completed];
 
 @Service()
 export class ReportingRepository {

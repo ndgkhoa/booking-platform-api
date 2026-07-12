@@ -1,5 +1,5 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
-import type { MembershipRole } from '@common/types/enums/membership-role';
+import type { MembershipRole } from '@common/types';
 import { Column, Entity, Index } from 'typeorm';
 
 /**

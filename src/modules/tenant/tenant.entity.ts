@@ -1,5 +1,5 @@
 import { BaseEntity } from '@common/base/entity.base';
-import { TenantStatus } from '@common/types/enums/tenant-status';
+import { TenantStatus } from '@common/types';
 import { Column, Entity, Index } from 'typeorm';
 
 /**

@@ -1,4 +1,4 @@
-import { MembershipRole } from '@common/types/enums/membership-role';
+import { MembershipRole } from '@common/types';
 import { AuthService } from '@modules/auth/auth.service';
 import { CreateTenantDto } from '@modules/tenant/dto/create-tenant.dto';
 import { TenantService } from '@modules/tenant/tenant.service';

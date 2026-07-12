@@ -1,9 +1,7 @@
+import { DEFAULT_PLAN_CODE } from '@common/constants';
 import type { Plan } from '@modules/plan/plan.entity';
 import { PlanRepository } from '@modules/plan/plan.repository';
 import { Service } from 'typedi';
-
-/** The plan a tenant is entitled to before subscribing to a paid tier. */
-const DEFAULT_PLAN_CODE = 'free';
 
 /** Read access to the global plan catalog. Wraps the repository so callers
  * (controllers, other modules) never touch persistence directly. */

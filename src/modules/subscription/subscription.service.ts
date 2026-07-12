@@ -1,7 +1,7 @@
 import { ConflictException, NotFoundException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
 import { runInTenantContext } from '@common/tenant/tenant-transaction';
-import { SubscriptionStatus } from '@common/types/enums/subscription-status';
+import { SubscriptionStatus } from '@common/types';
 import { PaymentService } from '@modules/payment/payment.service';
 import type {
   CheckoutSession,

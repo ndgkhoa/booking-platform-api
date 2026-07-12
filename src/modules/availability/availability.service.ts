@@ -1,3 +1,4 @@
+import { MINUTE_MS, MINUTES_PER_DAY } from '@common/constants';
 import { BadRequestException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
 import type { AvailabilityQueryDto } from '@modules/availability/dto/availability-query.dto';
@@ -15,9 +16,6 @@ import { TenantService } from '@modules/tenant/tenant.service';
 import { TimeOffService } from '@modules/time-off/time-off.service';
 import { WorkingHoursService } from '@modules/working-hours/working-hours.service';
 import { Service } from 'typedi';
-
-const MINUTE_MS = 60_000;
-const DAY_MINUTES = 24 * 60;
 
 export interface AvailabilitySlot {
   staffId: string;
@@ -59,7 +57,7 @@ export class AvailabilityService {
       : await this.capabilities.capableStaffIds(query.serviceId);
 
     const dayStart = localMinutesToUtc(query.date, 0, zone);
-    const dayEnd = localMinutesToUtc(query.date, DAY_MINUTES, zone);
+    const dayEnd = localMinutesToUtc(query.date, MINUTES_PER_DAY, zone);
 
     const slots: AvailabilitySlot[] = [];
     for (const staffId of staffIds) {

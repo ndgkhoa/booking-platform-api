@@ -1,4 +1,4 @@
-import { buildProblem, PROBLEM_CONTENT_TYPE } from '@common/types/interfaces/problem-details';
+import { buildProblem, PROBLEM_CONTENT_TYPE } from '@common/types';
 import { env } from '@config/env';
 import { logger } from '@config/logger';
 import type { NextFunction, Request, Response } from 'express';

@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
+import { DAY_MS } from '@common/constants';
 import { UnauthorizedException } from '@common/exceptions';
-import type { MembershipRole } from '@common/types/enums/membership-role';
+import type { MembershipRole } from '@common/types';
 import { sha256 } from '@common/utils/hash';
 import { env } from '@config/env';
 import { RefreshTokenRepository } from '@modules/auth/refresh-token.repository';
@@ -15,8 +16,6 @@ export interface ClaimedSession extends SessionScope {
   userId: string;
   familyId: string;
 }
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 @Service()
 export class RefreshTokenService {

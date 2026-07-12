@@ -1,6 +1,6 @@
 import { ForbiddenException } from '@common/exceptions';
 import { runWithTenant } from '@common/tenant/tenant-context';
-import { TenantStatus } from '@common/types/enums/tenant-status';
+import { TenantStatus } from '@common/types';
 import { logger } from '@config/logger';
 import { TokenService } from '@modules/auth/token.service';
 import type { NextFunction, Request, Response } from 'express';

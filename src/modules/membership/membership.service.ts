@@ -1,4 +1,4 @@
-import type { MembershipRole } from '@common/types/enums/membership-role';
+import type { MembershipRole } from '@common/types';
 import type { Membership } from '@modules/membership/membership.entity';
 import { MembershipRepository } from '@modules/membership/membership.repository';
 import { Service } from 'typedi';

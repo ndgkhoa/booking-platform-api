@@ -1,3 +1,4 @@
+import { OUTBOX_POLL_INTERVAL_MS } from '@common/constants';
 import { outboxOldestPendingSeconds, outboxPending } from '@common/monitoring/metrics';
 import { AppDataSource } from '@config/data-source';
 import { logger } from '@config/logger';
@@ -7,8 +8,6 @@ import { OutboxRepository } from '@modules/outbox/outbox.repository';
 import type { OutboxEvent } from '@modules/outbox/outbox-event.entity';
 import { OutboxRelay } from '@modules/outbox/outbox-relay.service';
 import { Container } from 'typedi';
-
-const POLL_INTERVAL_MS = 2_000;
 
 /**
  * Maps a committed outbox event to queued side effects (at-least-once). jobId is
@@ -67,7 +66,7 @@ export function startOutboxRelay(): () => Promise<void> {
     await inFlight;
   };
 
-  const timer = setInterval(() => void tick(), POLL_INTERVAL_MS);
+  const timer = setInterval(() => void tick(), OUTBOX_POLL_INTERVAL_MS);
   logger.info('Outbox relay started');
 
   // Stop accepting new work and let any running tick finish before the caller

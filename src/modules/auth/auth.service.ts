@@ -1,5 +1,6 @@
+import { BCRYPT_ROUNDS } from '@common/constants';
 import { ConflictException, UnauthorizedException } from '@common/exceptions';
-import type { MembershipRole } from '@common/types/enums/membership-role';
+import type { MembershipRole } from '@common/types';
 import type { LoginDto } from '@modules/auth/dto/login.dto';
 import type { RegisterDto } from '@modules/auth/dto/register.dto';
 import { RefreshTokenService, type SessionScope } from '@modules/auth/refresh-token.service';
@@ -9,8 +10,6 @@ import type { User } from '@modules/user/user.entity';
 import { UserService } from '@modules/user/user.service';
 import bcrypt from 'bcryptjs';
 import { Service } from 'typedi';
-
-const BCRYPT_ROUNDS = 12;
 
 export interface SessionTokens {
   token: string;

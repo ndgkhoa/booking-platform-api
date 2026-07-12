@@ -1,5 +1,5 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
-import { OutboxStatus } from '@common/types/enums/outbox-status';
+import { OutboxStatus } from '@common/types';
 import { Column, Entity, Index } from 'typeorm';
 
 /**

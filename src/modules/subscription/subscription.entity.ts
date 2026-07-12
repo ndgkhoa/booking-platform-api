@@ -1,5 +1,5 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
-import { SubscriptionStatus } from '@common/types/enums/subscription-status';
+import { SubscriptionStatus } from '@common/types';
 import type { PaymentProviderName } from '@modules/payment/payment-provider.interface';
 import { Column, Entity, Index } from 'typeorm';
 

@@ -1,7 +1,7 @@
 import { BaseTenantRepository } from '@common/base/tenant-repository.base';
 import { AppException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
-import { ACTIVE_BOOKING_STATUSES, BookingStatus } from '@common/types/enums/booking-status';
+import { ACTIVE_BOOKING_STATUSES, BookingStatus } from '@common/types';
 import { Booking } from '@modules/booking/booking.entity';
 import { Service } from 'typedi';
 import { DataSource, In, LessThan, MoreThan } from 'typeorm';

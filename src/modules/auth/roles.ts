@@ -1,4 +1,4 @@
-import type { MembershipRole } from '@common/types/enums/membership-role';
+import type { MembershipRole } from '@common/types';
 
 /**
  * Authorization vocabulary used by `@Authorized(...)`. Owner/staff are the

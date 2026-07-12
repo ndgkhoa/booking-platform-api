@@ -1,5 +1,5 @@
 import { getTenantId, getTenantManager } from '@common/tenant/tenant-context';
-import type { SubscriptionStatus } from '@common/types/enums/subscription-status';
+import type { SubscriptionStatus } from '@common/types';
 import { Subscription } from '@modules/subscription/subscription.entity';
 import { Service } from 'typedi';
 import { DataSource, type EntityManager } from 'typeorm';

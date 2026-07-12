@@ -1,4 +1,4 @@
-import type { MembershipRole } from '@common/types/enums/membership-role';
+import type { MembershipRole } from '@common/types';
 import type { User as AppUser } from '@modules/user/user.entity';
 import type { QueryRunner } from 'typeorm';
 

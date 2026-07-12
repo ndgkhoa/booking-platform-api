@@ -1,3 +1,4 @@
+import { MINUTE_MS } from '@common/constants';
 import { BadRequestException } from '@common/exceptions';
 import { getTenantId, getTenantManager } from '@common/tenant/tenant-context';
 import { BookingService, type OccurrenceSpec } from '@modules/booking/booking.service';
@@ -9,8 +10,6 @@ import { ServiceService } from '@modules/service/service.service';
 import { StaffServiceService } from '@modules/staff-service/staff-service.service';
 import { TenantService } from '@modules/tenant/tenant.service';
 import { Service } from 'typedi';
-
-const MINUTE_MS = 60_000;
 
 export interface RecurrenceResult {
   recurrenceId: string;

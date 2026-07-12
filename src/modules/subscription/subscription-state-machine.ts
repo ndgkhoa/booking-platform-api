@@ -1,4 +1,4 @@
-import { SubscriptionStatus } from '@common/types/enums/subscription-status';
+import { SubscriptionStatus } from '@common/types';
 
 /** Explicit subscription lifecycle mirroring provider states. */
 const TRANSITIONS: Record<SubscriptionStatus, readonly SubscriptionStatus[]> = {

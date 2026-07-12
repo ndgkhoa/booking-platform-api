@@ -1,4 +1,4 @@
-import { MembershipRole } from '@common/types/enums/membership-role';
+import { MembershipRole } from '@common/types';
 import { IsEmail, IsIn } from 'class-validator';
 
 export class CreateInviteDto {

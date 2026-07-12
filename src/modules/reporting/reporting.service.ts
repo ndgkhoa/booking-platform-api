@@ -1,3 +1,4 @@
+import { REPORT_MAX_RANGE_MS } from '@common/constants';
 import { ValidationException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
 import type { ReportQueryDto } from '@modules/reporting/dto/report-query.dto';
@@ -9,8 +10,6 @@ import {
 } from '@modules/reporting/reporting.repository';
 import { TenantService } from '@modules/tenant/tenant.service';
 import { Service } from 'typedi';
-
-const MAX_RANGE_MS = 366 * 24 * 60 * 60 * 1000; // one year
 
 @Service()
 export class ReportingService {
@@ -35,7 +34,7 @@ export class ReportingService {
     if (to.getTime() <= from.getTime()) {
       throw new ValidationException('`to` must be after `from`');
     }
-    if (to.getTime() - from.getTime() > MAX_RANGE_MS) {
+    if (to.getTime() - from.getTime() > REPORT_MAX_RANGE_MS) {
       throw new ValidationException('Report range must not exceed one year');
     }
     const { timezone } = await this.tenants.getById(getTenantId());

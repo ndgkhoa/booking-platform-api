@@ -1,3 +1,4 @@
+import { WEBHOOK_DELIVERY_TIMEOUT_MS } from '@common/constants';
 import { signWebhook } from '@modules/webhook/webhook-signature';
 import { assertSafeWebhookUrl } from '@modules/webhook/webhook-url';
 import { Service } from 'typedi';
@@ -8,8 +9,6 @@ export interface WebhookPayload {
   aggregateId: string;
   data: Record<string, unknown>;
 }
-
-const DELIVERY_TIMEOUT_MS = 5_000;
 
 /**
  * Delivers a signed webhook over HTTPS. The signature covers `timestamp.body`
@@ -27,7 +26,7 @@ export class WebhookDelivery {
     const signature = signWebhook(secret, `${timestamp}.${body}`);
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), DELIVERY_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), WEBHOOK_DELIVERY_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
         method: 'POST',

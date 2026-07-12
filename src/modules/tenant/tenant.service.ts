@@ -1,5 +1,5 @@
 import { ConflictException, NotFoundException } from '@common/exceptions';
-import { MembershipRole } from '@common/types/enums/membership-role';
+import { MembershipRole } from '@common/types';
 import { Membership } from '@modules/membership/membership.entity';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { TenantRepository } from '@modules/tenant/tenant.repository';

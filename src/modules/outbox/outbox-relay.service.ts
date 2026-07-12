@@ -1,3 +1,4 @@
+import { OUTBOX_BATCH_SIZE } from '@common/constants';
 import { outboxDispatched } from '@common/monitoring/metrics';
 import { logger } from '@config/logger';
 import { OutboxRepository } from '@modules/outbox/outbox.repository';
@@ -7,8 +8,6 @@ import { DataSource } from 'typeorm';
 
 /** Delivers one event (e.g. enqueue to BullMQ). Injected so the relay stays I/O-agnostic and testable. */
 export type OutboxDispatch = (event: OutboxEvent) => Promise<void>;
-
-const DEFAULT_BATCH = 20;
 
 /**
  * Drains committed outbox events and hands each to `dispatch`. Claiming and
@@ -24,7 +23,7 @@ export class OutboxRelay {
   async processBatch(
     dataSource: DataSource,
     dispatch: OutboxDispatch,
-    batchSize = DEFAULT_BATCH,
+    batchSize = OUTBOX_BATCH_SIZE,
   ): Promise<number> {
     return dataSource.transaction(async (manager) => {
       const events = await this.outbox.claimBatch(manager, batchSize);

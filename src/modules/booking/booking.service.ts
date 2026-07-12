@@ -1,3 +1,4 @@
+import { MINUTE_MS } from '@common/constants';
 import {
   AppException,
   BadRequestException,
@@ -6,7 +7,7 @@ import {
   UnprocessableStateException,
 } from '@common/exceptions';
 import { IdempotencyService } from '@common/idempotency/idempotency.service';
-import { ACTIVE_BOOKING_STATUSES, BookingStatus } from '@common/types/enums/booking-status';
+import { ACTIVE_BOOKING_STATUSES, BookingStatus } from '@common/types';
 import type { Booking } from '@modules/booking/booking.entity';
 import { BookingRepository } from '@modules/booking/booking.repository';
 import { assertCanTransition } from '@modules/booking/booking-state-machine';
@@ -17,8 +18,6 @@ import { OutboxRepository } from '@modules/outbox/outbox.repository';
 import { ServiceService } from '@modules/service/service.service';
 import { StaffServiceService } from '@modules/staff-service/staff-service.service';
 import { Service } from 'typedi';
-
-const MINUTE_MS = 60_000;
 
 export interface OccurrenceSpec {
   staffId: string;

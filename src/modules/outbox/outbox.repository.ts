@@ -1,5 +1,6 @@
+import { OUTBOX_BACKOFF_BASE_MS, OUTBOX_MAX_ATTEMPTS } from '@common/constants';
 import { getTenantId, getTenantManager } from '@common/tenant/tenant-context';
-import { OutboxStatus } from '@common/types/enums/outbox-status';
+import { OutboxStatus } from '@common/types';
 import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
 import { Service } from 'typedi';
 import type { EntityManager } from 'typeorm';
@@ -10,9 +11,6 @@ export interface RecordEventInput {
   eventType: string;
   payload: Record<string, unknown>;
 }
-
-const BACKOFF_BASE_MS = 30_000;
-const MAX_ATTEMPTS = 5;
 
 @Service()
 export class OutboxRepository {
@@ -73,12 +71,12 @@ export class OutboxRepository {
   /** Bumps attempts; schedules a backoff retry, or marks dead past the cap. */
   markFailed(manager: EntityManager, event: OutboxEvent): Promise<unknown> {
     const attempts = event.attempts + 1;
-    if (attempts >= MAX_ATTEMPTS) {
+    if (attempts >= OUTBOX_MAX_ATTEMPTS) {
       return manager
         .getRepository(OutboxEvent)
         .update(event.id, { attempts, status: OutboxStatus.Dead });
     }
-    const availableAt = new Date(Date.now() + BACKOFF_BASE_MS * 2 ** (attempts - 1));
+    const availableAt = new Date(Date.now() + OUTBOX_BACKOFF_BASE_MS * 2 ** (attempts - 1));
     return manager.getRepository(OutboxEvent).update(event.id, { attempts, availableAt });
   }
 }

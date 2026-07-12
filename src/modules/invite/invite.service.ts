@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { DAY_MS } from '@common/constants';
 import {
   ConflictException,
   ForbiddenException,
@@ -6,7 +7,7 @@ import {
   NotFoundException,
 } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
-import type { MembershipRole } from '@common/types/enums/membership-role';
+import type { MembershipRole } from '@common/types';
 import { sha256 } from '@common/utils/hash';
 import { env } from '@config/env';
 import { logger } from '@config/logger';
@@ -18,8 +19,6 @@ import { MembershipService } from '@modules/membership/membership.service';
 import { TenantService } from '@modules/tenant/tenant.service';
 import type { User } from '@modules/user/user.entity';
 import { Service } from 'typedi';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 @Service()
 export class InviteService {

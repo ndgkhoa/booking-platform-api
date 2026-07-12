@@ -1,4 +1,4 @@
-import type { MembershipRole } from '@common/types/enums/membership-role';
+import type { MembershipRole } from '@common/types';
 import { env } from '@config/env';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import { Service } from 'typedi';

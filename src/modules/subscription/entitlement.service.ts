@@ -1,5 +1,5 @@
 import { AppException } from '@common/exceptions';
-import { SubscriptionStatus } from '@common/types/enums/subscription-status';
+import { SubscriptionStatus } from '@common/types';
 import { PlanService } from '@modules/plan/plan.service';
 import { SubscriptionService } from '@modules/subscription/subscription.service';
 import { Service } from 'typedi';

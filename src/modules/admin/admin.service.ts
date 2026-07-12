@@ -1,6 +1,6 @@
 import { NotFoundException } from '@common/exceptions';
 import { runInTenantContext } from '@common/tenant/tenant-transaction';
-import { TenantStatus } from '@common/types/enums/tenant-status';
+import { TenantStatus } from '@common/types';
 import type { AdminAction } from '@modules/admin/admin-audit-log.entity';
 import { AdminAuditLog } from '@modules/admin/admin-audit-log.entity';
 import { AdminAuditLogRepository } from '@modules/admin/admin-audit-log.repository';

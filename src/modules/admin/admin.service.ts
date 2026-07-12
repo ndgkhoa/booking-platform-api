@@ -1,11 +1,11 @@
 import { NotFoundException } from '@common/exceptions';
 import { runInTenantContext } from '@common/tenant/tenant-transaction';
+import { TenantStatus } from '@common/types/enums/tenant-status';
 import type { AdminAction } from '@modules/admin/admin-audit-log.entity';
 import { AdminAuditLog } from '@modules/admin/admin-audit-log.entity';
 import { AdminAuditLogRepository } from '@modules/admin/admin-audit-log.repository';
 import type { Subscription } from '@modules/subscription/subscription.entity';
 import { SubscriptionService } from '@modules/subscription/subscription.service';
-import type { TenantStatus } from '@modules/tenant/tenant.entity';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { TenantService } from '@modules/tenant/tenant.service';
 import { Service } from 'typedi';
@@ -52,11 +52,17 @@ export class AdminService {
   }
 
   suspend(actorUserId: string, tenantId: string, reason?: string): Promise<Tenant> {
-    return this.changeStatus(actorUserId, tenantId, 'suspended', 'tenant.suspend', reason);
+    return this.changeStatus(
+      actorUserId,
+      tenantId,
+      TenantStatus.Suspended,
+      'tenant.suspend',
+      reason,
+    );
   }
 
   reactivate(actorUserId: string, tenantId: string): Promise<Tenant> {
-    return this.changeStatus(actorUserId, tenantId, 'active', 'tenant.reactivate');
+    return this.changeStatus(actorUserId, tenantId, TenantStatus.Active, 'tenant.reactivate');
   }
 
   /**

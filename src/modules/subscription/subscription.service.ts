@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
 import { runInTenantContext } from '@common/tenant/tenant-transaction';
+import { SubscriptionStatus } from '@common/types/enums/subscription-status';
 import { PaymentService } from '@modules/payment/payment.service';
 import type {
   CheckoutSession,
@@ -13,7 +14,6 @@ import type { Subscription } from '@modules/subscription/subscription.entity';
 import { SubscriptionRepository } from '@modules/subscription/subscription.repository';
 import { buildReference, tenantFromReference } from '@modules/subscription/subscription-reference';
 import { canTransition } from '@modules/subscription/subscription-state-machine';
-import { SubscriptionStatus } from '@modules/subscription/subscription-status';
 import { Service } from 'typedi';
 import { DataSource } from 'typeorm';
 

@@ -1,5 +1,5 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
-import type { OutboxStatus } from '@modules/outbox/outbox-status';
+import { OutboxStatus } from '@common/types/enums/outbox-status';
 import { Column, Entity, Index } from 'typeorm';
 
 /**
@@ -23,7 +23,7 @@ export class OutboxEvent extends BaseTenantEntity {
   @Column({ type: 'jsonb' })
   payload!: Record<string, unknown>;
 
-  @Column({ type: 'varchar', default: 'pending' })
+  @Column({ type: 'varchar', default: OutboxStatus.Pending })
   status!: OutboxStatus;
 
   @Column({ type: 'int', default: 0 })

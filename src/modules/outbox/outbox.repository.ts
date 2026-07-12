@@ -1,6 +1,6 @@
 import { getTenantId, getTenantManager } from '@common/tenant/tenant-context';
+import { OutboxStatus } from '@common/types/enums/outbox-status';
 import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
-import { OutboxStatus } from '@modules/outbox/outbox-status';
 import { Service } from 'typedi';
 import type { EntityManager } from 'typeorm';
 

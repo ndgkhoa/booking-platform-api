@@ -1,5 +1,5 @@
 import { UnprocessableStateException } from '@common/exceptions';
-import { BookingStatus } from '@modules/booking/booking-status';
+import { BookingStatus } from '@common/types/enums/booking-status';
 
 /**
  * Explicit booking lifecycle. All allowed status changes live here so transition

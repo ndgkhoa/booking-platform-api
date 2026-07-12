@@ -1,6 +1,6 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
+import { SubscriptionStatus } from '@common/types/enums/subscription-status';
 import type { PaymentProviderName } from '@modules/payment/payment-provider.interface';
-import type { SubscriptionStatus } from '@modules/subscription/subscription-status';
 import { Column, Entity, Index } from 'typeorm';
 
 /**
@@ -21,6 +21,6 @@ export class Subscription extends BaseTenantEntity {
   @Column({ name: 'provider_reference' })
   providerReference!: string;
 
-  @Column({ type: 'varchar', default: 'trialing' })
+  @Column({ type: 'varchar', default: SubscriptionStatus.Trialing })
   status!: SubscriptionStatus;
 }

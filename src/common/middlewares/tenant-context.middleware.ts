@@ -1,5 +1,6 @@
 import { ForbiddenException } from '@common/exceptions';
 import { runWithTenant } from '@common/tenant/tenant-context';
+import { TenantStatus } from '@common/types/enums/tenant-status';
 import { logger } from '@config/logger';
 import { TokenService } from '@modules/auth/token.service';
 import type { NextFunction, Request, Response } from 'express';
@@ -68,7 +69,7 @@ export class TenantContextMiddleware implements ExpressMiddlewareInterface {
       blocked =
         rows.length === 0
           ? 'Tenant not found'
-          : rows[0]?.status === 'suspended'
+          : rows[0]?.status === TenantStatus.Suspended
             ? 'Tenant is suspended'
             : null;
     } catch (error) {

@@ -6,13 +6,14 @@ import {
   NotFoundException,
 } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
+import type { MembershipRole } from '@common/types/enums/membership-role';
 import { sha256 } from '@common/utils/hash';
 import { env } from '@config/env';
 import { logger } from '@config/logger';
 import { enqueueInviteEmail } from '@jobs/queues/email.queue';
 import { Invite } from '@modules/invite/invite.entity';
 import { InviteRepository } from '@modules/invite/invite.repository';
-import type { Membership, MembershipRole } from '@modules/membership/membership.entity';
+import type { Membership } from '@modules/membership/membership.entity';
 import { MembershipService } from '@modules/membership/membership.service';
 import { TenantService } from '@modules/tenant/tenant.service';
 import type { User } from '@modules/user/user.entity';

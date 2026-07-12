@@ -1,9 +1,9 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { UnauthorizedException } from '@common/exceptions';
+import type { MembershipRole } from '@common/types/enums/membership-role';
 import { sha256 } from '@common/utils/hash';
 import { env } from '@config/env';
 import { RefreshTokenRepository } from '@modules/auth/refresh-token.repository';
-import type { MembershipRole } from '@modules/membership/membership.entity';
 import { Service } from 'typedi';
 
 export interface SessionScope {

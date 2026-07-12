@@ -1,8 +1,6 @@
 import { BaseEntity } from '@common/base/entity.base';
+import type { MembershipRole } from '@common/types/enums/membership-role';
 import { Column, Entity, Index } from 'typeorm';
-
-/** Roles a user holds within a tenant. Global super_admin is handled separately. */
-export type MembershipRole = 'owner' | 'staff';
 
 /**
  * Bridge between a global user and a tenant, carrying the user's role there.

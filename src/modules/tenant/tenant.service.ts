@@ -1,4 +1,5 @@
 import { ConflictException, NotFoundException } from '@common/exceptions';
+import { MembershipRole } from '@common/types/enums/membership-role';
 import { Membership } from '@modules/membership/membership.entity';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { TenantRepository } from '@modules/tenant/tenant.repository';
@@ -31,7 +32,7 @@ export class TenantService {
         const tenant = await tenantRepo.save(tenantRepo.create(input));
         const membershipRepo = manager.getRepository(Membership);
         await membershipRepo.save(
-          membershipRepo.create({ userId, tenantId: tenant.id, role: 'owner' }),
+          membershipRepo.create({ userId, tenantId: tenant.id, role: MembershipRole.Owner }),
         );
         return tenant;
       });

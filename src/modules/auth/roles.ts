@@ -1,4 +1,4 @@
-import type { MembershipRole } from '@modules/membership/membership.entity';
+import type { MembershipRole } from '@common/types/enums/membership-role';
 
 /**
  * Authorization vocabulary used by `@Authorized(...)`. Owner/staff are the

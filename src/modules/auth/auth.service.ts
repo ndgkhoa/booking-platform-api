@@ -1,9 +1,9 @@
 import { ConflictException, UnauthorizedException } from '@common/exceptions';
+import type { MembershipRole } from '@common/types/enums/membership-role';
 import type { LoginDto } from '@modules/auth/dto/login.dto';
 import type { RegisterDto } from '@modules/auth/dto/register.dto';
 import { RefreshTokenService, type SessionScope } from '@modules/auth/refresh-token.service';
 import { TokenService } from '@modules/auth/token.service';
-import type { MembershipRole } from '@modules/membership/membership.entity';
 import { MembershipService } from '@modules/membership/membership.service';
 import type { User } from '@modules/user/user.entity';
 import { UserService } from '@modules/user/user.service';

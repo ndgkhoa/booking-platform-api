@@ -1,5 +1,5 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
-import type { BookingStatus } from '@modules/booking/booking-status';
+import { BookingStatus } from '@common/types/enums/booking-status';
 import { Column, Entity, Index, VersionColumn } from 'typeorm';
 
 /**
@@ -26,7 +26,7 @@ export class Booking extends BaseTenantEntity {
   @Column({ name: 'ends_at', type: 'timestamptz' })
   endsAt!: Date;
 
-  @Column({ type: 'varchar', default: 'pending' })
+  @Column({ type: 'varchar', default: BookingStatus.Pending })
   status!: BookingStatus;
 
   @Column({ name: 'price_amount', type: 'int' })

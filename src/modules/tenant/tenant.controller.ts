@@ -1,3 +1,4 @@
+import { MembershipRole } from '@common/types/enums/membership-role';
 import { AuthService } from '@modules/auth/auth.service';
 import { CreateTenantDto } from '@modules/tenant/dto/create-tenant.dto';
 import { TenantService } from '@modules/tenant/tenant.service';
@@ -23,7 +24,7 @@ export class TenantController {
   @Authorized()
   async create(@CurrentUser({ required: true }) user: User, @Body() dto: CreateTenantDto) {
     const tenant = await this.tenants.onboard(user.id, dto);
-    const session = await this.auth.startTenantSession(user.id, tenant.id, 'owner');
+    const session = await this.auth.startTenantSession(user.id, tenant.id, MembershipRole.Owner);
     return { tenant, ...session };
   }
 }

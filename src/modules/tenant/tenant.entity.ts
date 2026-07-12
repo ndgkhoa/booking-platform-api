@@ -1,7 +1,6 @@
 import { BaseEntity } from '@common/base/entity.base';
+import { TenantStatus } from '@common/types/enums/tenant-status';
 import { Column, Entity, Index } from 'typeorm';
-
-export type TenantStatus = 'active' | 'suspended';
 
 /**
  * A tenant is the isolation boundary itself — it is NOT tenant-scoped, so it
@@ -20,6 +19,6 @@ export class Tenant extends BaseEntity {
   @Column({ default: 'UTC' })
   timezone!: string;
 
-  @Column({ type: 'varchar', default: 'active' })
+  @Column({ type: 'varchar', default: TenantStatus.Active })
   status!: TenantStatus;
 }

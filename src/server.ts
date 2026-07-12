@@ -6,7 +6,7 @@ import { httpLogger } from '@common/middlewares/http-logger.middleware';
 import { metricsMiddleware } from '@common/middlewares/metrics.middleware';
 import { TenantContextMiddleware } from '@common/middlewares/tenant-context.middleware';
 import { registry } from '@common/monitoring/metrics';
-import { buildProblem, PROBLEM_CONTENT_TYPE } from '@common/types/problem-details';
+import { buildProblem, PROBLEM_CONTENT_TYPE } from '@common/types/interfaces/problem-details';
 import { env } from '@config/env';
 import { buildOpenApiSpec } from '@config/swagger';
 import { configurePassport } from '@modules/auth/jwt.strategy';

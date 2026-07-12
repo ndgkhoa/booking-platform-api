@@ -95,8 +95,8 @@ export function createServer(): Express {
   app.use(
     '/api',
     rateLimit({
-      windowMs: 15 * 60 * 1000,
-      limit: 100,
+      windowMs: env.RATE_LIMIT_WINDOW_MS,
+      limit: env.RATE_LIMIT_MAX,
       standardHeaders: true,
       legacyHeaders: false,
     }),

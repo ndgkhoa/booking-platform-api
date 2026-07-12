@@ -9,6 +9,8 @@ export const env = cleanEnv(process.env, {
   PORT: port({ default: 3000 }),
   CORS_ORIGIN: str({ default: '*' }),
   APP_URL: str({ default: 'http://localhost:3000' }),
+  RATE_LIMIT_WINDOW_MS: num({ default: 15 * 60 * 1000 }),
+  RATE_LIMIT_MAX: num({ default: 100 }),
 
   DB_HOST: host({ default: 'localhost' }),
   DB_PORT: port({ default: 5432 }),

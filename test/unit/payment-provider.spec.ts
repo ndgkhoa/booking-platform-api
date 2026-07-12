@@ -50,6 +50,16 @@ describe('StripeProvider', () => {
     expect(provider.verifyWebhook(body, sign(body, stale))).toBe(false);
   });
 
+  it('accepts when any v1 matches during a secret rotation (multiple v1)', () => {
+    const body = JSON.stringify({ id: 'evt_1', type: 'invoice.paid' });
+    const ts = now();
+    const valid = createHmac('sha256', secret).update(`${ts}.${body}`).digest('hex');
+    // A header carrying the old secret's signature first and ours second.
+    const stale = 'a'.repeat(valid.length);
+    expect(provider.verifyWebhook(body, `t=${ts},v1=${stale},v1=${valid}`)).toBe(true);
+    expect(provider.verifyWebhook(body, `t=${ts},v1=${stale},v1=${stale}`)).toBe(false);
+  });
+
   it('maps stripe event types to normalised payment events', () => {
     const ok = JSON.stringify({
       id: 'evt_1',

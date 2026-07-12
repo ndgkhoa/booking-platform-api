@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { safeJsonParse } from '@common/utils/safe-json-parse';
 import { env } from '@config/env';
 import type {
   CheckoutInput,
@@ -34,8 +35,8 @@ export class SepayProvider implements PaymentProvider {
 
   parseEvent(rawBody: string): PaymentEvent | null {
     // SePay body: { id, status: 'success'|'failed', content: '<reference>' }.
-    const body = JSON.parse(rawBody) as { id?: string; status?: string; content?: string };
-    if (!body.id || !body.content) return null;
+    const body = safeJsonParse<{ id?: string; status?: string; content?: string }>(rawBody);
+    if (!body?.id || !body.content) return null;
     if (body.status === 'success') {
       return { id: body.id, type: 'payment.succeeded', subscriptionReference: body.content };
     }

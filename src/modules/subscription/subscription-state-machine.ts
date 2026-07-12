@@ -1,4 +1,3 @@
-import { UnprocessableStateException } from '@common/exceptions';
 import { SubscriptionStatus } from '@modules/subscription/subscription-status';
 
 /** Explicit subscription lifecycle mirroring provider states. */
@@ -15,10 +14,4 @@ const TRANSITIONS: Record<SubscriptionStatus, readonly SubscriptionStatus[]> = {
 
 export function canTransition(from: SubscriptionStatus, to: SubscriptionStatus): boolean {
   return from === to || TRANSITIONS[from].includes(to);
-}
-
-export function assertCanTransition(from: SubscriptionStatus, to: SubscriptionStatus): void {
-  if (!canTransition(from, to)) {
-    throw new UnprocessableStateException(`Cannot move a ${from} subscription to ${to}`);
-  }
 }

@@ -1,4 +1,5 @@
 import { IdempotencyKey } from '@common/idempotency/idempotency-key.entity';
+import { AdminAuditLog } from '@modules/admin/admin-audit-log.entity';
 import { RefreshToken } from '@modules/auth/refresh-token.entity';
 import { Booking } from '@modules/booking/booking.entity';
 import { Customer } from '@modules/customer/customer.entity';
@@ -43,6 +44,7 @@ export const TEST_ENTITIES = [
   Plan,
   Subscription,
   WebhookReceipt,
+  AdminAuditLog,
 ];
 
 export interface IntegrationContext {

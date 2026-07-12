@@ -51,4 +51,9 @@ export class TenantService {
     }
     return tenant;
   }
+
+  /** Platform-wide tenant listing for the super-admin console. */
+  listAll(): Promise<Tenant[]> {
+    return this.tenants.listAll();
+  }
 }

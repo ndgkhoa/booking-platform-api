@@ -6,7 +6,7 @@
 
 ## Overview
 - **Priority:** P2
-- **Status:** pending
+- **Status:** done (Slice A billing + Slice B super-admin)
 - **Description:** Tenant subscription plans + billing via payment provider (ADR: SePay vs Stripe), plan-based limits/entitlements, and super-admin console for cross-tenant management (list/suspend tenants, impersonate-audit).
 
 ## Key Insights
@@ -76,9 +76,11 @@ super_admin console → SET app.tenant_id per target (audited) OR system role
 - [x] Migration billing (+RLS, seed free/pro plans, reversible)
 - [x] Unit: both providers' signature+event parse; e2e: subscribe→signed-webhook→active, bad-sig 401, idempotent replay, entitlement 402, unknown-provider 422 — 40 unit + 72 integration green
 
-**Slice B — super-admin (next):**
-- [ ] Super-admin console: list/suspend/reactivate tenants via audited explicit-tenant-set path
-- [ ] `admin_audit_logs` immutable audit of every cross-tenant action
+**Slice B — super-admin (done):**
+- [x] Super-admin console (`admin` module): list/suspend/reactivate tenants + view tenant detail; subscription read via audited explicit per-tenant `SET app.tenant_id` (no BYPASSRLS)
+- [x] `admin_audit_logs` immutable (DB rules discard UPDATE/DELETE); suspend/reactivate write status + audit atomically in one tx
+- [x] Suspended-tenant gate in `TenantContextMiddleware` (403); class-level `@Authorized(SUPER_ADMIN_ONLY)` on all admin routes
+- [x] Migration (reversible, verified up/down); e2e: list/detail, suspend→reactivate+audit, suspended→403, non-super_admin→403 — 41 unit + 77 integration green
 
 ## Success Criteria
 - Subscribe → webhook → subscription active; replayed webhook is no-op.

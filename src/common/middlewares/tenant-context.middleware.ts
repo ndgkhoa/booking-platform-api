@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@common/exceptions';
 import { runWithTenant } from '@common/tenant/tenant-context';
 import { logger } from '@config/logger';
 import { TokenService } from '@modules/auth/token.service';
@@ -52,13 +53,46 @@ export class TenantContextMiddleware implements ExpressMiddlewareInterface {
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
+    let blocked: string | null = null;
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
       await queryRunner.query('SELECT set_config($1, $2, true)', ['app.tenant_id', tenantId]);
+      // Block a suspended (or vanished) tenant before any handler runs. The
+      // tenants table is the isolation boundary itself — not RLS-scoped — so
+      // this read sees the row regardless of the tenant setting above.
+      const rows: Array<{ status: string }> = await queryRunner.query(
+        'SELECT "status" FROM "tenants" WHERE "id" = $1 AND "deleted_at" IS NULL',
+        [tenantId],
+      );
+      blocked =
+        rows.length === 0
+          ? 'Tenant not found'
+          : rows[0]?.status === 'suspended'
+            ? 'Tenant is suspended'
+            : null;
     } catch (error) {
-      await queryRunner.release();
+      // Roll back before releasing: a connection returned to the pool with an
+      // open transaction stays "idle in transaction" carrying this request's
+      // app.tenant_id, which the next borrower could run under.
+      try {
+        if (queryRunner.isTransactionActive) {
+          await queryRunner.rollbackTransaction();
+        }
+      } finally {
+        await queryRunner.release();
+      }
       next(error as Error);
+      return;
+    }
+
+    if (blocked) {
+      try {
+        await queryRunner.rollbackTransaction();
+      } finally {
+        await queryRunner.release();
+      }
+      next(new ForbiddenException(blocked));
       return;
     }
 

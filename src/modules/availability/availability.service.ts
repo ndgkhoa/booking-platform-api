@@ -1,13 +1,13 @@
 import { MINUTE_MS, MINUTES_PER_DAY } from '@common/constants';
 import { BadRequestException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
-import type { AvailabilityQueryDto } from '@modules/availability/dto/availability-query.dto';
 import {
   isValidLocalDate,
   localMinutesToUtc,
   weekdayInZone,
-} from '@modules/availability/local-time';
-import { generateSlots, type MsInterval } from '@modules/availability/slot-generator';
+} from '@modules/availability/domain/local-time';
+import { generateSlots, type MsInterval } from '@modules/availability/domain/slot-generator';
+import type { AvailabilityQueryDto } from '@modules/availability/dto/availability-query.dto';
 import { BookingService } from '@modules/booking/booking.service';
 import { ServiceService } from '@modules/service/service.service';
 import { StaffService } from '@modules/staff/staff.service';

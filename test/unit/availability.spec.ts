@@ -1,5 +1,5 @@
-import { localMinutesToUtc, weekdayInZone } from '@modules/availability/local-time';
-import { generateSlots } from '@modules/availability/slot-generator';
+import { localMinutesToUtc, weekdayInZone } from '@modules/availability/domain/local-time';
+import { generateSlots } from '@modules/availability/domain/slot-generator';
 
 describe('local-time (DST-safe conversion)', () => {
   it('applies the zone offset for the specific date', () => {

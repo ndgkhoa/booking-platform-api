@@ -4,7 +4,7 @@ import { UnauthorizedException } from '@common/exceptions';
 import type { MembershipRole } from '@common/types';
 import { sha256 } from '@common/utils/hash';
 import { env } from '@config/env';
-import { RefreshTokenRepository } from '@modules/auth/refresh-token.repository';
+import { RefreshTokenRepository } from '@modules/refresh-token/refresh-token.repository';
 import { Service } from 'typedi';
 
 export interface SessionScope {

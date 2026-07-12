@@ -3,9 +3,12 @@ import { ConflictException, UnauthorizedException } from '@common/exceptions';
 import type { MembershipRole } from '@common/types';
 import type { LoginDto } from '@modules/auth/dto/login.dto';
 import type { RegisterDto } from '@modules/auth/dto/register.dto';
-import { RefreshTokenService, type SessionScope } from '@modules/auth/refresh-token.service';
 import { TokenService } from '@modules/auth/token.service';
 import { MembershipService } from '@modules/membership/membership.service';
+import {
+  RefreshTokenService,
+  type SessionScope,
+} from '@modules/refresh-token/refresh-token.service';
 import type { User } from '@modules/user/user.entity';
 import { UserService } from '@modules/user/user.service';
 import bcrypt from 'bcryptjs';

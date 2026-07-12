@@ -1,4 +1,4 @@
-import { RefreshToken } from '@modules/auth/refresh-token.entity';
+import { RefreshToken } from '@modules/refresh-token/refresh-token.entity';
 import { Service } from 'typedi';
 import { DataSource, IsNull, type Repository } from 'typeorm';
 

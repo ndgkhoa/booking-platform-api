@@ -15,7 +15,7 @@ import { Service } from 'typedi';
  */
 @Service()
 @JsonController('/payments/webhooks')
-export class SubscriptionWebhookController {
+export class PaymentWebhookController {
   constructor(
     private readonly payments: PaymentService,
     private readonly subscriptions: SubscriptionService,

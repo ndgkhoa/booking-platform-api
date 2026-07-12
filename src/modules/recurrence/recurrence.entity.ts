@@ -1,5 +1,5 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
-import type { RecurrenceFreq } from '@modules/recurrence/recurrence-expander';
+import type { RecurrenceFreq } from '@modules/recurrence/domain/recurrence-expander';
 import { Column, Entity } from 'typeorm';
 
 /**

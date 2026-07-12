@@ -9,7 +9,7 @@ import {
 import { ACTIVE_BOOKING_STATUSES, BookingStatus } from '@common/types';
 import type { Booking } from '@modules/booking/booking.entity';
 import { BookingRepository } from '@modules/booking/booking.repository';
-import { assertCanTransition } from '@modules/booking/booking-state-machine';
+import { assertCanTransition } from '@modules/booking/domain/booking-state-machine';
 import type { CreateBookingDto } from '@modules/booking/dto/create-booking.dto';
 import type { RescheduleBookingDto } from '@modules/booking/dto/reschedule-booking.dto';
 import { CustomerService } from '@modules/customer/customer.service';

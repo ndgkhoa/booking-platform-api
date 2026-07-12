@@ -1,8 +1,8 @@
 import { ConflictException, UnauthorizedException } from '@common/exceptions';
 import { AuthService } from '@modules/auth/auth.service';
-import type { RefreshTokenService } from '@modules/auth/refresh-token.service';
 import { TokenService } from '@modules/auth/token.service';
 import type { MembershipService } from '@modules/membership/membership.service';
+import type { RefreshTokenService } from '@modules/refresh-token/refresh-token.service';
 import type { User } from '@modules/user/user.entity';
 import type { UserService } from '@modules/user/user.service';
 import bcrypt from 'bcryptjs';

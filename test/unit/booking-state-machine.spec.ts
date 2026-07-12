@@ -1,5 +1,5 @@
 import { UnprocessableStateException } from '@common/exceptions';
-import { assertCanTransition, canTransition } from '@modules/booking/booking-state-machine';
+import { assertCanTransition, canTransition } from '@modules/booking/domain/booking-state-machine';
 
 describe('booking state machine', () => {
   it('allows the documented transitions', () => {

@@ -9,11 +9,14 @@ import type {
   PaymentProviderName,
 } from '@modules/payment/payment-provider.interface';
 import { PlanService } from '@modules/plan/plan.service';
+import {
+  buildReference,
+  tenantFromReference,
+} from '@modules/subscription/domain/subscription-reference';
+import { canTransition } from '@modules/subscription/domain/subscription-state-machine';
 import type { CreateSubscriptionDto } from '@modules/subscription/dto/create-subscription.dto';
 import type { Subscription } from '@modules/subscription/subscription.entity';
 import { SubscriptionRepository } from '@modules/subscription/subscription.repository';
-import { buildReference, tenantFromReference } from '@modules/subscription/subscription-reference';
-import { canTransition } from '@modules/subscription/subscription-state-machine';
 import { Service } from 'typedi';
 import { DataSource } from 'typeorm';
 

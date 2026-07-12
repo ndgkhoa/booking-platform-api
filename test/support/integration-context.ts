@@ -1,5 +1,4 @@
 import { AdminAuditLog } from '@modules/admin/admin-audit-log.entity';
-import { RefreshToken } from '@modules/auth/refresh-token.entity';
 import { Booking } from '@modules/booking/booking.entity';
 import { Customer } from '@modules/customer/customer.entity';
 import { IdempotencyKey } from '@modules/idempotency/idempotency-key.entity';
@@ -9,6 +8,7 @@ import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
 import { WebhookReceipt } from '@modules/payment/webhook-receipt.entity';
 import { Plan } from '@modules/plan/plan.entity';
 import { Recurrence } from '@modules/recurrence/recurrence.entity';
+import { RefreshToken } from '@modules/refresh-token/refresh-token.entity';
 import { Service } from '@modules/service/service.entity';
 import { Staff } from '@modules/staff/staff.entity';
 import { StaffService } from '@modules/staff-service/staff-service.entity';

@@ -1,4 +1,4 @@
-import { expandRecurrence, MAX_OCCURRENCES } from '@modules/recurrence/recurrence-expander';
+import { expandRecurrence, MAX_OCCURRENCES } from '@modules/recurrence/domain/recurrence-expander';
 
 const iso = (d: Date) => d.toISOString();
 

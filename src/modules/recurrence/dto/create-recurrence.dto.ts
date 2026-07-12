@@ -1,4 +1,4 @@
-import type { RecurrenceFreq } from '@modules/recurrence/recurrence-expander';
+import type { RecurrenceFreq } from '@modules/recurrence/domain/recurrence-expander';
 import {
   ArrayMaxSize,
   IsArray,

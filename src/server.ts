@@ -115,7 +115,18 @@ export function createServer(): Express {
 
   if (env.SWAGGER_ENABLED) {
     const spec = buildOpenApiSpec(routingControllersOptions);
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(spec));
+    app.use(
+      '/api-docs',
+      swaggerUi.serve,
+      swaggerUi.setup(spec, {
+        customSiteTitle: 'booking-platform-api docs',
+        swaggerOptions: {
+          tagsSorter: 'alpha', // groups A→Z
+          operationsSorter: 'alpha', // endpoints within a group A→Z
+          persistAuthorization: true, // keep the bearer token across reloads
+        },
+      }),
+    );
     app.get('/api-docs.json', (_req: Request, res: Response) => {
       res.json(spec);
     });

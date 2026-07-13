@@ -46,15 +46,15 @@ export function buildOpenApiSpec(options: RoutingControllersOptions): object {
     info: {
       title: 'booking-platform-api',
       version: '1.0.0',
-      description:
-        'Multi-tenant booking SaaS API. Authentication: `Authorization: Bearer <JWT>` — ' +
-        'the token carries the active tenant, which scopes every request under Postgres RLS. ' +
-        'Errors use RFC 7807 `application/problem+json`. `POST /bookings` accepts an ' +
-        '`Idempotency-Key` header so retries never double-create. Payment webhooks are ' +
-        'unauthenticated but HMAC signature-gated.',
+      description: 'Multi-tenant booking SaaS API.',
     },
-    // Paths already carry the /api/v1 routePrefix; the server is the host root.
-    servers: [{ url: '/', description: 'Current host' }],
+    // Host roots only — the paths already carry the /api/v1 prefix.
+    // example.com is the RFC 2606 reserved placeholder — swap for the real host on deploy.
+    servers: [
+      { url: 'http://localhost:3000', description: 'Local' },
+      { url: 'https://staging-api.example.com', description: 'Staging' },
+      { url: 'https://api.example.com', description: 'Production' },
+    ],
     components: {
       // biome-ignore lint/suspicious/noExplicitAny: generated JSON-schema map
       schemas: { ...(schemas as any), ProblemDetails, ApiSuccess },

@@ -19,8 +19,16 @@ export class UserRepository {
     return this.repo.findOne({ where: { email } });
   }
 
+  findByProviderAccount(provider: string, providerAccountId: string): Promise<User | null> {
+    return this.repo.findOne({ where: { provider, providerAccountId } });
+  }
+
   create(data: Partial<User>): Promise<User> {
     return this.repo.save(this.repo.create(data));
+  }
+
+  async linkProvider(id: string, provider: string, providerAccountId: string): Promise<void> {
+    await this.repo.update(id, { provider, providerAccountId });
   }
 
   paginate(query: UserQueryDto): Promise<[User[], number]> {

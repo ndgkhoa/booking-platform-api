@@ -9,7 +9,11 @@ import { registry } from '@common/monitoring/metrics';
 import { buildProblem, PROBLEM_CONTENT_TYPE } from '@common/types';
 import { env } from '@config/env';
 import { buildOpenApiSpec } from '@config/swagger';
-import { configurePassport } from '@modules/auth/jwt.strategy';
+import {
+  configureGoogleStrategy,
+  mountGoogleRoutes,
+} from '@modules/auth/strategies/google.strategy';
+import { configurePassport } from '@modules/auth/strategies/jwt.strategy';
 import type { User } from '@modules/user/user.entity';
 import cors from 'cors';
 import express, { type Express, type NextFunction, type Request, type Response } from 'express';
@@ -90,6 +94,7 @@ export function createServer(): Express {
   }
 
   configurePassport();
+  configureGoogleStrategy();
   app.use(passport.initialize());
 
   app.use(
@@ -103,6 +108,10 @@ export function createServer(): Express {
   );
 
   useExpressServer(app, routingControllersOptions);
+
+  // Browser-facing OAuth redirect routes live outside routing-controllers (they
+  // are redirects, not enveloped JSON responses).
+  mountGoogleRoutes(app);
 
   if (env.SWAGGER_ENABLED) {
     const spec = buildOpenApiSpec(routingControllersOptions);

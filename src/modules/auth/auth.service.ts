@@ -23,6 +23,14 @@ export interface AuthResult extends SessionTokens {
   user: User;
 }
 
+/** Normalised Google identity extracted from a verified OAuth profile. */
+export interface GoogleIdentity {
+  sub: string; // Google's stable account id
+  email: string;
+  emailVerified: boolean;
+  name: string;
+}
+
 @Service()
 export class AuthService {
   constructor(
@@ -44,12 +52,40 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<AuthResult> {
     const user = await this.users.findByEmail(dto.email);
-    if (!user || !(await bcrypt.compare(dto.password, user.passwordHash))) {
+    // `passwordHash` is null for OAuth-only accounts — they can't password-login.
+    if (!user || !user.passwordHash || !(await bcrypt.compare(dto.password, user.passwordHash))) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const [primary] = await this.memberships.listForUser(user.id);
-    const scope: SessionScope = primary ? { tenantId: primary.tenantId, role: primary.role } : {};
-    return { user, ...(await this.issueSession(user.id, scope)) };
+    return this.issueSessionFor(user);
+  }
+
+  /**
+   * Resolves (or provisions) the user behind a Google identity already verified by
+   * the OAuth strategy. A verified Google email is trusted to link onto an existing
+   * password account with the same address; unverified emails are refused so an
+   * address can't be claimed by someone who doesn't control it. Returns the user
+   * without a session — the caller mints one via `issueSessionFor`.
+   */
+  async resolveGoogleUser(identity: GoogleIdentity): Promise<User> {
+    if (!identity.emailVerified) {
+      throw new UnauthorizedException('Google account email is not verified');
+    }
+    const linked = await this.users.findByProviderAccount('google', identity.sub);
+    if (linked) {
+      return linked;
+    }
+    const existing = await this.users.findByEmail(identity.email);
+    if (existing) {
+      await this.users.linkProvider(existing.id, 'google', identity.sub);
+      return existing;
+    }
+    // No tenant yet — same as password signup; onboarding/invite grants one.
+    return this.users.create({
+      email: identity.email,
+      name: identity.name,
+      provider: 'google',
+      providerAccountId: identity.sub,
+    });
   }
 
   async switchTenant(user: User, tenantId: string): Promise<AuthResult> {
@@ -98,6 +134,13 @@ export class AuthService {
 
   logout(refreshToken: string): Promise<void> {
     return this.refreshTokens.revoke(refreshToken);
+  }
+
+  /** Issues a session scoped to the user's primary tenant (identity-only if none). */
+  async issueSessionFor(user: User): Promise<AuthResult> {
+    const [primary] = await this.memberships.listForUser(user.id);
+    const scope: SessionScope = primary ? { tenantId: primary.tenantId, role: primary.role } : {};
+    return { user, ...(await this.issueSession(user.id, scope)) };
   }
 
   private async issueSession(userId: string, scope: SessionScope): Promise<SessionTokens> {

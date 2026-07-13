@@ -17,8 +17,19 @@ export class UserService {
     return this.users.findByEmail(email);
   }
 
-  create(data: Pick<User, 'email' | 'name' | 'passwordHash'>): Promise<User> {
+  findByProviderAccount(provider: string, providerAccountId: string): Promise<User | null> {
+    return this.users.findByProviderAccount(provider, providerAccountId);
+  }
+
+  create(
+    data: Pick<User, 'email' | 'name'> &
+      Partial<Pick<User, 'passwordHash' | 'provider' | 'providerAccountId'>>,
+  ): Promise<User> {
     return this.users.create(data);
+  }
+
+  linkProvider(id: string, provider: string, providerAccountId: string): Promise<void> {
+    return this.users.linkProvider(id, provider, providerAccountId);
   }
 
   async getById(id: string): Promise<User> {

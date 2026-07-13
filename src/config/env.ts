@@ -21,6 +21,13 @@ export const env = cleanEnv(process.env, {
 
   JWT_SECRET: str(),
   JWT_EXPIRES_IN: str({ default: '15m' }),
+  // Google OAuth (authorization-code flow), all optional. Missing client id/secret
+  // disables the /auth/google routes. CALLBACK_URL must match the one registered in
+  // Google Cloud; SUCCESS_REDIRECT is the frontend the callback hands tokens back to.
+  GOOGLE_CLIENT_ID: str({ default: undefined }),
+  GOOGLE_CLIENT_SECRET: str({ default: undefined }),
+  GOOGLE_CALLBACK_URL: str({ default: undefined }),
+  GOOGLE_SUCCESS_REDIRECT: str({ default: undefined }),
   REFRESH_TOKEN_TTL_DAYS: num({ default: 30 }),
   INVITE_TTL_DAYS: num({ default: 7 }),
   SEPAY_WEBHOOK_SECRET: str(),

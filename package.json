@@ -20,7 +20,8 @@
     "migration:gen": "pnpm typeorm migration:generate src/database/migrations/Migration",
     "migration:run": "pnpm typeorm migration:run",
     "migration:revert": "pnpm typeorm migration:revert",
-    "seed": "ts-node src/database/seeds/run-seeds.ts",
+    "seed:up": "ts-node src/database/seeds/run-seed.ts",
+    "seed:down": "ts-node src/database/seeds/run-seed.ts --down",
     "prepare": "husky"
   },
   "engines": {

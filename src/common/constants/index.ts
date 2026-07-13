@@ -1,3 +1,5 @@
+import { PlanCode } from '@common/types/enums/plan-code';
+
 /** Time unit conversions in milliseconds — shared so nothing re-derives them. */
 export const SECOND_MS = 1_000;
 export const MINUTE_MS = 60 * SECOND_MS;
@@ -21,4 +23,4 @@ export const WEBHOOK_DELIVERY_TIMEOUT_MS = 5 * SECOND_MS;
 export const REPORT_MAX_RANGE_MS = 366 * DAY_MS;
 
 /** Plan code applied to a tenant that has not subscribed to a paid tier. */
-export const DEFAULT_PLAN_CODE = 'free';
+export const DEFAULT_PLAN_CODE = PlanCode.Free;

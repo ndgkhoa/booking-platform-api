@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Express } from 'express';
-import jwt from 'jsonwebtoken';
 import request from 'supertest';
+import { authHeader, createOwner } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 describe('Booking idempotency & ETag/If-Match e2e', () => {
@@ -25,8 +25,6 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
     await ctx.teardown();
   });
 
-  const auth = (t: string) => ({ Authorization: `Bearer ${t}` });
-
   interface Fixture {
     token: string;
     staffId: string;
@@ -35,36 +33,24 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
   }
 
   async function fixture(): Promise<Fixture> {
-    const email = `owner-${randomUUID()}@test.com`;
-    await request(app)
-      .post('/api/v1/auth/register')
-      .send({ email, name: 'Owner', password: 'password123' });
-    const login = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email, password: 'password123' });
-    const onboard = await request(app)
-      .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${login.body.data.token}`)
-      .send({ name: 'Spa', slug: `t-${randomUUID().slice(0, 20)}` });
-    const token = onboard.body.data.token;
-    const userId = (jwt.decode(token) as { sub: string }).sub;
+    const { token, userId } = await createOwner(app);
     const staff = await request(app)
       .post('/api/v1/staff')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ userId, displayName: 'Stylist' });
     const service = await request(app)
       .post('/api/v1/services')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Cut', durationMin: 60, priceAmount: 200000 });
     const staffId = staff.body.data.id;
     const serviceId = service.body.data.id;
     await request(app)
       .post(`/api/v1/staff/${staffId}/services`)
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ serviceId });
     const customer = await request(app)
       .post('/api/v1/customers')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Jane', email: `c-${randomUUID()}@test.com` });
     return { token, staffId, serviceId, customerId: customer.body.data.id };
   }
@@ -83,14 +69,14 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
 
     const first = await request(app)
       .post('/api/v1/bookings')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .set('Idempotency-Key', key)
       .send(payload);
     expect(first.status).toBe(201);
 
     const replay = await request(app)
       .post('/api/v1/bookings')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .set('Idempotency-Key', key)
       .send(payload);
     expect(replay.status).toBe(201);
@@ -103,13 +89,13 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
     const key = randomUUID();
     await request(app)
       .post('/api/v1/bookings')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .set('Idempotency-Key', key)
       .send(body(f, '2026-10-02T03:00:00.000Z'));
 
     const conflicting = await request(app)
       .post('/api/v1/bookings')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .set('Idempotency-Key', key)
       .send(body(f, '2026-10-02T05:00:00.000Z'));
     expect(conflicting.status).toBe(422);
@@ -124,7 +110,7 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
     const send = () =>
       request(app)
         .post('/api/v1/bookings')
-        .set(auth(f.token))
+        .set(authHeader(f.token))
         .set('Idempotency-Key', key)
         .send(payload);
 
@@ -139,17 +125,17 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
     const f = await fixture();
     const created = await request(app)
       .post('/api/v1/bookings')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send(body(f, '2026-10-04T03:00:00.000Z'));
     const id = created.body.data.id;
 
-    const got = await request(app).get(`/api/v1/bookings/${id}`).set(auth(f.token));
+    const got = await request(app).get(`/api/v1/bookings/${id}`).set(authHeader(f.token));
     expect(got.headers.etag).toBe(`"${created.body.data.version}"`);
 
     // Stale If-Match → 412.
     const stale = await request(app)
       .patch(`/api/v1/bookings/${id}/reschedule`)
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .set('If-Match', '"999"')
       .send({ startsAt: '2026-10-04T05:00:00.000Z' });
     expect(stale.status).toBe(412);
@@ -157,7 +143,7 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
     // Correct If-Match → success.
     const ok = await request(app)
       .patch(`/api/v1/bookings/${id}/reschedule`)
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .set('If-Match', String(got.headers.etag))
       .send({ startsAt: '2026-10-04T06:00:00.000Z' });
     expect(ok.status).toBe(200);

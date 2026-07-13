@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Express } from 'express';
-import jwt from 'jsonwebtoken';
 import request from 'supertest';
+import { authHeader, createOwner } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 /**
@@ -31,8 +31,6 @@ describe('Booking concurrency & lifecycle e2e', () => {
     await ctx.teardown();
   });
 
-  const auth = (t: string) => ({ Authorization: `Bearer ${t}` });
-
   interface Fixture {
     token: string;
     staffId: string;
@@ -42,37 +40,25 @@ describe('Booking concurrency & lifecycle e2e', () => {
 
   /** Owner tenant with a staff that can perform a service, plus a customer. */
   async function fixture(): Promise<Fixture> {
-    const email = `owner-${randomUUID()}@test.com`;
-    await request(app)
-      .post('/api/v1/auth/register')
-      .send({ email, name: 'Owner', password: 'password123' });
-    const login = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email, password: 'password123' });
-    const onboard = await request(app)
-      .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${login.body.data.token}`)
-      .send({ name: 'Spa', slug: `t-${randomUUID().slice(0, 20)}` });
-    const token = onboard.body.data.token;
-    const userId = (jwt.decode(token) as { sub: string }).sub;
+    const { token, userId } = await createOwner(app);
 
     const staff = await request(app)
       .post('/api/v1/staff')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ userId, displayName: 'Stylist' });
     const service = await request(app)
       .post('/api/v1/services')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Cut', durationMin: 60, priceAmount: 200000 });
     const staffId = staff.body.data.id;
     const serviceId = service.body.data.id;
     await request(app)
       .post(`/api/v1/staff/${staffId}/services`)
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ serviceId });
     const customer = await request(app)
       .post('/api/v1/customers')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Jane Doe', email: `c-${randomUUID()}@test.com` });
 
     return { token, staffId, serviceId, customerId: customer.body.data.id };
@@ -81,7 +67,7 @@ describe('Booking concurrency & lifecycle e2e', () => {
   const book = (f: Fixture, startsAt: string) =>
     request(app)
       .post('/api/v1/bookings')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ staffId: f.staffId, serviceId: f.serviceId, customerId: f.customerId, startsAt });
 
   it('lets exactly one of many concurrent identical bookings win', async () => {
@@ -108,7 +94,7 @@ describe('Booking concurrency & lifecycle e2e', () => {
 
     await request(app)
       .post(`/api/v1/bookings/${first.body.data.id}/cancel`)
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ version: first.body.data.version });
 
     // Cancelled bookings are outside the EXCLUDE WHERE clause → slot is free again.
@@ -120,7 +106,7 @@ describe('Booking concurrency & lifecycle e2e', () => {
     const created = await book(f, '2026-09-03T03:00:00.000Z');
     const complete = await request(app)
       .post(`/api/v1/bookings/${created.body.data.id}/complete`)
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ version: created.body.data.version });
     expect(complete.status).toBe(422); // pending → completed requires confirm first
   });
@@ -130,7 +116,7 @@ describe('Booking concurrency & lifecycle e2e', () => {
     const created = await book(f, '2026-09-04T03:00:00.000Z');
     const stale = await request(app)
       .post(`/api/v1/bookings/${created.body.data.id}/confirm`)
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ version: created.body.data.version + 5 });
     expect(stale.status).toBe(409);
     expect(stale.body.code).toBe('STALE_BOOKING');
@@ -140,9 +126,9 @@ describe('Booking concurrency & lifecycle e2e', () => {
     const f = await fixture();
     const other = await request(app)
       .post('/api/v1/services')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ name: 'Unlinked', durationMin: 30, priceAmount: 100000 });
-    const res = await request(app).post('/api/v1/bookings').set(auth(f.token)).send({
+    const res = await request(app).post('/api/v1/bookings').set(authHeader(f.token)).send({
       staffId: f.staffId,
       serviceId: other.body.data.id,
       customerId: f.customerId,

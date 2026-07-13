@@ -3,6 +3,7 @@ import { User } from '@modules/user/user.entity';
 import type { Express } from 'express';
 import request from 'supertest';
 import type { DataSource } from 'typeorm';
+import { authHeader } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 describe('Auth e2e', () => {
@@ -44,7 +45,7 @@ describe('Auth e2e', () => {
     expect(login.status).toBe(200);
     const token = login.body.data.token;
 
-    const me = await request(app).get('/api/v1/users/me').set('Authorization', `Bearer ${token}`);
+    const me = await request(app).get('/api/v1/users/me').set(authHeader(token));
     expect(me.status).toBe(200);
     expect(me.body.data.email).toBe(creds.email);
     expect(me.body.data).not.toHaveProperty('passwordHash');
@@ -80,16 +81,12 @@ describe('Auth e2e', () => {
     const named = { ...credentials(), name: 'Zaphod Beeblebrox' };
     await request(app).post('/api/v1/auth/register').send(named);
 
-    const page = await request(app)
-      .get('/api/v1/users?page=1&limit=2')
-      .set('Authorization', `Bearer ${token}`);
+    const page = await request(app).get('/api/v1/users?page=1&limit=2').set(authHeader(token));
     expect(page.status).toBe(200);
     expect(page.body.data.length).toBeLessThanOrEqual(2);
     expect(page.body.meta.total).toBeGreaterThan(0);
 
-    const filtered = await request(app)
-      .get('/api/v1/users?name=Zaphod')
-      .set('Authorization', `Bearer ${token}`);
+    const filtered = await request(app).get('/api/v1/users?name=Zaphod').set(authHeader(token));
     expect(filtered.status).toBe(200);
     expect(filtered.body.data.every((u: { name: string }) => u.name.includes('Zaphod'))).toBe(true);
   });
@@ -103,12 +100,12 @@ describe('Auth e2e', () => {
 
     const forbidden = await request(app)
       .get('/api/v1/users')
-      .set('Authorization', `Bearer ${login.body.data.token}`);
+      .set(authHeader(login.body.data.token));
     expect(forbidden.status).toBe(403);
 
     const badLimit = await request(app)
       .get('/api/v1/users?limit=999')
-      .set('Authorization', `Bearer ${await adminToken()}`);
+      .set(authHeader(await adminToken()));
     expect(badLimit.status).toBe(422);
   });
 });

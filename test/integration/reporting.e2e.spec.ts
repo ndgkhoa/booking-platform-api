@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Express } from 'express';
-import jwt from 'jsonwebtoken';
 import request from 'supertest';
+import { authHeader, createOwner } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 describe('Reporting e2e', () => {
@@ -25,8 +25,6 @@ describe('Reporting e2e', () => {
     await ctx.teardown();
   });
 
-  const auth = (t: string) => ({ Authorization: `Bearer ${t}` });
-
   interface Fixture {
     token: string;
     staffId: string;
@@ -35,36 +33,24 @@ describe('Reporting e2e', () => {
   }
 
   async function fixture(timezone: string): Promise<Fixture> {
-    const email = `owner-${randomUUID()}@test.com`;
-    await request(app)
-      .post('/api/v1/auth/register')
-      .send({ email, name: 'Owner', password: 'password123' });
-    const login = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email, password: 'password123' });
-    const onboard = await request(app)
-      .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${login.body.data.token}`)
-      .send({ name: 'Spa', slug: `t-${randomUUID().slice(0, 20)}`, timezone });
-    const token = onboard.body.data.token;
-    const userId = (jwt.decode(token) as { sub: string }).sub;
+    const { token, userId, tenantId } = await createOwner(app, { timezone });
     const staff = await request(app)
       .post('/api/v1/staff')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ userId, displayName: 'Stylist' });
     const service = await request(app)
       .post('/api/v1/services')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Cut', durationMin: 60, priceAmount: 100000 });
     const staffId = staff.body.data.id;
     const serviceId = service.body.data.id;
     await request(app)
       .post(`/api/v1/staff/${staffId}/services`)
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ serviceId });
     const customer = await request(app)
       .post('/api/v1/customers')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Jane', email: `c-${randomUUID()}@test.com` });
     return { token, staffId, serviceId, customerId: customer.body.data.id };
   }
@@ -72,17 +58,17 @@ describe('Reporting e2e', () => {
   async function bookCompleted(f: Fixture, startsAt: string): Promise<void> {
     const created = await request(app)
       .post('/api/v1/bookings')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ staffId: f.staffId, serviceId: f.serviceId, customerId: f.customerId, startsAt });
     const id = created.body.data.id;
     const v = created.body.data.version;
     await request(app)
       .post(`/api/v1/bookings/${id}/confirm`)
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ version: v });
     await request(app)
       .post(`/api/v1/bookings/${id}/complete`)
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ version: v + 1 });
   }
 
@@ -94,7 +80,7 @@ describe('Reporting e2e', () => {
 
     const res = await request(app)
       .get('/api/v1/reports/bookings?from=2026-12-01&to=2026-12-08&groupBy=day')
-      .set(auth(f.token));
+      .set(authHeader(f.token));
     expect(res.status).toBe(200);
     const byBucket = Object.fromEntries(
       res.body.data.map((r: { bucket: string }) => [r.bucket, r]),
@@ -108,7 +94,7 @@ describe('Reporting e2e', () => {
     const f = await fixture('UTC');
     await bookCompleted(f, '2027-01-04T03:00:00.000Z');
     // A pending (not completed) booking must not count toward revenue.
-    await request(app).post('/api/v1/bookings').set(auth(f.token)).send({
+    await request(app).post('/api/v1/bookings').set(authHeader(f.token)).send({
       staffId: f.staffId,
       serviceId: f.serviceId,
       customerId: f.customerId,
@@ -117,7 +103,7 @@ describe('Reporting e2e', () => {
 
     const res = await request(app)
       .get('/api/v1/reports/revenue?from=2027-01-01&to=2027-01-31&groupBy=month')
-      .set(auth(f.token));
+      .set(authHeader(f.token));
     expect(res.status).toBe(200);
     expect(res.body.data[0].amount).toBe(100000); // one completed × 100000, pending excluded
     expect(res.body.data[0].currency).toBe('VND');
@@ -132,7 +118,7 @@ describe('Reporting e2e', () => {
 
     const res = await request(app)
       .get('/api/v1/reports/bookings?from=2027-02-01&to=2027-03-01&groupBy=day')
-      .set(auth(f.token));
+      .set(authHeader(f.token));
     const buckets = res.body.data.map((r: { bucket: string }) => r.bucket);
     expect(buckets).toContain('2027-02-28');
   });
@@ -142,7 +128,7 @@ describe('Reporting e2e', () => {
     await bookCompleted(f, '2027-04-04T03:00:00.000Z');
     const res = await request(app)
       .get('/api/v1/reports/revenue?from=2027-04-01&to=2027-04-30&groupBy=month')
-      .set(auth(f.token));
+      .set(authHeader(f.token));
     expect(res.status).toBe(200);
     expect(res.body.data).toEqual([expect.objectContaining({ amount: 100000, currency: 'VND' })]);
   });
@@ -151,12 +137,12 @@ describe('Reporting e2e', () => {
     const f = await fixture('UTC');
     const tooBig = await request(app)
       .get('/api/v1/reports/bookings?from=2020-01-01&to=2026-01-01&groupBy=month')
-      .set(auth(f.token));
+      .set(authHeader(f.token));
     expect(tooBig.status).toBe(422);
 
     const inverted = await request(app)
       .get('/api/v1/reports/bookings?from=2027-02-01&to=2027-01-01&groupBy=day')
-      .set(auth(f.token));
+      .set(authHeader(f.token));
     expect(inverted.status).toBe(422);
   });
 
@@ -170,7 +156,7 @@ describe('Reporting e2e', () => {
       .send({ email, password: 'password123' });
     const res = await request(app)
       .get('/api/v1/reports/bookings?from=2027-01-01&to=2027-01-31&groupBy=day')
-      .set(auth(login.body.data.token));
+      .set(authHeader(login.body.data.token));
     expect(res.status).toBe(403);
   });
 });

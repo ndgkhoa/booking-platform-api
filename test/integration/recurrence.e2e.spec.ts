@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { Booking } from '@modules/booking/booking.entity';
 import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
 import type { Express } from 'express';
-import jwt from 'jsonwebtoken';
 import request from 'supertest';
+import { authHeader, createOwner } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 describe('Recurring bookings e2e', () => {
@@ -27,7 +27,6 @@ describe('Recurring bookings e2e', () => {
     await ctx.teardown();
   });
 
-  const auth = (t: string) => ({ Authorization: `Bearer ${t}` });
   const bookings = () => ctx.dataSource.getRepository(Booking);
 
   interface Fixture {
@@ -38,36 +37,24 @@ describe('Recurring bookings e2e', () => {
   }
 
   async function fixture(): Promise<Fixture> {
-    const email = `owner-${randomUUID()}@test.com`;
-    await request(app)
-      .post('/api/v1/auth/register')
-      .send({ email, name: 'Owner', password: 'password123' });
-    const login = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email, password: 'password123' });
-    const onboard = await request(app)
-      .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${login.body.data.token}`)
-      .send({ name: 'Spa', slug: `t-${randomUUID().slice(0, 20)}`, timezone: 'UTC' });
-    const token = onboard.body.data.token;
-    const userId = (jwt.decode(token) as { sub: string }).sub;
+    const { token, userId } = await createOwner(app);
     const staff = await request(app)
       .post('/api/v1/staff')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ userId, displayName: 'Stylist' });
     const service = await request(app)
       .post('/api/v1/services')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Cut', durationMin: 60, priceAmount: 100000 });
     const staffId = staff.body.data.id;
     const serviceId = service.body.data.id;
     await request(app)
       .post(`/api/v1/staff/${staffId}/services`)
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ serviceId });
     const customer = await request(app)
       .post('/api/v1/customers')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Jane', email: `c-${randomUUID()}@test.com` });
     return { token, staffId, serviceId, customerId: customer.body.data.id };
   }
@@ -75,7 +62,7 @@ describe('Recurring bookings e2e', () => {
   const createRecurring = (f: Fixture, body: object) =>
     request(app)
       .post('/api/v1/recurrences')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({
         staffId: f.staffId,
         serviceId: f.serviceId,
@@ -105,7 +92,7 @@ describe('Recurring bookings e2e', () => {
   it('skip_conflicts creates the free occurrences and reports the clashing one', async () => {
     const f = await fixture();
     // Pre-book the slot the second occurrence would want.
-    await request(app).post('/api/v1/bookings').set(auth(f.token)).send({
+    await request(app).post('/api/v1/bookings').set(authHeader(f.token)).send({
       staffId: f.staffId,
       serviceId: f.serviceId,
       customerId: f.customerId,
@@ -127,7 +114,7 @@ describe('Recurring bookings e2e', () => {
 
   it('all_or_nothing rolls back the whole series on any conflict (409)', async () => {
     const f = await fixture();
-    await request(app).post('/api/v1/bookings').set(auth(f.token)).send({
+    await request(app).post('/api/v1/bookings').set(authHeader(f.token)).send({
       staffId: f.staffId,
       serviceId: f.serviceId,
       customerId: f.customerId,
@@ -166,7 +153,7 @@ describe('Recurring bookings e2e', () => {
 
     const cancel = await request(app)
       .post(`/api/v1/recurrences/${recurrenceId}/cancel`)
-      .set(auth(f.token));
+      .set(authHeader(f.token));
     expect(cancel.status).toBe(200);
     expect(cancel.body.data.cancelled).toBe(3);
 

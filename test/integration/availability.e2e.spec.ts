@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Express } from 'express';
-import jwt from 'jsonwebtoken';
 import request from 'supertest';
+import { authHeader, createOwner } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 describe('Availability e2e', () => {
@@ -17,8 +17,6 @@ describe('Availability e2e', () => {
     await ctx.teardown();
   });
 
-  const auth = (t: string) => ({ Authorization: `Bearer ${t}` });
-
   interface Fixture {
     token: string;
     staffId: string;
@@ -28,37 +26,25 @@ describe('Availability e2e', () => {
 
   /** Owner + staff able to perform a 60-min service, plus a customer, in a zone. */
   async function fixture(timezone: string, durationMin = 60): Promise<Fixture> {
-    const email = `owner-${randomUUID()}@test.com`;
-    await request(app)
-      .post('/api/v1/auth/register')
-      .send({ email, name: 'Owner', password: 'password123' });
-    const login = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email, password: 'password123' });
-    const onboard = await request(app)
-      .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${login.body.data.token}`)
-      .send({ name: 'Spa', slug: `t-${randomUUID().slice(0, 20)}`, timezone });
-    const token = onboard.body.data.token;
-    const userId = (jwt.decode(token) as { sub: string }).sub;
+    const { token, userId, tenantId } = await createOwner(app, { timezone });
 
     const staff = await request(app)
       .post('/api/v1/staff')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ userId, displayName: 'Stylist' });
     const service = await request(app)
       .post('/api/v1/services')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Cut', durationMin, priceAmount: 100000 });
     const staffId = staff.body.data.id;
     const serviceId = service.body.data.id;
     await request(app)
       .post(`/api/v1/staff/${staffId}/services`)
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ serviceId });
     const customer = await request(app)
       .post('/api/v1/customers')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Jane', email: `c-${randomUUID()}@test.com` });
 
     return { token, staffId, serviceId, customerId: customer.body.data.id };
@@ -67,13 +53,13 @@ describe('Availability e2e', () => {
   const setHours = (f: Fixture, weekday: number, startMin: number, endMin: number) =>
     request(app)
       .post(`/api/v1/staff/${f.staffId}/working-hours`)
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ weekday, startMin, endMin });
 
   const availability = (f: Fixture, date: string) =>
     request(app)
       .get(`/api/v1/availability?serviceId=${f.serviceId}&date=${date}`)
-      .set(auth(f.token));
+      .set(authHeader(f.token));
 
   it('slices working hours into slots and removes booked ones', async () => {
     const f = await fixture('UTC');
@@ -89,7 +75,7 @@ describe('Availability e2e', () => {
       '2026-09-07T11:00:00.000Z',
     ]);
 
-    await request(app).post('/api/v1/bookings').set(auth(f.token)).send({
+    await request(app).post('/api/v1/bookings').set(authHeader(f.token)).send({
       staffId: f.staffId,
       serviceId: f.serviceId,
       customerId: f.customerId,

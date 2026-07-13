@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Membership } from '@modules/membership/membership.entity';
 import type { Express } from 'express';
 import request from 'supertest';
+import { authHeader } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 describe('Refresh-token rotation & reuse detection e2e', () => {
@@ -70,7 +71,7 @@ describe('Refresh-token rotation & reuse detection e2e', () => {
     const { token } = await register();
     const onboard = await request(app)
       .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${token}`)
+      .set(authHeader(token))
       .send({ name: 'Revoked Co', slug: `t-${randomUUID().slice(0, 20)}` });
     const refreshToken = onboard.body.data.refreshToken;
     const tenantId = onboard.body.data.tenant.id;

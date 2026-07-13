@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Express } from 'express';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
+import { authHeader } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 describe('Tenant onboarding & tenant-scoped auth e2e', () => {
@@ -45,7 +46,7 @@ describe('Tenant onboarding & tenant-scoped auth e2e', () => {
 
     const res = await request(app)
       .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${token}`)
+      .set(authHeader(token))
       .send({ name: 'Acme Spa', slug });
 
     expect(res.status).toBe(201);
@@ -64,11 +65,8 @@ describe('Tenant onboarding & tenant-scoped auth e2e', () => {
     const { token } = await registerAndLogin();
     const slug = `t-${randomUUID().slice(0, 20)}`;
     const body = { name: 'Dup', slug };
-    await request(app).post('/api/v1/tenants').set('Authorization', `Bearer ${token}`).send(body);
-    const dup = await request(app)
-      .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${token}`)
-      .send(body);
+    await request(app).post('/api/v1/tenants').set(authHeader(token)).send(body);
+    const dup = await request(app).post('/api/v1/tenants').set(authHeader(token)).send(body);
     expect(dup.status).toBe(409);
     expect(dup.body.code).toBe('CONFLICT');
   });
@@ -85,7 +83,7 @@ describe('Tenant onboarding & tenant-scoped auth e2e', () => {
       .send({ email: creds.email, password: creds.password });
     await request(app)
       .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${first.body.data.token}`)
+      .set(authHeader(first.body.data.token))
       .send({ name: 'Second', slug: `t-${randomUUID().slice(0, 20)}` });
 
     const relogin = await request(app)
@@ -98,7 +96,7 @@ describe('Tenant onboarding & tenant-scoped auth e2e', () => {
     const { token } = await registerAndLogin();
     const res = await request(app)
       .post('/api/v1/auth/switch-tenant')
-      .set('Authorization', `Bearer ${token}`)
+      .set(authHeader(token))
       .send({ tenantId: randomUUID() });
     expect(res.status).toBe(401);
   });

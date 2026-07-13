@@ -9,8 +9,12 @@ export class ReportQueryDto {
   @IsISO8601()
   to!: string;
 
+  // Typed `string` (not the ReportGroupBy union) on purpose: routing-controllers
+  // JSON.parses query params whose reflected type isn't a primitive, and a union
+  // alias reflects as Object — so `groupBy=day` would 400 with "cannot be parsed
+  // into JSON". `@IsIn` still restricts it to the allowed values.
   @IsIn(['day', 'week', 'month', 'service', 'staff'])
-  groupBy!: ReportGroupBy;
+  groupBy!: string;
 
   @IsOptional()
   @IsUUID()

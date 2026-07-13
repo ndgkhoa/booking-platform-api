@@ -1,7 +1,7 @@
 import { REPORT_MAX_RANGE_MS } from '@common/constants';
 import { ValidationException } from '@common/exceptions';
 import { getTenantId } from '@common/tenant/tenant-context';
-import type { ReportQueryDto } from '@modules/reporting/dto/report-query.dto';
+import type { ReportGroupBy, ReportQueryDto } from '@modules/reporting/dto/report-query.dto';
 import {
   type BookingBucketRow,
   type ReportFilters,
@@ -19,11 +19,11 @@ export class ReportingService {
   ) {}
 
   bookings(query: ReportQueryDto): Promise<BookingBucketRow[]> {
-    return this.run(query, (f) => this.reporting.bookings(query.groupBy, f));
+    return this.run(query, (f) => this.reporting.bookings(query.groupBy as ReportGroupBy, f));
   }
 
   revenue(query: ReportQueryDto): Promise<RevenueBucketRow[]> {
-    return this.run(query, (f) => this.reporting.revenue(query.groupBy, f));
+    return this.run(query, (f) => this.reporting.revenue(query.groupBy as ReportGroupBy, f));
   }
 
   private async run<T>(query: ReportQueryDto, exec: (f: ReportFilters) => Promise<T>): Promise<T> {

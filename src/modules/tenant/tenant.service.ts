@@ -1,16 +1,11 @@
 import { ConflictException, NotFoundException } from '@common/exceptions';
 import { MembershipRole } from '@common/types';
 import { Membership } from '@modules/membership/membership.entity';
+import type { CreateTenantDto } from '@modules/tenant/dto/create-tenant.dto';
 import { Tenant } from '@modules/tenant/tenant.entity';
 import { TenantRepository } from '@modules/tenant/tenant.repository';
 import { Service } from 'typedi';
 import { DataSource } from 'typeorm';
-
-export interface CreateTenantInput {
-  name: string;
-  slug: string;
-  timezone?: string;
-}
 
 @Service()
 export class TenantService {
@@ -25,7 +20,7 @@ export class TenantService {
    * manager directly rather than routing through MembershipService — going
    * through another service would run on a separate connection and break atomicity.
    */
-  async onboard(userId: string, input: CreateTenantInput): Promise<Tenant> {
+  async onboard(userId: string, input: CreateTenantDto): Promise<Tenant> {
     try {
       return await this.dataSource.transaction(async (manager) => {
         const tenantRepo = manager.getRepository(Tenant);

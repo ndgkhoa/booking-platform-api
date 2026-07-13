@@ -6,7 +6,7 @@ import { enqueueBookingEmail } from '@jobs/queues/email.queue';
 import { enqueueWebhook } from '@jobs/queues/webhook.queue';
 import { OutboxRepository } from '@modules/outbox/outbox.repository';
 import type { OutboxEvent } from '@modules/outbox/outbox-event.entity';
-import { OutboxRelay } from '@modules/outbox/outbox-relay.service';
+import { OutboxRelayService } from '@modules/outbox/outbox-relay.service';
 import { Container } from 'typedi';
 
 /**
@@ -41,7 +41,7 @@ async function dispatch(event: OutboxEvent): Promise<void> {
 
 /** Starts the outbox poller; returns an async stop that drains the in-flight tick. */
 export function startOutboxRelay(): () => Promise<void> {
-  const relay = Container.get(OutboxRelay);
+  const relay = Container.get(OutboxRelayService);
   const outbox = Container.get(OutboxRepository);
   let inFlight: Promise<void> | null = null;
   let stopped = false;
@@ -52,7 +52,7 @@ export function startOutboxRelay(): () => Promise<void> {
       try {
         let processed: number;
         do {
-          processed = await relay.processBatch(AppDataSource, dispatch);
+          processed = await relay.processBatch(dispatch);
         } while (processed > 0 && !stopped);
         const backlog = await outbox.backlogStats(AppDataSource.manager);
         outboxPending.set(backlog.pending);

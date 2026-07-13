@@ -1,5 +1,5 @@
-import { signWebhook, verifyWebhook } from '@modules/webhook/webhook-signature';
-import { validateWebhookUrl } from '@modules/webhook/webhook-url';
+import { signWebhook, verifyWebhook } from '@modules/webhook/domain/webhook-signature';
+import { validateWebhookUrl } from '@modules/webhook/domain/webhook-url';
 
 describe('webhook signature', () => {
   const secret = 'shhh';

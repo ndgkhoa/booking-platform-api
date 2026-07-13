@@ -1,6 +1,6 @@
 import { WEBHOOK_DELIVERY_TIMEOUT_MS } from '@common/constants';
-import { signWebhook } from '@modules/webhook/webhook-signature';
-import { assertSafeWebhookUrl } from '@modules/webhook/webhook-url';
+import { signWebhook } from '@modules/webhook/domain/webhook-signature';
+import { assertSafeWebhookUrl } from '@modules/webhook/domain/webhook-url';
 import { Service } from 'typedi';
 
 export interface WebhookPayload {
@@ -18,7 +18,7 @@ export interface WebhookPayload {
  * throws so the queue retries.
  */
 @Service()
-export class WebhookDelivery {
+export class WebhookDeliveryService {
   async deliver(url: string, secret: string, payload: WebhookPayload): Promise<void> {
     await assertSafeWebhookUrl(url);
     const body = JSON.stringify(payload);

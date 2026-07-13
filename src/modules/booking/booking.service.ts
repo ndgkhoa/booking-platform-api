@@ -14,7 +14,7 @@ import type { CreateBookingDto } from '@modules/booking/dto/create-booking.dto';
 import type { RescheduleBookingDto } from '@modules/booking/dto/reschedule-booking.dto';
 import { CustomerService } from '@modules/customer/customer.service';
 import { IdempotencyService } from '@modules/idempotency/idempotency.service';
-import { OutboxRepository } from '@modules/outbox/outbox.repository';
+import { OutboxService } from '@modules/outbox/outbox.service';
 import { ServiceService } from '@modules/service/service.service';
 import { StaffServiceService } from '@modules/staff-service/staff-service.service';
 import { Service } from 'typedi';
@@ -37,7 +37,7 @@ export class BookingService {
     private readonly capabilities: StaffServiceService,
     private readonly customers: CustomerService,
     private readonly idempotency: IdempotencyService,
-    private readonly outbox: OutboxRepository,
+    private readonly outbox: OutboxService,
   ) {}
 
   /** Emits a booking event on the current transaction — atomic with the change. */

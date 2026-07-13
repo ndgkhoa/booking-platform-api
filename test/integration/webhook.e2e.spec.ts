@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { WebhookDelivery } from '@modules/webhook/webhook-delivery.service';
+import { WebhookDeliveryService } from '@modules/webhook/webhook-delivery.service';
 import type { Express } from 'express';
 import request from 'supertest';
 import { Container } from 'typedi';
@@ -70,7 +70,7 @@ describe('Webhook endpoints & delivery e2e', () => {
   });
 
   it('blocks delivery to a loopback/private target at send time (SSRF)', async () => {
-    const delivery = Container.get(WebhookDelivery);
+    const delivery = Container.get(WebhookDeliveryService);
     await expect(
       delivery.deliver('https://127.0.0.1/hook', 'secret', {
         eventType: 'booking.created',

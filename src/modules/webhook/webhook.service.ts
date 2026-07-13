@@ -1,9 +1,9 @@
 import { randomBytes } from 'node:crypto';
 import { ConflictException, NotFoundException } from '@common/exceptions';
+import { validateWebhookUrl } from '@modules/webhook/domain/webhook-url';
 import type { CreateWebhookDto } from '@modules/webhook/dto/create-webhook.dto';
 import { WebhookRepository } from '@modules/webhook/webhook.repository';
 import type { WebhookEndpoint } from '@modules/webhook/webhook-endpoint.entity';
-import { validateWebhookUrl } from '@modules/webhook/webhook-url';
 import { Service } from 'typedi';
 
 @Service()

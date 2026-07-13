@@ -17,15 +17,14 @@ export type OutboxDispatch = (event: OutboxEvent) => Promise<void>;
  * consumers must be idempotent.
  */
 @Service()
-export class OutboxRelay {
-  constructor(private readonly outbox: OutboxRepository) {}
+export class OutboxRelayService {
+  constructor(
+    private readonly outbox: OutboxRepository,
+    private readonly dataSource: DataSource,
+  ) {}
 
-  async processBatch(
-    dataSource: DataSource,
-    dispatch: OutboxDispatch,
-    batchSize = OUTBOX_BATCH_SIZE,
-  ): Promise<number> {
-    return dataSource.transaction(async (manager) => {
+  async processBatch(dispatch: OutboxDispatch, batchSize = OUTBOX_BATCH_SIZE): Promise<number> {
+    return this.dataSource.transaction(async (manager) => {
       const events = await this.outbox.claimBatch(manager, batchSize);
       let dispatched = 0;
       for (const event of events) {

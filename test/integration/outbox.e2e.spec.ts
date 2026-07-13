@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
-import { OutboxRelay } from '@modules/outbox/outbox-relay.service';
+import { OutboxRelayService } from '@modules/outbox/outbox-relay.service';
 import type { Express } from 'express';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
@@ -128,11 +128,11 @@ describe('Transactional outbox e2e', () => {
     await book(f, '2026-11-03T03:00:00.000Z');
 
     // Drain the whole outbox (the relay is cross-tenant by design).
-    const relay = Container.get(OutboxRelay);
+    const relay = Container.get(OutboxRelayService);
     const dispatched: string[] = [];
     let processed: number;
     do {
-      processed = await relay.processBatch(ctx.dataSource, async (e) => {
+      processed = await relay.processBatch(async (e) => {
         dispatched.push(e.eventType);
       });
     } while (processed > 0);

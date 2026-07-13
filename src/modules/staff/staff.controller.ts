@@ -1,6 +1,5 @@
 import { BaseQuery } from '@common/base/query.base';
-import { paginated } from '@common/types';
-import { OWNER_ONLY } from '@modules/auth/roles';
+import { OWNER_ONLY, paginated } from '@common/types';
 import { CreateStaffDto } from '@modules/staff/dto/create-staff.dto';
 import { UpdateStaffDto } from '@modules/staff/dto/update-staff.dto';
 import { StaffService } from '@modules/staff/staff.service';

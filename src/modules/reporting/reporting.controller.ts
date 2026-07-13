@@ -1,4 +1,4 @@
-import { OWNER_ONLY } from '@modules/auth/roles';
+import { OWNER_ONLY } from '@common/types';
 import { ReportQueryDto } from '@modules/reporting/dto/report-query.dto';
 import { ReportingService } from '@modules/reporting/reporting.service';
 import { Authorized, Get, JsonController, QueryParams } from 'routing-controllers';

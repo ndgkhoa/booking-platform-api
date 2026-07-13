@@ -1,4 +1,4 @@
-import { OWNER_ONLY } from '@modules/auth/roles';
+import { OWNER_ONLY } from '@common/types';
 import { AcceptInviteDto } from '@modules/invite/dto/accept-invite.dto';
 import { CreateInviteDto } from '@modules/invite/dto/create-invite.dto';
 import { InviteService } from '@modules/invite/invite.service';

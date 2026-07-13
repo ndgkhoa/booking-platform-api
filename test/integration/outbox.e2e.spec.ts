@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
+import { OutboxService } from '@modules/outbox/outbox.service';
 import { OutboxEvent } from '@modules/outbox/outbox-event.entity';
-import { OutboxRelayService } from '@modules/outbox/outbox-relay.service';
 import type { Express } from 'express';
-import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { Container } from 'typedi';
+import { authHeader, createOwner } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 /**
@@ -32,7 +32,6 @@ describe('Transactional outbox e2e', () => {
     await ctx.teardown();
   });
 
-  const auth = (t: string) => ({ Authorization: `Bearer ${t}` });
   const events = () => ctx.dataSource.getRepository(OutboxEvent);
 
   interface Fixture {
@@ -44,41 +43,28 @@ describe('Transactional outbox e2e', () => {
   }
 
   async function fixture(): Promise<Fixture> {
-    const email = `owner-${randomUUID()}@test.com`;
-    await request(app)
-      .post('/api/v1/auth/register')
-      .send({ email, name: 'Owner', password: 'password123' });
-    const login = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email, password: 'password123' });
-    const onboard = await request(app)
-      .post('/api/v1/tenants')
-      .set('Authorization', `Bearer ${login.body.data.token}`)
-      .send({ name: 'Spa', slug: `t-${randomUUID().slice(0, 20)}` });
-    const token = onboard.body.data.token;
-    const claims = jwt.decode(token) as { sub: string; tenantId: string };
-    const userId = claims.sub;
+    const { token, userId, tenantId } = await createOwner(app);
     const staff = await request(app)
       .post('/api/v1/staff')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ userId, displayName: 'Stylist' });
     const service = await request(app)
       .post('/api/v1/services')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Cut', durationMin: 60, priceAmount: 200000 });
     const staffId = staff.body.data.id;
     const serviceId = service.body.data.id;
     await request(app)
       .post(`/api/v1/staff/${staffId}/services`)
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ serviceId });
     const customer = await request(app)
       .post('/api/v1/customers')
-      .set(auth(token))
+      .set(authHeader(token))
       .send({ name: 'Jane', email: `c-${randomUUID()}@test.com` });
     return {
       token,
-      tenantId: claims.tenantId,
+      tenantId,
       staffId,
       serviceId,
       customerId: customer.body.data.id,
@@ -88,7 +74,7 @@ describe('Transactional outbox e2e', () => {
   const book = (f: Fixture, startsAt: string) =>
     request(app)
       .post('/api/v1/bookings')
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ staffId: f.staffId, serviceId: f.serviceId, customerId: f.customerId, startsAt });
 
   it('writes booking.created atomically and none on a rolled-back booking', async () => {
@@ -116,7 +102,7 @@ describe('Transactional outbox e2e', () => {
     const created = await book(f, '2026-11-02T03:00:00.000Z');
     await request(app)
       .post(`/api/v1/bookings/${created.body.data.id}/confirm`)
-      .set(auth(f.token))
+      .set(authHeader(f.token))
       .send({ version: created.body.data.version });
 
     const rows = await events().find({ where: { aggregateId: created.body.data.id } });
@@ -128,7 +114,7 @@ describe('Transactional outbox e2e', () => {
     await book(f, '2026-11-03T03:00:00.000Z');
 
     // Drain the whole outbox (the relay is cross-tenant by design).
-    const relay = Container.get(OutboxRelayService);
+    const relay = Container.get(OutboxService);
     const dispatched: string[] = [];
     let processed: number;
     do {

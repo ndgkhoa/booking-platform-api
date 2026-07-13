@@ -1,6 +1,5 @@
 import { BaseQuery } from '@common/base/query.base';
-import { paginated } from '@common/types';
-import { TENANT_MEMBER } from '@modules/auth/roles';
+import { paginated, TENANT_MEMBER } from '@common/types';
 import { CustomerService } from '@modules/customer/customer.service';
 import { CreateCustomerDto } from '@modules/customer/dto/create-customer.dto';
 import {

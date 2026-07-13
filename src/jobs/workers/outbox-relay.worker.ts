@@ -5,8 +5,8 @@ import { logger } from '@config/logger';
 import { enqueueBookingEmail } from '@jobs/queues/email.queue';
 import { enqueueWebhook } from '@jobs/queues/webhook.queue';
 import { OutboxRepository } from '@modules/outbox/outbox.repository';
+import { OutboxService } from '@modules/outbox/outbox.service';
 import type { OutboxEvent } from '@modules/outbox/outbox-event.entity';
-import { OutboxRelayService } from '@modules/outbox/outbox-relay.service';
 import { Container } from 'typedi';
 
 /**
@@ -41,7 +41,7 @@ async function dispatch(event: OutboxEvent): Promise<void> {
 
 /** Starts the outbox poller; returns an async stop that drains the in-flight tick. */
 export function startOutboxRelay(): () => Promise<void> {
-  const relay = Container.get(OutboxRelayService);
+  const relay = Container.get(OutboxService);
   const outbox = Container.get(OutboxRepository);
   let inFlight: Promise<void> | null = null;
   let stopped = false;

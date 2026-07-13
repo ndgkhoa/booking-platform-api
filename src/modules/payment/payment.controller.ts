@@ -1,28 +1,28 @@
 import { BadRequestException, UnauthorizedException } from '@common/exceptions';
 import { PaymentService } from '@modules/payment/payment.service';
-import type { PaymentProviderName } from '@modules/payment/payment-provider.interface';
+import type { PaymentProviderName } from '@modules/payment/providers/payment-provider.interface';
 import { SubscriptionService } from '@modules/subscription/subscription.service';
 import type { Request } from 'express';
 import { JsonController, Param, Post, Req } from 'routing-controllers';
 import { Service } from 'typedi';
 
-/**
- * Inbound payment webhooks that drive subscription state. Unauthenticated but
- * signature-gated and consumed idempotently. Verifies against the RAW request
- * body (captured in server.ts) — a re-serialised body would not match. The
- * tenant is recovered from the event reference inside the service, which applies
- * the effect under that tenant's RLS-scoped transaction.
- */
 @Service()
-@JsonController('/payments/webhooks')
-export class PaymentWebhookController {
+@JsonController('/payments')
+export class PaymentController {
   constructor(
     private readonly payments: PaymentService,
     private readonly subscriptions: SubscriptionService,
   ) {}
 
-  @Post('/:provider')
-  async handle(
+  /**
+   * Inbound payment webhooks that drive subscription state. Unauthenticated but
+   * signature-gated and consumed idempotently. Verifies against the RAW request
+   * body (captured in server.ts) — a re-serialised body would not match. The
+   * tenant is recovered from the event reference inside the service, which applies
+   * the effect under that tenant's RLS-scoped transaction.
+   */
+  @Post('/webhooks/:provider')
+  async handleWebhook(
     @Param('provider') provider: PaymentProviderName,
     @Req() req: Request,
   ): Promise<{ received: true }> {

@@ -1,5 +1,5 @@
 import { getTenantManager } from '@common/tenant/tenant-context';
-import type { PaymentProviderName } from '@modules/payment/payment-provider.interface';
+import type { PaymentProviderName } from '@modules/payment/providers/payment-provider.interface';
 import { Service } from 'typedi';
 import { DataSource } from 'typeorm';
 

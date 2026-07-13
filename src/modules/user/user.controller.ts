@@ -1,4 +1,4 @@
-import { SUPER_ADMIN_ONLY } from '@modules/auth/roles';
+import { SUPER_ADMIN_ONLY } from '@common/types';
 import { UserQueryDto } from '@modules/user/dto/user-query.dto';
 import type { User } from '@modules/user/user.entity';
 import { UserService } from '@modules/user/user.service';

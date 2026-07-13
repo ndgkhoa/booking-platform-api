@@ -1,4 +1,4 @@
-import { OWNER_ONLY } from '@modules/auth/roles';
+import { OWNER_ONLY } from '@common/types';
 import { CreateWorkingHoursDto } from '@modules/working-hours/dto/create-working-hours.dto';
 import { WorkingHoursService } from '@modules/working-hours/working-hours.service';
 import {

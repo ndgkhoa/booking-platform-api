@@ -1,4 +1,4 @@
-import { OWNER_ONLY } from '@modules/auth/roles';
+import { OWNER_ONLY } from '@common/types';
 import { CreateTimeOffDto } from '@modules/time-off/dto/create-time-off.dto';
 import { TimeOffService } from '@modules/time-off/time-off.service';
 import {

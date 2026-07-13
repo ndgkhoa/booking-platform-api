@@ -1,10 +1,19 @@
 import { randomBytes } from 'node:crypto';
+import { WEBHOOK_DELIVERY_TIMEOUT_MS } from '@common/constants';
 import { ConflictException, NotFoundException } from '@common/exceptions';
-import { validateWebhookUrl } from '@modules/webhook/domain/webhook-url';
+import { signWebhook } from '@modules/webhook/domain/webhook-signature';
+import { assertSafeWebhookUrl, validateWebhookUrl } from '@modules/webhook/domain/webhook-url';
 import type { CreateWebhookDto } from '@modules/webhook/dto/create-webhook.dto';
 import { WebhookRepository } from '@modules/webhook/webhook.repository';
 import type { WebhookEndpoint } from '@modules/webhook/webhook-endpoint.entity';
 import { Service } from 'typedi';
+
+export interface WebhookPayload {
+  eventType: string;
+  aggregateType: string;
+  aggregateId: string;
+  data: Record<string, unknown>;
+}
 
 @Service()
 export class WebhookService {
@@ -49,6 +58,42 @@ export class WebhookService {
   async remove(id: string): Promise<void> {
     if (!(await this.webhooks.remove(id))) {
       throw new NotFoundException('Webhook endpoint not found');
+    }
+  }
+
+  /**
+   * Delivers a signed webhook over HTTPS. The signature covers `timestamp.body`
+   * (so a captured delivery can't be replayed far later) and the URL is re-checked
+   * for SSRF at send time. Redirects are refused (a 3xx could point at an internal
+   * host) and the request is aborted on timeout so sockets don't linger. A non-2xx
+   * throws so the queue retries.
+   */
+  async deliver(url: string, secret: string, payload: WebhookPayload): Promise<void> {
+    await assertSafeWebhookUrl(url);
+    const body = JSON.stringify(payload);
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const signature = signWebhook(secret, `${timestamp}.${body}`);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), WEBHOOK_DELIVERY_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        redirect: 'error', // never follow a redirect to a possibly-internal host
+        signal: controller.signal,
+        headers: {
+          'content-type': 'application/json',
+          'x-webhook-event': payload.eventType,
+          'x-webhook-timestamp': timestamp,
+          'x-webhook-signature': `sha256=${signature}`,
+        },
+        body,
+      });
+      if (!response.ok) {
+        throw new Error(`Webhook returned ${response.status}`);
+      }
+    } finally {
+      clearTimeout(timer);
     }
   }
 }

@@ -3,8 +3,7 @@ import { AppDataSource } from '@config/data-source';
 import { logger } from '@config/logger';
 import { redisConnectionOptions } from '@config/redis';
 import { WEBHOOK_QUEUE, type WebhookJob } from '@jobs/queues/webhook.queue';
-import { WebhookRepository } from '@modules/webhook/webhook.repository';
-import { WebhookDeliveryService } from '@modules/webhook/webhook-delivery.service';
+import { WebhookService } from '@modules/webhook/webhook.service';
 import { type Job, Worker } from 'bullmq';
 import { Container } from 'typedi';
 
@@ -14,20 +13,19 @@ import { Container } from 'typedi';
  * retries with backoff and eventually dead-letters.
  */
 export function startWebhookWorker(): Worker<WebhookJob> {
-  const delivery = Container.get(WebhookDeliveryService);
-  const webhooks = Container.get(WebhookRepository);
+  const webhooks = Container.get(WebhookService);
 
   const worker = new Worker<WebhookJob>(
     WEBHOOK_QUEUE,
     async (job: Job<WebhookJob>) => {
       const { tenantId, eventType, aggregateType, aggregateId, data } = job.data;
       const endpoint = await runInTenantContext(AppDataSource, tenantId, () =>
-        webhooks.findActive(),
+        webhooks.activeEndpoint(),
       );
       if (!endpoint) {
         return; // tenant removed its webhook after the event was queued
       }
-      await delivery.deliver(endpoint.url, endpoint.secret, {
+      await webhooks.deliver(endpoint.url, endpoint.secret, {
         eventType,
         aggregateType,
         aggregateId,

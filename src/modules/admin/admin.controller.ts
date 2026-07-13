@@ -1,6 +1,6 @@
+import { SUPER_ADMIN_ONLY } from '@common/types';
 import { AdminService } from '@modules/admin/admin.service';
 import { SuspendTenantDto } from '@modules/admin/dto/suspend-tenant.dto';
-import { SUPER_ADMIN_ONLY } from '@modules/auth/roles';
 import { User } from '@modules/user/user.entity';
 import {
   Authorized,

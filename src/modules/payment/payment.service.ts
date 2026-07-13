@@ -3,8 +3,8 @@ import type {
   CheckoutSession,
   PaymentEvent,
   PaymentProviderName,
-} from '@modules/payment/payment-provider.interface';
-import { PaymentProviderRegistry } from '@modules/payment/payment-provider.registry';
+} from '@modules/payment/providers/payment-provider.interface';
+import { PaymentProviderRegistry } from '@modules/payment/providers/payment-provider.registry';
 import { WebhookReceiptRepository } from '@modules/payment/webhook-receipt.repository';
 import { Service } from 'typedi';
 

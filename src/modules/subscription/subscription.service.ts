@@ -7,7 +7,7 @@ import type {
   CheckoutSession,
   PaymentEvent,
   PaymentProviderName,
-} from '@modules/payment/payment-provider.interface';
+} from '@modules/payment/providers/payment-provider.interface';
 import { PlanService } from '@modules/plan/plan.service';
 import {
   buildReference,

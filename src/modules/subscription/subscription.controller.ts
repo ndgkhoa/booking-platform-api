@@ -1,4 +1,4 @@
-import { OWNER_ONLY, TENANT_MEMBER } from '@modules/auth/roles';
+import { OWNER_ONLY, TENANT_MEMBER } from '@common/types';
 import { CreateSubscriptionDto } from '@modules/subscription/dto/create-subscription.dto';
 import { SubscriptionService } from '@modules/subscription/subscription.service';
 import { Authorized, Body, Get, HttpCode, JsonController, Post } from 'routing-controllers';

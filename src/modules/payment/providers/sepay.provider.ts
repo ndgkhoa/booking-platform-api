@@ -5,7 +5,7 @@ import type {
   CheckoutSession,
   PaymentEvent,
   PaymentProvider,
-} from '@modules/payment/payment-provider.interface';
+} from '@modules/payment/providers/payment-provider.interface';
 import { Service } from 'typedi';
 
 /**

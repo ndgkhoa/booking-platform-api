@@ -1,4 +1,4 @@
-import { OWNER_ONLY } from '@modules/auth/roles';
+import { OWNER_ONLY } from '@common/types';
 import { CreateWebhookDto } from '@modules/webhook/dto/create-webhook.dto';
 import { WebhookService } from '@modules/webhook/webhook.service';
 import {

@@ -1,4 +1,4 @@
-import { TENANT_MEMBER } from '@modules/auth/roles';
+import { TENANT_MEMBER } from '@common/types';
 import type { Booking } from '@modules/booking/booking.entity';
 import { BookingService } from '@modules/booking/booking.service';
 import { CreateBookingDto } from '@modules/booking/dto/create-booking.dto';
@@ -18,13 +18,6 @@ import {
   Res,
 } from 'routing-controllers';
 import { Service } from 'typedi';
-
-/** Parses an `If-Match` header value like `"3"` / `W/"3"` into a version number. */
-function parseIfMatch(ifMatch?: string): number | undefined {
-  if (!ifMatch) return undefined;
-  const parsed = Number.parseInt(ifMatch.replace(/^W\//, '').replace(/"/g, ''), 10);
-  return Number.isNaN(parsed) ? undefined : parsed;
-}
 
 @Service()
 @JsonController('/bookings')
@@ -78,6 +71,11 @@ export class BookingController {
     @Body() dto: RescheduleBookingDto,
     @HeaderParam('If-Match') ifMatch?: string,
   ) {
-    return this.bookings.reschedule(id, dto, parseIfMatch(ifMatch));
+    // Parse an If-Match header like `"3"` / `W/"3"` into a version number.
+    const parsed = ifMatch
+      ? Number.parseInt(ifMatch.replace(/^W\//, '').replace(/"/g, ''), 10)
+      : Number.NaN;
+    const ifMatchVersion = Number.isNaN(parsed) ? undefined : parsed;
+    return this.bookings.reschedule(id, dto, ifMatchVersion);
   }
 }

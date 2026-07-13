@@ -1,4 +1,4 @@
-import { OWNER_ONLY } from '@modules/auth/roles';
+import { OWNER_ONLY } from '@common/types';
 import { LinkServiceDto } from '@modules/staff-service/dto/link-service.dto';
 import { StaffServiceService } from '@modules/staff-service/staff-service.service';
 import {

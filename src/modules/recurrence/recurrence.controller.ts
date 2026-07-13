@@ -1,4 +1,4 @@
-import { TENANT_MEMBER } from '@modules/auth/roles';
+import { TENANT_MEMBER } from '@common/types';
 import { CreateRecurrenceDto } from '@modules/recurrence/dto/create-recurrence.dto';
 import { RecurrenceService } from '@modules/recurrence/recurrence.service';
 import { Authorized, Body, HttpCode, JsonController, Param, Post } from 'routing-controllers';

@@ -1,0 +1,44 @@
+meta {
+  name: Create recurrence
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/recurrences
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "staffId": "bf8013e6-908e-4576-b56f-706a4686c7f0",
+    "serviceId": "60ba138a-ee57-41f0-b8e2-6de0e2ed97dd",
+    "customerId": "ec04a761-2fc8-4a7f-91c1-513dbfadc8a2",
+    "freq": "weekly",
+    "interval": 1,
+    "weekdays": [1, 3],
+    "startDate": "2026-08-10",
+    "startMinutes": 540,
+    "count": 4,
+    "conflictPolicy": "skip_conflicts"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.success: eq true
+}
+
+docs {
+  Create a recurring series and expand it into bookings. Requires any tenant
+  member. Paste real `staffId`, `serviceId`, and `customerId` values into the body
+  (the staff must have working hours). `freq` is daily|weekly, `interval` 1-52,
+  `weekdays` 0-6 (weekly only), `startMinutes` 0-1439, and either `count` (1-100)
+  or `until` (YYYY-MM-DD) bounds the series. `conflictPolicy`
+  skip_conflicts|all_or_nothing.
+}

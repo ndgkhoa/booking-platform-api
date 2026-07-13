@@ -1,0 +1,36 @@
+meta {
+  name: Complete booking
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{apiUrl}}/bookings/:bookingId/complete
+  body: json
+  auth: bearer
+}
+
+params:path {
+  bookingId: 67e59bb6-7c0d-42d0-aaa4-a5f40d05250d
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "version": 1
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Mark a confirmed booking as completed. Requires any tenant member. `version`
+  must match the current value (returned in the `ETag` header / response
+  `version` — set it manually in the body); a stale version returns 409 CONFLICT.
+}

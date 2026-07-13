@@ -1,0 +1,28 @@
+meta {
+  name: List services
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{apiUrl}}/services?page=1&limit=20
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 20
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.meta.total: isDefined
+}
+
+docs {
+  Paginated service catalog. Any tenant member may read. `limit` max is 100.
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Reactivate tenant (super admin)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{apiUrl}}/admin/tenants/:tenantId/reactivate
+  body: none
+  auth: bearer
+}
+
+params:path {
+  tenantId: 11db0a4d-6dca-4213-a66d-f6fd3755736d
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Reactivate a suspended tenant. Requires super-admin (log in as admin@example.com).
+  Paste a tenant id into the `tenantId` path param.
+}

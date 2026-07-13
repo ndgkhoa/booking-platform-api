@@ -12,18 +12,18 @@ post {
 
 body:json {
   {
-    "email": "admin@example.com",
+    "email": "owner@example.com",
     "password": "Abc@123456"
   }
-}
-
-script:post-response {
-  if (res.body?.data?.token) bru.setEnvVar("token", res.body.data.token);
 }
 
 assert {
   res.status: eq 200
   res.body.data.token: isDefined
+}
+
+script:post-response {
+  if (res.body?.data?.token) bru.setEnvVar("token", res.body.data.token);
 }
 
 docs {

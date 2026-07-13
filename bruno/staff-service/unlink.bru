@@ -1,0 +1,30 @@
+meta {
+  name: Unlink staff from service
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{apiUrl}}/staff/:staffId/services/:serviceId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  staffId: 6b47117a-7902-465f-8aca-c7f539896d1e
+  serviceId: 253af66a-0b0e-4b35-80fa-bb6a8cf8066a
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Revoke a staff member's capability for a service. Requires the `owner` role.
+  Idempotent-ish: unlinking a non-existent capability is a no-op success.
+}

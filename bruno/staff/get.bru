@@ -1,0 +1,28 @@
+meta {
+  name: Get staff by id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{apiUrl}}/staff/:staffId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  staffId: 6b47117a-7902-465f-8aca-c7f539896d1e
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Fetch a staff member by id. Paste a staff id into the `staffId` path param.
+  Unknown id returns 404 NOT_FOUND.
+}

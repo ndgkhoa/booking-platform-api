@@ -1,0 +1,54 @@
+meta {
+  name: Stripe
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{apiUrl}}/payments/webhooks/stripe
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "id": "evt-stripe-001",
+    "type": "checkout.session.completed",
+    "data": {
+      "object": {
+        "metadata": {
+          "reference": "sub_11db0a4d-6dca-4213-a66d-f6fd3755736d_63d091a4-d843-421a-859a-b0879f1fc51a"
+        }
+      }
+    }
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:pre-request {
+  // Stripe scheme: sign `<timestamp>.<body>` and send `t=<ts>,v1=<hmac>`. Signs the
+  // exact bytes we send, with the same secret the server has in STRIPE_WEBHOOK_SECRET.
+  // Uses crypto-js (bundled by Bruno, works in Safe Mode).
+  const CryptoJS = require('crypto-js');
+  const raw = JSON.stringify(req.getBody());
+  req.setBody(raw);
+  const secret = bru.getEnvVar('stripeWebhookSecret');
+  const t = Math.floor(Date.now() / 1000);
+  const v1 = CryptoJS.HmacSHA256(t + '.' + raw, secret).toString(CryptoJS.enc.Hex);
+  req.setHeader('x-webhook-signature', 't=' + t + ',v1=' + v1);
+}
+
+docs {
+  Simulates a Stripe webhook. The pre-request script builds Stripe's
+  `t=<ts>,v1=<hmac(ts.body)>` signature with `stripeWebhookSecret` (set it to your
+  server's STRIPE_WEBHOOK_SECRET) — no real Stripe secret needed for local testing.
+  The timestamp is fresh each run, so it stays inside STRIPE_WEBHOOK_TOLERANCE_SECONDS.
+  
+  Body shape Stripe sends: `{ id, type, data.object.metadata.reference }`. `type`
+  checkout.session.completed | invoice.paid → succeeded; invoice.payment_failed →
+  failed. `reference` must be a subscription's `providerReference` (from Subscribe)
+  to actually transition it; an unknown reference still returns 200.
+}

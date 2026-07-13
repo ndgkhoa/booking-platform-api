@@ -1,0 +1,23 @@
+meta {
+  name: List webhooks
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{apiUrl}}/webhooks
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  List the tenant's registered webhook endpoints. Requires the `owner` role.
+}

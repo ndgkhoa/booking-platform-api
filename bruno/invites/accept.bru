@@ -1,0 +1,33 @@
+meta {
+  name: Accept invite
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{apiUrl}}/invites/accept
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "token": "2e38b7cd085ea3de7796e2f2298bef5aeb5cf34cea720c470ff2728e2155de4b"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Authenticated recipient redeems an invite and joins the tenant. Paste the
+  `inviteToken` returned by Create invite into the body. In a real flow the token
+  holder logs in as the invited user (their own token) before accepting; the token
+  must be at least 32 chars and unexpired. Returns the joined tenantId + role.
+}

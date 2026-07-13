@@ -1,0 +1,38 @@
+meta {
+  name: Switch tenant
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{apiUrl}}/auth/switch-tenant
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "tenantId": "11db0a4d-6dca-4213-a66d-f6fd3755736d"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+script:post-response {
+  if (res.body?.data?.token) {
+    bru.setEnvVar("token", res.body.data.token);
+  }
+}
+
+docs {
+  Re-scope the current session to another tenant the user belongs to. Requires an
+  authenticated token. Paste the target `tenantId` into the body. Returns a fresh
+  token scoped to that tenant (captured into `token`).
+}

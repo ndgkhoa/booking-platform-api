@@ -1,0 +1,28 @@
+meta {
+  name: Get service by id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{apiUrl}}/services/:serviceId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  serviceId: 253af66a-0b0e-4b35-80fa-bb6a8cf8066a
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Fetch a service by id. Paste a service id into the `serviceId` path param.
+  Unknown id returns 404 NOT_FOUND.
+}

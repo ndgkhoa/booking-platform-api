@@ -1,0 +1,30 @@
+meta {
+  name: Cancel recurrence series
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{apiUrl}}/recurrences/:recurrenceId/cancel
+  body: none
+  auth: bearer
+}
+
+params:path {
+  recurrenceId: 12883e66-84dd-46e0-b0d0-13071ed26492
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Cancel all future bookings in a recurring series. Requires any tenant member.
+  Paste a recurrence id into the `recurrenceId` path param. Returns the count
+  cancelled.
+}

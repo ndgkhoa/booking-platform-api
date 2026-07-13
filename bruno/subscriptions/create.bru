@@ -1,0 +1,34 @@
+meta {
+  name: Create subscription
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/subscriptions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "planId": "93c667ea-0f33-4285-9ab4-9e45dbf78ba8",
+    "provider": "stripe"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.success: eq true
+}
+
+docs {
+  Subscribe the tenant to a plan. Requires the `owner` role. `planId` is a plan
+  UUID — copy one from List plans and paste it into the body. `provider` is
+  sepay|stripe. Returns the pending subscription; activation arrives via the
+  payment webhook.
+}

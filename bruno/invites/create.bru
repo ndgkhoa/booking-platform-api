@@ -1,0 +1,33 @@
+meta {
+  name: Create invite
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/invites
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "email": "user4@example.com",
+    "role": "staff"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.success: eq true
+}
+
+docs {
+  Owner invites someone to the active tenant. Requires the `owner` role. `role`
+  is a membership role (owner|staff — see MembershipRole). The response returns a
+  one-time `token` — copy it and paste it into Accept invite.
+}

@@ -1,0 +1,24 @@
+meta {
+  name: List all tenants (super admin)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{apiUrl}}/admin/tenants
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Platform-wide tenant list. Requires the super-admin flag (users.is_super_admin)
+  — log in as admin@example.com. A normal tenant token returns 403 FORBIDDEN.
+}

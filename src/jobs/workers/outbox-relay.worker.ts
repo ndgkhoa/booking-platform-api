@@ -25,7 +25,7 @@ async function dispatch(event: OutboxEvent): Promise<void> {
       bookingId: String(event.payload.bookingId),
       customerId: String(event.payload.customerId),
     },
-    `email:${event.id}`,
+    `email-${event.id}`,
   );
   await enqueueWebhook(
     {
@@ -35,7 +35,7 @@ async function dispatch(event: OutboxEvent): Promise<void> {
       aggregateId: event.aggregateId,
       data: event.payload,
     },
-    `webhook:${event.id}`,
+    `webhook-${event.id}`,
   );
 }
 

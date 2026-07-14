@@ -53,7 +53,7 @@ export class AuthService {
   async login(dto: LoginDto): Promise<AuthResult> {
     const user = await this.users.findByEmail(dto.email);
     // `passwordHash` is null for OAuth-only accounts — they can't password-login.
-    if (!user || !user.passwordHash || !(await bcrypt.compare(dto.password, user.passwordHash))) {
+    if (!user?.passwordHash || !(await bcrypt.compare(dto.password, user.passwordHash))) {
       throw new UnauthorizedException('Invalid credentials');
     }
     return this.issueSessionFor(user);

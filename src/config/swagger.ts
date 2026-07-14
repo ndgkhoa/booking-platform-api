@@ -56,7 +56,6 @@ export function buildOpenApiSpec(options: RoutingControllersOptions): object {
       { url: 'https://api.example.com', description: 'Production' },
     ],
     components: {
-      // biome-ignore lint/suspicious/noExplicitAny: generated JSON-schema map
       schemas: { ...(schemas as any), ProblemDetails, ApiSuccess },
       securitySchemes: {
         bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },

@@ -70,11 +70,11 @@ describe('AuthService', () => {
         password: 'password123',
       });
 
-      const created = repo.create.mock.calls[0]![0];
-      expect(created.passwordHash).toBeDefined();
-      expect(created.passwordHash).not.toBe('password123');
-      expect(await bcrypt.compare('password123', created.passwordHash as string)).toBe(true);
-      expect(created.email).toBe('new@b.com');
+      const created = repo.create.mock.calls[0]?.[0];
+      expect(created?.passwordHash).toBeDefined();
+      expect(created?.passwordHash).not.toBe('password123');
+      expect(await bcrypt.compare('password123', created?.passwordHash as string)).toBe(true);
+      expect(created?.email).toBe('new@b.com');
       expect(typeof result.token).toBe('string');
     });
 
@@ -148,10 +148,10 @@ describe('AuthService', () => {
 
       await service.resolveGoogleUser(googleIdentity({ email: 'new@b.com' }));
 
-      const created = repo.create.mock.calls[0]![0];
-      expect(created.provider).toBe('google');
-      expect(created.providerAccountId).toBe('google-sub-1');
-      expect(created.passwordHash).toBeUndefined();
+      const created = repo.create.mock.calls[0]?.[0];
+      expect(created?.provider).toBe('google');
+      expect(created?.providerAccountId).toBe('google-sub-1');
+      expect(created?.passwordHash).toBeUndefined();
     });
 
     it('refuses an unverified Google email', async () => {

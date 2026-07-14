@@ -33,7 +33,7 @@ describe('Reporting e2e', () => {
   }
 
   async function fixture(timezone: string): Promise<Fixture> {
-    const { token, userId, tenantId } = await createOwner(app, { timezone });
+    const { token, userId } = await createOwner(app, { timezone });
     const staff = await request(app)
       .post('/api/v1/staff')
       .set(authHeader(token))

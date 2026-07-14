@@ -26,7 +26,7 @@ describe('Availability e2e', () => {
 
   /** Owner + staff able to perform a 60-min service, plus a customer, in a zone. */
   async function fixture(timezone: string, durationMin = 60): Promise<Fixture> {
-    const { token, userId, tenantId } = await createOwner(app, { timezone });
+    const { token, userId } = await createOwner(app, { timezone });
 
     const staff = await request(app)
       .post('/api/v1/staff')

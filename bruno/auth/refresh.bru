@@ -1,0 +1,34 @@
+meta {
+  name: Refresh token
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{apiUrl}}/auth/refresh
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "refreshToken": "42fef1959f4788681a2074f34b16ae2da61603aea3fa5433d953c249dc084832"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+script:post-response {
+  if (res.body?.data?.token) {
+    bru.setEnvVar("token", res.body.data.token);
+  }
+}
+
+docs {
+  Rotate the refresh token and mint a new access token. Public (the refresh token
+  is the credential). Paste a refreshToken returned by Login/Register/Onboard — it
+  must be at least 32 chars. Reusing an already-rotated token revokes the family.
+}

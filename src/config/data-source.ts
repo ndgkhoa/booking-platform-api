@@ -14,4 +14,11 @@ export const AppDataSource = new DataSource({
   logging: env.isDevelopment,
   entities: [path.join(__dirname, '..', 'modules', '**', '*.entity.{ts,js}')],
   migrations: [path.join(__dirname, '..', 'database', 'migrations', '*.{ts,js}')],
+  // Each tenant request holds a pooled connection with an open transaction for
+  // the handler's duration, so bound the pool and cap held time DB-side.
+  poolSize: env.DB_POOL_MAX,
+  extra: {
+    statement_timeout: 10_000,
+    idle_in_transaction_session_timeout: 15_000,
+  },
 });

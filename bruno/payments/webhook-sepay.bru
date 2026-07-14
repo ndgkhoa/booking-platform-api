@@ -1,0 +1,46 @@
+meta {
+  name: SePay
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/payments/webhooks/sepay
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "id": "evt-sepay-001",
+    "status": "success",
+    "content": "<paste subscription providerReference>"
+  }
+}
+
+script:pre-request {
+  // Sign the exact bytes we send: pin the body to a compact string, then HMAC it
+  // with the same secret the server has in SEPAY_WEBHOOK_SECRET. Uses crypto-js
+  // (bundled by Bruno, works in Safe Mode — node's `crypto` needs Developer Mode).
+  const CryptoJS = require('crypto-js');
+  const raw = JSON.stringify(req.getBody());
+  req.setBody(raw);
+  const secret = bru.getEnvVar('sepayWebhookSecret');
+  const sig = CryptoJS.HmacSHA256(raw, secret).toString(CryptoJS.enc.Hex);
+  req.setHeader('x-webhook-signature', 'sha256=' + sig);
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Simulates a SePay webhook. The pre-request script HMAC-signs the body with
+  `sepayWebhookSecret` (set it to your server's SEPAY_WEBHOOK_SECRET) so the
+  signature gate passes — no real SePay secret needed for local testing.
+
+  Body shape SePay sends: `{ id, status: success|failed, content: <reference> }`.
+  `id` is the event id (idempotency key — reusing it is a no-op). `content` must
+  be a subscription's `providerReference` (copy from the Subscribe response) for
+  the subscription to actually transition; an unknown reference still returns 200.
+}

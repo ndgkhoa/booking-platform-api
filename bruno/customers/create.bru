@@ -1,0 +1,34 @@
+meta {
+  name: Create customer
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/customers
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "name": "Alex Customer",
+    "email": "alex.customer@example.com",
+    "phone": "+84901234567"
+  }
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 201
+  res.body.success: eq true
+}
+
+docs {
+  Create a customer record in the tenant. Requires any tenant member. Copy the
+  returned id and paste it into requests that need a `customerId`. `phone` is
+  optional.
+}

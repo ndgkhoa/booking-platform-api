@@ -1,0 +1,42 @@
+meta {
+  name: Onboard tenant
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/tenants
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "name": "Demo Salon",
+    "slug": "demo-salon",
+    "timezone": "Asia/Ho_Chi_Minh"
+  }
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.body?.data?.token) {
+    bru.setEnvVar("token", res.body.data.token);
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.success: eq true
+}
+
+docs {
+  Onboarding: the authenticated user creates a tenant and becomes its owner. Run
+  Register/Login first. Returns a NEW tenant-scoped token+refreshToken — this
+  request overwrites `token`, unlocking every owner/member route below. The
+  response also returns the new tenant id; copy it where a `tenantId` is needed.
+  `slug` must be kebab-case and unique; `timezone` is an IANA zone.
+}

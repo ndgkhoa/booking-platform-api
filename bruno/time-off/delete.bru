@@ -1,0 +1,30 @@
+meta {
+  name: Delete time off
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{apiUrl}}/staff/:staffId/time-off/:timeOffId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  staffId: bf8013e6-908e-4576-b56f-706a4686c7f0
+  timeOffId: 079db2c8-d500-4dfb-ba03-e309d447905f
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Remove a time-off block. Requires the `owner` role. Paste a time-off id into the
+  `timeOffId` path param. Unknown id returns 404 NOT_FOUND.
+}

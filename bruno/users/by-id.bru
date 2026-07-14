@@ -5,8 +5,12 @@ meta {
 }
 
 get {
-  url: {{apiUrl}}/users/{{userId}}
+  url: {{apiUrl}}/users/:userId
   auth: bearer
+}
+
+params:path {
+  userId: 7433a163-6161-42ff-b708-8e271f27543e
 }
 
 auth:bearer {
@@ -18,6 +22,6 @@ assert {
 }
 
 docs {
-  Fetch a user by id. `userId` is captured by the Register request; otherwise set
-  it manually in the environment. Unknown id returns 404 NOT_FOUND.
+  Fetch a user by id. Paste a real user id into the `userId` path param. Unknown
+  id returns 404 NOT_FOUND.
 }

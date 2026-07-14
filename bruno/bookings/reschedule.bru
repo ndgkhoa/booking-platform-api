@@ -1,0 +1,42 @@
+meta {
+  name: Reschedule booking
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{apiUrl}}/bookings/:bookingId/reschedule
+  body: json
+  auth: bearer
+}
+
+params:path {
+  bookingId: 67e59bb6-7c0d-42d0-aaa4-a5f40d05250d
+}
+
+headers {
+  If-Match: "2"
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "startsAt": "2026-08-10T10:00:00.000Z"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Move a booking to a new start time. Requires any tenant member. The concurrency
+  token can be supplied via the `If-Match` header (used here, e.g. "3") OR a
+  `version` field in the body. The current value is returned in the `ETag` header
+  / response `version`; set it manually. New slot must be available; a stale
+  version returns 409 CONFLICT.
+}

@@ -1,0 +1,33 @@
+meta {
+  name: Query availability
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{apiUrl}}/availability?serviceId=60ba138a-ee57-41f0-b8e2-6de0e2ed97dd&date=2026-08-10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  serviceId: 60ba138a-ee57-41f0-b8e2-6de0e2ed97dd
+  date: 2026-08-10
+  ~staffId: 
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Compute bookable slots for a service on a date. Any authenticated user. Requires
+  a service with linked staff and working hours (run those setup requests first).
+  `date` is YYYY-MM-DD in the tenant timezone. Enable the optional `staffId` param
+  to narrow to one staff member.
+}

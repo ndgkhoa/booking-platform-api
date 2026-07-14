@@ -1,0 +1,28 @@
+meta {
+  name: List time off
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{apiUrl}}/staff/:staffId/time-off
+  body: none
+  auth: bearer
+}
+
+params:path {
+  staffId: bf8013e6-908e-4576-b56f-706a4686c7f0
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  List a staff member's time-off entries. `staffId` is the staff member to read.
+  Unknown id returns 404 NOT_FOUND.
+}

@@ -31,7 +31,7 @@ pnpm seed                     # admin@example.com / Abc@123456 + 10 users
 pnpm dev                      # http://localhost:3000
 ```
 
-- API base: `http://localhost:<PORT>/api`
+- API base: `http://localhost:<PORT>/api/v1`
 - Swagger UI: `http://localhost:<PORT>/api-docs`
 - Health: `/health/ready` (readiness), `/health/live` (liveness)
 - Metrics: `/metrics` (Prometheus)
@@ -53,11 +53,36 @@ pnpm dev                      # http://localhost:3000
 | `pnpm migration:gen\|run\|revert` | TypeORM migrations |
 | `pnpm seed` | Seed the database |
 
+## Concurrency guarantee (no double booking)
+
+The flagship invariant — one staff member can never be double-booked for
+overlapping times — is enforced by a Postgres `EXCLUDE USING gist` constraint on
+`bookings`, not by application locking. SQLSTATE `23P01` maps to a `409`.
+
+Proven empirically under real HTTP load: 50 virtual users POST the **same** staff
++ slot simultaneously; exactly one wins, every other gets a clean `409`. A `201`
+is only returned after the row commits, so "one `201`" means "one row".
+
+```
+  █ THRESHOLDS
+    booking_conflicts ✓ 'count==49' count=49
+    bookings_created   ✓ 'count==1'  count=1
+  █ TOTAL RESULTS
+    checks_succeeded...: 100.00% 50 out of 50
+    ✓ won (201) or lost cleanly (409)
+    bookings_created...: 1     ← exactly one booking exists for the contested slot
+    booking_conflicts..: 49
+```
+
+Reproduce: [`load-tests/`](./load-tests) (`k6 run load-tests/booking-double-booking.k6.js`).
+The same guarantee is asserted deterministically in
+`test/integration/booking-concurrency.e2e.spec.ts`.
+
 ## Conventions
 
 - **Path aliases** for all imports (`@config`, `@common`, `@modules`, `@database`, `@jobs`) — no relative `../../`.
 - **Layering:** controller → service → **repository** (all DB access lives in `*.repository.ts`; services never touch QueryBuilder).
-- **Structured responses:** `{ success, data, meta? }` / errors `{ success:false, error:{ code, message, details } }`.
+- **Structured responses:** success `{ success, data, meta? }`; errors are RFC 7807 `application/problem+json` (`type, title, status, detail, instance, code, errors?, traceId?`).
 - **Custom exceptions** extend routing-controllers `HttpError` with a stable `errorCode`.
 
 ## Documentation

@@ -1,0 +1,38 @@
+meta {
+  name: Create time off
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/staff/:staffId/time-off
+  body: json
+  auth: bearer
+}
+
+params:path {
+  staffId: bf8013e6-908e-4576-b56f-706a4686c7f0
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "startsAt": "2026-08-01T00:00:00.000Z",
+    "endsAt": "2026-08-03T00:00:00.000Z",
+    "reason": "Vacation"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.success: eq true
+}
+
+docs {
+  Block a staff member off for a date/time range. Requires the `owner` role. Paste
+  a real `staffId` into the body. `startsAt`/`endsAt` are ISO-8601 timestamps.
+  Copy the returned id for the Delete request.
+}

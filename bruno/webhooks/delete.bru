@@ -1,0 +1,29 @@
+meta {
+  name: Delete webhook
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{apiUrl}}/webhooks/:webhookId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  webhookId: bb3bd4c9-f39d-41e7-81c6-7c207d99e8da
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Remove a webhook endpoint. Requires the `owner` role. Paste a webhook id into
+  the `webhookId` path param. Unknown id returns 404 NOT_FOUND.
+}

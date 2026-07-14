@@ -1,0 +1,41 @@
+meta {
+  name: Create booking
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/bookings
+  body: json
+  auth: bearer
+}
+
+headers {
+  Idempotency-Key: booking-demo-0001
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "staffId": "bf8013e6-908e-4576-b56f-706a4686c7f0",
+    "serviceId": "60ba138a-ee57-41f0-b8e2-6de0e2ed97dd",
+    "customerId": "ec04a761-2fc8-4a7f-91c1-513dbfadc8a2",
+    "startsAt": "2026-08-10T09:00:00.000Z"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.success: eq true
+}
+
+docs {
+  Book an appointment. Requires any tenant member. Paste real `staffId`,
+  `serviceId`, and `customerId` values into the body (the staff must be linked to
+  the service and have working hours). The `Idempotency-Key` header dedupes
+  retries — replaying the same key returns the original booking. `startsAt` is
+  ISO-8601 and must fall inside the staff's working hours and availability.
+}

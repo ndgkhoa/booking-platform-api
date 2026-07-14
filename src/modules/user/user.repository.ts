@@ -1,4 +1,4 @@
-import type { UserQuery } from '@modules/user/dto/query.dto';
+import type { UserQueryDto } from '@modules/user/dto/user-query.dto';
 import { User } from '@modules/user/user.entity';
 import { Service } from 'typedi';
 import { DataSource, type FindOptionsWhere, ILike, type Repository } from 'typeorm';
@@ -19,11 +19,19 @@ export class UserRepository {
     return this.repo.findOne({ where: { email } });
   }
 
+  findByProviderAccount(provider: string, providerAccountId: string): Promise<User | null> {
+    return this.repo.findOne({ where: { provider, providerAccountId } });
+  }
+
   create(data: Partial<User>): Promise<User> {
     return this.repo.save(this.repo.create(data));
   }
 
-  paginate(query: UserQuery): Promise<[User[], number]> {
+  async linkProvider(id: string, provider: string, providerAccountId: string): Promise<void> {
+    await this.repo.update(id, { provider, providerAccountId });
+  }
+
+  paginate(query: UserQueryDto): Promise<[User[], number]> {
     const where: FindOptionsWhere<User> = {};
     if (query.name) where.name = ILike(`%${query.name}%`);
     if (query.email) where.email = ILike(`%${query.email}%`);

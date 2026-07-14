@@ -1,33 +1,24 @@
 import { randomUUID } from 'node:crypto';
 import { User } from '@modules/user/user.entity';
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { Express } from 'express';
 import request from 'supertest';
-import { Container } from 'typedi';
-import { DataSource } from 'typeorm';
-import { createServer } from '@/server';
+import type { DataSource } from 'typeorm';
+import { authHeader } from '../support/api';
+import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 describe('Auth e2e', () => {
-  let container: StartedPostgreSqlContainer;
-  let dataSource: DataSource;
+  let ctx: IntegrationContext;
   let app: Express;
+  let dataSource: DataSource;
 
   beforeAll(async () => {
-    container = await new PostgreSqlContainer('postgres:18.4').start();
-    dataSource = new DataSource({
-      type: 'postgres',
-      url: container.getConnectionUri(),
-      entities: [User],
-      synchronize: true,
-    });
-    await dataSource.initialize();
-    Container.set(DataSource, dataSource);
-    app = createServer();
-  }, 120000);
+    ctx = await initIntegrationContext();
+    app = ctx.app;
+    dataSource = ctx.dataSource;
+  });
 
   afterAll(async () => {
-    await dataSource?.destroy();
-    await container?.stop();
+    await ctx.teardown();
   });
 
   const credentials = () => ({
@@ -37,7 +28,7 @@ describe('Auth e2e', () => {
   });
 
   it('registers a user (201, enveloped, no passwordHash, token issued)', async () => {
-    const res = await request(app).post('/api/auth/register').send(credentials());
+    const res = await request(app).post('/api/v1/auth/register').send(credentials());
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
     expect(res.body.data.user).not.toHaveProperty('passwordHash');
@@ -46,43 +37,41 @@ describe('Auth e2e', () => {
 
   it('logs in and accesses /users/me with the token', async () => {
     const creds = credentials();
-    await request(app).post('/api/auth/register').send(creds);
+    await request(app).post('/api/v1/auth/register').send(creds);
 
     const login = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: creds.email, password: creds.password });
     expect(login.status).toBe(200);
     const token = login.body.data.token;
 
-    const me = await request(app).get('/api/users/me').set('Authorization', `Bearer ${token}`);
+    const me = await request(app).get('/api/v1/users/me').set(authHeader(token));
     expect(me.status).toBe(200);
     expect(me.body.data.email).toBe(creds.email);
     expect(me.body.data).not.toHaveProperty('passwordHash');
   });
 
   it('rejects /users/me without a token (401)', async () => {
-    const res = await request(app).get('/api/users/me');
+    const res = await request(app).get('/api/v1/users/me');
     expect(res.status).toBe(401);
-    expect(res.body.error.code).toBe('UNAUTHORIZED');
+    expect(res.body.code).toBe('UNAUTHORIZED');
   });
 
   it('rejects invalid registration payload (422 with field details)', async () => {
     const res = await request(app)
-      .post('/api/auth/register')
+      .post('/api/v1/auth/register')
       .send({ email: 'bad', name: 'x', password: '123' });
     expect(res.status).toBe(422);
-    expect(res.body.error.code).toBe('VALIDATION_ERROR');
-    expect(Array.isArray(res.body.error.details)).toBe(true);
+    expect(res.body.code).toBe('VALIDATION_ERROR');
+    expect(Array.isArray(res.body.errors)).toBe(true);
   });
 
   async function adminToken(): Promise<string> {
     const creds = credentials();
-    await request(app).post('/api/auth/register').send(creds);
-    await dataSource
-      .getRepository(User)
-      .update({ email: creds.email }, { roles: ['admin', 'user'] });
+    await request(app).post('/api/v1/auth/register').send(creds);
+    await dataSource.getRepository(User).update({ email: creds.email }, { isSuperAdmin: true });
     const login = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: creds.email, password: creds.password });
     return login.body.data.token;
   }
@@ -90,37 +79,33 @@ describe('Auth e2e', () => {
   it('lists users with pagination and name filter (admin)', async () => {
     const token = await adminToken();
     const named = { ...credentials(), name: 'Zaphod Beeblebrox' };
-    await request(app).post('/api/auth/register').send(named);
+    await request(app).post('/api/v1/auth/register').send(named);
 
-    const page = await request(app)
-      .get('/api/users?page=1&limit=2')
-      .set('Authorization', `Bearer ${token}`);
+    const page = await request(app).get('/api/v1/users?page=1&limit=2').set(authHeader(token));
     expect(page.status).toBe(200);
     expect(page.body.data.length).toBeLessThanOrEqual(2);
     expect(page.body.meta.total).toBeGreaterThan(0);
 
-    const filtered = await request(app)
-      .get('/api/users?name=Zaphod')
-      .set('Authorization', `Bearer ${token}`);
+    const filtered = await request(app).get('/api/v1/users?name=Zaphod').set(authHeader(token));
     expect(filtered.status).toBe(200);
     expect(filtered.body.data.every((u: { name: string }) => u.name.includes('Zaphod'))).toBe(true);
   });
 
   it('rejects list for non-admin (403) and invalid limit (422)', async () => {
     const creds = credentials();
-    await request(app).post('/api/auth/register').send(creds);
+    await request(app).post('/api/v1/auth/register').send(creds);
     const login = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: creds.email, password: creds.password });
 
     const forbidden = await request(app)
-      .get('/api/users')
-      .set('Authorization', `Bearer ${login.body.data.token}`);
+      .get('/api/v1/users')
+      .set(authHeader(login.body.data.token));
     expect(forbidden.status).toBe(403);
 
     const badLimit = await request(app)
-      .get('/api/users?limit=999')
-      .set('Authorization', `Bearer ${await adminToken()}`);
+      .get('/api/v1/users?limit=999')
+      .set(authHeader(await adminToken()));
     expect(badLimit.status).toBe(422);
   });
 });

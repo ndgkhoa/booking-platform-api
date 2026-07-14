@@ -1,0 +1,27 @@
+meta {
+  name: Logout
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{apiUrl}}/auth/logout
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "refreshToken": "42fef1959f4788681a2074f34b16ae2da61603aea3fa5433d953c249dc084832"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+docs {
+  Revoke a refresh token. Public — pass the refreshToken to invalidate (min 32
+  chars). Idempotent: an already-revoked/unknown token still returns success.
+}

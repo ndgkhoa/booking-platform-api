@@ -1,4 +1,4 @@
-import type { ApiError } from '@common/types/response';
+import { buildProblem, PROBLEM_CONTENT_TYPE } from '@common/types';
 import { env } from '@config/env';
 import { logger } from '@config/logger';
 import type { NextFunction, Request, Response } from 'express';
@@ -42,35 +42,36 @@ function formatValidationErrors(errors: ValidationErrorLike[]): unknown[] {
 @Service()
 @Middleware({ type: 'after' })
 export class ErrorHandler implements ExpressErrorMiddlewareInterface {
-  error(error: any, _req: Request, res: Response, next: NextFunction): void {
+  error(error: any, req: Request, res: Response, next: NextFunction): void {
     if (res.headersSent) {
       next(error);
       return;
     }
 
     let status: number = error.httpCode || error.status || 500;
-    let details: unknown = error.details;
-    let message: string = error.message ?? 'Error';
+    let errors: unknown = error.details;
+    let detail: string = error.message ?? 'Error';
 
     if (isValidationErrors(error.errors)) {
       status = 422;
-      details = formatValidationErrors(error.errors);
-      message = 'Validation failed';
-    } else if (details === undefined && error.errors !== undefined) {
-      details = error.errors;
+      errors = formatValidationErrors(error.errors);
+      detail = 'Validation failed';
+    } else if (errors === undefined && error.errors !== undefined) {
+      errors = error.errors;
     }
 
     const code: string = error.errorCode ?? STATUS_CODE[status] ?? 'ERROR';
 
     if (status >= 500) {
       logger.error(error.stack ?? error.message ?? String(error));
-      if (env.isProduction) message = 'Internal Server Error';
+      if (env.isProduction) {
+        // Never surface internal specifics (stack, query, driver detail) on 5xx.
+        detail = 'Internal Server Error';
+        errors = undefined;
+      }
     }
 
-    const body: ApiError = {
-      success: false,
-      error: { code, message, details },
-    };
-    res.status(status).json(body);
+    const problem = buildProblem({ status, code, detail, instance: req.originalUrl, errors });
+    res.status(status).type(PROBLEM_CONTENT_TYPE).json(problem);
   }
 }

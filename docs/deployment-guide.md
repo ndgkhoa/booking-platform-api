@@ -115,12 +115,54 @@ delivery (emails, signed webhooks) needs the worker running too.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on push to `main`/`develop` and on PRs: install → lint → typecheck → unit tests → build → integration tests (testcontainers; Docker is preinstalled on GitHub runners). DB/JWT env vars are injected as dummies for envalid.
+`.github/workflows/ci.yml` is triggered on:
+- **push to `main`** (guarantees main stays green post-merge)
+- **pull_request** on any branch (covers feature branches; avoids duplicate runs)
+
+Steps: install → Lint → Typecheck → Build (logged) → Test (`pnpm test:cov` = jest with coverage, RLS enforced in integration suites via testcontainers Postgres + non-superuser role) → post sticky PR comment with Build/Test results + tail logs (via `actions/github-script@v9`) → fail the job if build or tests failed.
+
+The 8 required environment variables are injected as GitHub Actions **secrets** (not dummies):
+`DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, `REDIS_PASSWORD`, `SEPAY_WEBHOOK_SECRET`, `STRIPE_WEBHOOK_SECRET`, `OTEL_EXPORTER_OTLP_ENDPOINT`. These map to the required (no-default) vars in `src/config/env.ts` (envalid validates at import; unit tests import services → env, so all 8 must be set).
+
+Permissions: `contents: read`, `pull-requests: write` (post comments on PRs).
+
+## Release / CD
+
+`.github/workflows/release.yml` is triggered when a git tag matching `v*.*.*` is pushed. It:
+
+1. **Builds Docker image** — multi-stage: build with deps → slim non-root runtime.
+2. **Logs into GHCR** via `docker/login-action@v4` with `${{ secrets.GITHUB_TOKEN }}` (same-owner GHCR, no PAT needed).
+3. **Extracts metadata** via `docker/metadata-action@v6` — generates SemVer-based tags from the tag:
+   - `1.2.3` (full version)
+   - `1.2` (major.minor)
+   - `1` (major)
+   - `sha-<commit>` (commit SHA short)
+   - `latest` (auto-applied to highest semver)
+4. **Builds and pushes** to `ghcr.io/ndgkhoa/booking-platform-api` with GitHub Actions cache.
+5. **Auto-creates GitHub Release** via `softprops/action-gh-release@v3` with auto-generated release notes.
+
+Permissions: `contents: write` (create Release), `packages: write` (push Docker image).
+
+### Versioning (single source of truth)
+
+`package.json` `version` is the **only place** a release version is defined. The flow:
+
+1. On main branch: `pnpm version <patch|minor|major>`
+   - Bumps `package.json` version
+   - Creates annotated git tag `vX.Y.Z`
+2. `git push --follow-tags`
+   - Push the commit + tag
+   - Triggers `release.yml` (tag matches `v*.*.*`)
+3. OpenAPI spec (`src/config/swagger.ts`) reads `package.json` at runtime via `fs.readFileSync()`, so `info.version` is always in sync — no manual edit needed.
+
+Example (first release): `pnpm version major` (on main) creates `v1.0.0` and tag; `git push --follow-tags` triggers the release workflow.
 
 ## Migrations
-- Generate after entity changes: `pnpm migration:gen` (needs a reachable DB).
-- Apply: `pnpm migration:run`. Revert: `pnpm migration:revert`.
-- `synchronize` is always `false` — schema changes go through migrations.
+
+- **UUID extension:** The first migration (`EnableUuidOssp`) creates the `uuid-ossp` extension via `CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`. Subsequent migrations default PKs with `uuid_generate_v4()`, so the extension must be present.
+- **Generate:** After entity changes, run `pnpm migration:gen` (needs a reachable DB).
+- **Apply:** `pnpm migration:run`. Revert: `pnpm migration:revert`.
+- **Schema management:** `synchronize` is always `false` — schema changes go through migrations only.
 
 ## Health & monitoring (for orchestrators)
 - **Liveness:** `GET /health/live` — process up.

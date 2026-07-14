@@ -7,16 +7,13 @@ export const HOUR_MS = 60 * MINUTE_MS;
 export const DAY_MS = 24 * HOUR_MS;
 export const MINUTES_PER_DAY = 24 * 60;
 
-/** bcrypt work factor for password hashing. */
 export const BCRYPT_ROUNDS = 12;
 
-/** Outbox relay tuning. */
 export const OUTBOX_BATCH_SIZE = 20;
 export const OUTBOX_MAX_ATTEMPTS = 5;
 export const OUTBOX_BACKOFF_BASE_MS = 30 * SECOND_MS;
 export const OUTBOX_POLL_INTERVAL_MS = 2 * SECOND_MS;
 
-/** Outbound webhook delivery timeout. */
 export const WEBHOOK_DELIVERY_TIMEOUT_MS = 5 * SECOND_MS;
 
 /** Largest reporting window accepted, guarding unbounded scans. */

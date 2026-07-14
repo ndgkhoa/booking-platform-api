@@ -4,12 +4,7 @@ import request from 'supertest';
 import { authHeader, createOwner } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
-/**
- * The flagship guarantee: under concurrent identical bookings, the Postgres
- * EXCLUDE constraint lets exactly one win. The test DB uses `synchronize`, which
- * does not create EXCLUDE constraints, so we apply the same one the migration
- * ships before exercising it.
- */
+// `synchronize` doesn't create EXCLUDE constraints, so apply the migration's one manually before exercising it.
 describe('Booking concurrency & lifecycle e2e', () => {
   let ctx: IntegrationContext;
   let app: Express;
@@ -89,7 +84,6 @@ describe('Booking concurrency & lifecycle e2e', () => {
 
     const first = await book(f, startsAt);
     expect(first.status).toBe(201);
-    // Same slot is taken.
     expect((await book(f, startsAt)).status).toBe(409);
 
     await request(app)

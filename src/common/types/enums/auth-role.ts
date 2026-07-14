@@ -1,13 +1,7 @@
 import type { MembershipRole } from '@common/types/enums/membership-role';
 
-/**
- * Authorization vocabulary used by `@Authorized(...)`. Owner/staff are the
- * tenant `MembershipRole`s carried in the token; `super_admin` is the global
- * platform flag (users.is_super_admin) that bypasses tenant scope.
- *
- * Customer is a separate tenant-scoped actor with its own (future) login path —
- * it is deliberately NOT part of this membership/authorization vocabulary.
- */
+// Authorization vocabulary for `@Authorized(...)`: owner/staff are tenant MembershipRoles,
+// super_admin is the global platform flag (users.is_super_admin) bypassing tenant scope.
 export type AuthRole = MembershipRole | 'super_admin';
 
 export const Role = {

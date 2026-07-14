@@ -11,7 +11,6 @@ export const httpRequestDuration = new client.Histogram({
   registers: [registry],
 });
 
-/** Events dispatched by the outbox relay, labelled by outcome. */
 export const outboxDispatched = new client.Counter({
   name: 'outbox_events_dispatched_total',
   help: 'Total outbox events dispatched by the relay',

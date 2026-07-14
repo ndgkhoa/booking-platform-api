@@ -7,11 +7,8 @@ import { WebhookService } from '@modules/webhook/webhook.service';
 import { type Job, Worker } from 'bullmq';
 import { Container } from 'typedi';
 
-/**
- * Delivers webhook jobs. Reads the tenant's endpoint inside its tenant context
- * (RLS-scoped), then POSTs the signed payload. A non-2xx / error throws so BullMQ
- * retries with backoff and eventually dead-letters.
- */
+// Reads the tenant's endpoint inside its tenant context (RLS-scoped), then POSTs the
+// signed payload; a non-2xx/error throws so BullMQ retries and eventually dead-letters.
 export function startWebhookWorker(): Worker<WebhookJob> {
   const webhooks = Container.get(WebhookService);
 

@@ -1,11 +1,7 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
 import { Column, Entity, Index } from 'typeorm';
 
-/**
- * A bookable service offering. Price is stored as an integer amount in minor
- * units (see Money VO) plus an ISO currency — never a float. Buffers pad the
- * slot before/after for cleanup or prep and feed availability (phase-03).
- */
+/** Price is stored as an integer amount in minor units plus an ISO currency, never a float; buffers pad the slot before/after for cleanup or prep. */
 @Entity('services')
 @Index(['tenantId', 'name'], { unique: true, where: '"deleted_at" IS NULL' })
 export class Service extends BaseTenantEntity {

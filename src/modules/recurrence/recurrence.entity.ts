@@ -2,12 +2,7 @@ import { BaseTenantEntity } from '@common/base/tenant-entity.base';
 import type { RecurrenceFreq } from '@modules/recurrence/domain/recurrence-expander';
 import { Column, Entity } from 'typeorm';
 
-/**
- * A recurrence definition. It is only a generator + linkage — expanded into
- * individual `Booking` rows, each still guarded by the EXCLUDE constraint and
- * state machine. The timezone is snapshotted so the series stays anchored even
- * if the tenant later changes zones. (BaseTenantEntity already indexes tenant_id.)
- */
+/** Only a generator + linkage; expanded into individual Booking rows still guarded by the EXCLUDE constraint. Timezone is snapshotted so the series stays anchored if the tenant later changes zones. */
 @Entity('recurrences')
 export class Recurrence extends BaseTenantEntity {
   @Column({ name: 'service_id', type: 'uuid' })

@@ -9,11 +9,7 @@ export interface MailMessage {
   html: string;
 }
 
-/**
- * Thin Resend wrapper — the only place that talks to the email provider. When
- * RESEND_API_KEY is unset it logs and skips instead of sending, so the worker runs
- * end-to-end without a provider configured (swap the key in to actually deliver).
- */
+/** Only place that talks to the email provider; logs and skips instead of sending when RESEND_API_KEY is unset, so the worker runs without one configured. */
 @Service()
 export class MailService {
   private readonly resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;

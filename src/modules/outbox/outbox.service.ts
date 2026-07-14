@@ -9,15 +9,7 @@ import { DataSource } from 'typeorm';
 /** Delivers one event (e.g. enqueue to BullMQ). Injected so draining stays I/O-agnostic and testable. */
 export type OutboxDispatch = (event: OutboxEvent) => Promise<void>;
 
-/**
- * Transactional-outbox service with two responsibilities:
- *  - `record`: domain modules write events on the active tenant transaction, so the
- *    event commits atomically with the state change (the repository stays internal).
- *  - `processBatch`: the relay worker drains committed events. Claiming and status
- *    updates run in one transaction with `FOR UPDATE SKIP LOCKED`, so many workers run
- *    concurrently without double-claiming. Delivery is at-least-once — a crash after
- *    dispatch but before commit re-delivers, so consumers must be idempotent.
- */
+/** record() commits atomically with the state change; processBatch() claims with FOR UPDATE SKIP LOCKED for concurrent workers and delivers at-least-once, so consumers must be idempotent. */
 @Service()
 export class OutboxService {
   constructor(

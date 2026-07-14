@@ -2,12 +2,7 @@ import { BaseTenantEntity } from '@common/base/tenant-entity.base';
 import { BookingStatus } from '@common/types';
 import { Column, Entity, Index, VersionColumn } from 'typeorm';
 
-/**
- * A booking of a staff member for a service in a time range. Overlap of active
- * bookings per staff is prevented by a Postgres EXCLUDE constraint (migration);
- * `version` powers optimistic locking for reschedule/cancel. Price is snapshotted
- * at booking time so later price changes don't rewrite history.
- */
+/** Overlap of active bookings per staff is prevented by a Postgres EXCLUDE constraint (migration); price is snapshotted at booking time so later price changes don't rewrite history. */
 @Entity('bookings')
 @Index(['tenantId', 'staffId', 'startsAt'])
 export class Booking extends BaseTenantEntity {
@@ -35,7 +30,6 @@ export class Booking extends BaseTenantEntity {
   @Column({ name: 'price_currency', type: 'varchar', length: 3 })
   priceCurrency!: string;
 
-  // Set when this booking is one occurrence of a recurrence series.
   @Column({ name: 'recurrence_id', type: 'uuid', nullable: true })
   recurrenceId?: string | null;
 

@@ -1,12 +1,7 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
 import { Column, Entity, Index } from 'typeorm';
 
-/**
- * Stores the outcome of an idempotent request keyed by the client's
- * `Idempotency-Key` (scoped per tenant). `request_hash` binds the key to a
- * specific request body so a reused key with a different body is rejected.
- * `response_body` replays the original result on retry.
- */
+/** request_hash binds the key to a specific request body so a reused key with a different body is rejected; response_body replays the original result on retry. */
 @Entity('idempotency_keys')
 @Index(['tenantId', 'key'], { unique: true })
 export class IdempotencyKey extends BaseTenantEntity {

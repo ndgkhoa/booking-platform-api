@@ -17,9 +17,7 @@ export class WorkingHoursService {
     if (dto.startMin >= dto.endMin) {
       throw new BadRequestException('startMin must be before endMin');
     }
-    // Half-open intervals: overlap when start < other.end AND other.start < end.
-    // The app check gives a friendly message; the DB EXCLUDE constraint (23P01)
-    // is the race-proof backstop.
+    // App check gives a friendly message; the DB EXCLUDE constraint (23P01) is the race-proof backstop.
     const sameDay = await this.hours.findForStaffWeekday(staffId, dto.weekday);
     const overlaps = sameDay.some((h) => dto.startMin < h.endMin && h.startMin < dto.endMin);
     if (overlaps) {

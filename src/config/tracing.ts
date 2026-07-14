@@ -5,12 +5,8 @@ import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 
-/**
- * OpenTelemetry bootstrap — MUST be the first import in every entrypoint
- * (`index.ts`, `worker.ts`) so auto-instrumentations patch http/express/pg/ioredis
- * before those modules are required. Disabled unless `OTEL_ENABLED=true`, so dev,
- * test and CI need no collector. Spans propagate HTTP → service → BullMQ → worker.
- */
+// Must be the first import in every entrypoint (index.ts, worker.ts) so auto-instrumentation
+// patches http/express/pg/ioredis before those modules load; disabled unless OTEL_ENABLED=true.
 let sdk: NodeSDK | undefined;
 
 if (env.OTEL_ENABLED) {

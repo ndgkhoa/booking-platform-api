@@ -52,13 +52,7 @@ export class InviteService {
     return { invite, token };
   }
 
-  /**
-   * Redeems an invite for the authenticated recipient, joining the tenant.
-   * The membership is created BEFORE the invite is marked used, so a transient
-   * failure can never consume the invite while leaving the user without a
-   * membership (which would lock them out). Single-use is guaranteed by the
-   * unique (user, tenant) membership plus the email binding, not by the flag.
-   */
+  /** Membership is created BEFORE the invite is marked used, so a transient failure can't consume the invite while leaving the user without a membership. */
   async accept(user: User, token: string): Promise<Membership> {
     const invite = await this.invites.findByHash(sha256(token));
     if (!invite) {

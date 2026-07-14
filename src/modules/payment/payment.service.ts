@@ -8,12 +8,7 @@ import { PaymentProviderRegistry } from '@modules/payment/providers/payment-prov
 import { WebhookReceiptRepository } from '@modules/payment/webhook-receipt.repository';
 import { Service } from 'typedi';
 
-/**
- * Payment-processing boundary. Resolves the provider Strategy and exposes only
- * normalised operations (checkout, signature check, event parse, idempotency
- * claim) — this module knows nothing about subscriptions, so it stays a leaf and
- * the subscription domain depends on it (not the reverse).
- */
+/** Exposes only normalised operations; this module knows nothing about subscriptions, so it stays a leaf and the subscription domain depends on it, not the reverse. */
 @Service()
 export class PaymentService {
   constructor(

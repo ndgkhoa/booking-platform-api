@@ -61,9 +61,11 @@ PostgreSQL (Postgres 18 + RLS FORCE)
 
 **Layer 1 (Application):** AsyncLocalStorage tenantId extracted from token claims by TenantContextMiddleware; attached to request. BaseTenantRepository checks context before accessing DB.
 
-**Layer 2 (Database):** Postgres RLS with `FORCE` policy + `SET LOCAL app.tenant_id` in per-request transaction. Fails closed: `current_setting('app.tenant_id', true)` is NULL if unset → no rows leak. Proven in integration tests (`rls-isolation.e2e.spec.ts`) via `SET ROLE` to non-superuser role.
+**Layer 2 (Database):** Postgres RLS with `FORCE` policy + `SET LOCAL app.tenant_id` in per-request transaction. Fails closed: `current_setting('app.tenant_id', true)` is NULL if unset → no rows leak.
 
-**Caveat:** Superusers and table owners with BYPASSRLS ignore RLS. Dev/test connect as superuser → Layer 1 is active guard. **Production must run the app as a non-superuser role.**
+**Test enforcement:** Integration tests run REAL migrations on a Postgres testcontainer and create a dedicated non-superuser role (`app_rls_user`). The app under test connects through this role, so RLS is enforced end-to-end — matching production behavior. Superuser connection is used only for seeding/cleanup. Direct DB-layer proofs use `SET ROLE app_rls_user` in `rls-isolation.e2e.spec.ts` and `subscription-rls.e2e.spec.ts`.
+
+**Production requirement:** Superusers and roles with `BYPASSRLS` bypass RLS silently. The app must connect as a non-superuser, non-`BYPASSRLS` role for RLS to take effect.
 
 ## Per-request transaction lifecycle
 

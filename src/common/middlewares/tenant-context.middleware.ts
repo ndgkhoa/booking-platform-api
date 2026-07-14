@@ -8,20 +8,10 @@ import { type ExpressMiddlewareInterface, Middleware } from 'routing-controllers
 import { Service } from 'typedi';
 import { DataSource } from 'typeorm';
 
-/**
- * Establishes tenant context from the bearer token BEFORE the action pipeline.
- *
- * For a tenant-scoped token it opens a transaction and pins the connection to
- * the tenant via `SET LOCAL app.tenant_id`, so Postgres RLS enforces isolation
- * on every statement (defence in depth over the app-layer filter). The commit
- * happens in `TenantTransactionInterceptor` — before the response is serialised,
- * so a commit failure surfaces as a 500 rather than a lie to the client. This
- * middleware only rolls back as a safety net (error, auth failure, abort).
- *
- * Trade-off: a tenant request holds one pooled connection with an open
- * transaction for the handler's duration — the pool is bounded and DB-side
- * statement/idle timeouts cap the hold (see data-source.ts).
- */
+// Pins tenant via SET LOCAL app.tenant_id pre-pipeline for RLS defense-in-depth; commit
+// happens in TenantTransactionInterceptor so failures surface as 500 — this middleware only
+// rolls back as a safety net. Holds one pooled connection+tx per request (pool bounded, DB
+// statement/idle timeouts cap the hold — see data-source.ts).
 @Service()
 @Middleware({ type: 'before' })
 export class TenantContextMiddleware implements ExpressMiddlewareInterface {
@@ -59,9 +49,8 @@ export class TenantContextMiddleware implements ExpressMiddlewareInterface {
       await queryRunner.connect();
       await queryRunner.startTransaction();
       await queryRunner.query('SELECT set_config($1, $2, true)', ['app.tenant_id', tenantId]);
-      // Block a suspended (or vanished) tenant before any handler runs. The
-      // tenants table is the isolation boundary itself — not RLS-scoped — so
-      // this read sees the row regardless of the tenant setting above.
+      // Blocks a suspended/vanished tenant before any handler runs; tenants table isn't
+      // RLS-scoped, so this read is unaffected by the tenant setting above.
       const rows: Array<{ status: string }> = await queryRunner.query(
         'SELECT "status" FROM "tenants" WHERE "id" = $1 AND "deleted_at" IS NULL',
         [tenantId],
@@ -73,9 +62,8 @@ export class TenantContextMiddleware implements ExpressMiddlewareInterface {
             ? 'Tenant is suspended'
             : null;
     } catch (error) {
-      // Roll back before releasing: a connection returned to the pool with an
-      // open transaction stays "idle in transaction" carrying this request's
-      // app.tenant_id, which the next borrower could run under.
+      // Roll back before releasing — otherwise the pooled connection stays idle-in-transaction,
+      // carrying this request's app.tenant_id to the next borrower.
       try {
         if (queryRunner.isTransactionActive) {
           await queryRunner.rollbackTransaction();

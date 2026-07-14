@@ -1,7 +1,6 @@
 import { BaseTenantEntity } from '@common/base/tenant-entity.base';
 import { Column, Entity, Index } from 'typeorm';
 
-/** A concrete UTC interval during which a staff member is unavailable. */
 @Entity('time_off')
 @Index(['tenantId', 'staffId'])
 export class TimeOff extends BaseTenantEntity {

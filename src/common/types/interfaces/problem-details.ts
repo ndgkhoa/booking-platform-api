@@ -2,13 +2,8 @@ import { trace } from '@opentelemetry/api';
 
 export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 
-/**
- * RFC 7807 Problem Details for HTTP APIs. `type`/`title`/`status`/`detail`/`instance`
- * are the standard members; `code`, `errors` and `traceId` are documented extensions:
- *  - `code`    — stable machine-readable error code (from `AppException.errorCode`).
- *  - `errors`  — field-level validation failures.
- *  - `traceId` — active OpenTelemetry trace id for support correlation.
- */
+// RFC 7807 Problem Details; `code`, `errors`, `traceId` are documented extensions beyond
+// the standard type/title/status/detail/instance members.
 export interface ProblemDetails {
   type: string;
   title: string;

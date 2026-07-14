@@ -11,29 +11,16 @@ import type {
   Repository,
 } from 'typeorm';
 
-/**
- * Base repository for tenant-scoped aggregates. Two-layer isolation:
- *  - Layer 1 (here): every read is narrowed to the active tenant and every
- *    write stamped with it — sourced from the tenant context, never the caller.
- *  - Layer 2: when a tenant transaction is active, its RLS-scoped EntityManager
- *    is used so Postgres RLS enforces the same boundary at the database.
- *
- * Subclasses expose intent-revealing methods and reuse the protected helpers;
- * they never accept a `tenant_id` argument.
- */
+// Two-layer tenant isolation: reads/writes are scoped from tenant context here (Layer 1),
+// and Postgres RLS re-enforces the same boundary via the RLS-scoped manager (Layer 2).
 export abstract class BaseTenantRepository<T extends ObjectLiteral> {
   protected constructor(
     private readonly dataSource: DataSource,
     private readonly target: EntityTarget<T>,
   ) {}
 
-  /**
-   * Resolves the repository. Inside `runInTenantContext` this is the RLS-scoped
-   * transaction manager; otherwise it falls back to the pooled manager where
-   * only Layer-1 filtering applies. NOTE: once RLS is FORCEd (phase-02), reads on
-   * the fallback connection see no rows because `app.tenant_id` is unset — the
-   * per-request RLS strategy is a phase-02 decision.
-   */
+  // Inside `runInTenantContext` this is the RLS-scoped tx manager; otherwise it falls
+  // back to the pooled manager, which relies solely on Layer-1 filtering.
   protected get repo(): Repository<T> {
     const manager: EntityManager = getTenantManager() ?? this.dataSource.manager;
     return manager.getRepository(this.target);
@@ -43,8 +30,7 @@ export abstract class BaseTenantRepository<T extends ObjectLiteral> {
     where: FindOptionsWhere<T> | FindOptionsWhere<T>[] = {},
   ): FindOptionsWhere<T> | FindOptionsWhere<T>[] {
     const tenantId = getTenantId();
-    // Array `where` is an OR of branches — each branch must carry the tenant
-    // filter, otherwise the spread would drop them and leak across tenants.
+    // Array `where` is an OR of branches; each must carry tenantId or it'd leak across tenants.
     if (Array.isArray(where)) {
       return where.map((branch) => ({ ...branch, tenantId }) as FindOptionsWhere<T>);
     }

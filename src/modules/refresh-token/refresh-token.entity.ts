@@ -2,12 +2,7 @@ import { BaseEntity } from '@common/base/entity.base';
 import type { MembershipRole } from '@common/types';
 import { Column, Entity, Index } from 'typeorm';
 
-/**
- * A rotating refresh token. Tokens form a `family` (one login chain); each
- * rotation marks the old row `used` and issues a successor. Presenting an
- * already-used token indicates theft — the whole family is then revoked.
- * The session's active tenant/role is snapshotted for re-issuing access tokens.
- */
+/** Tokens form a family (one login chain); each rotation marks the old row used and issues a successor. Presenting an already-used token indicates theft, revoking the whole family. */
 @Entity('refresh_tokens')
 export class RefreshToken extends BaseEntity {
   @Column({ name: 'user_id', type: 'uuid' })

@@ -35,11 +35,7 @@ export class RefreshTokenService {
     return plaintext;
   }
 
-  /**
-   * Validates and atomically consumes a refresh token, returning the session it
-   * belonged to. The caller re-derives live authority and issues the successor.
-   * Replay of an already-consumed token burns the whole family (theft response).
-   */
+  /** Validates and atomically consumes the token; replay of an already-consumed token burns the whole family as a theft response. */
   async claim(plaintext: string): Promise<ClaimedSession> {
     const record = await this.tokens.findByHash(sha256(plaintext));
     if (!record || record.revokedAt) {

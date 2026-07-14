@@ -59,6 +59,14 @@ jobs:
           set -o pipefail
           pnpm test:cov 2>&1 | tee test.log
 
+      - name: Upload coverage to Codecov
+        if: always()
+        continue-on-error: true
+        uses: codecov/codecov-action@v7
+        with:
+          files: ./coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Comment build & test results
         if: github.event_name == 'pull_request' && always()
         continue-on-error: true

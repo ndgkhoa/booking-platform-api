@@ -23,12 +23,7 @@ function toIdentity(profile: Profile): GoogleIdentity {
   };
 }
 
-/**
- * Registers the Google OAuth 2.0 authorization-code strategy. The verify callback
- * only normalises the profile — user resolution and session minting happen in the
- * route handler so this stays free of DB side effects. No-ops (with a warning) when
- * credentials are absent, so the app still boots without Google configured.
- */
+/** Verify callback only normalises the profile; user resolution/session minting happen in the route handler. No-ops without credentials so the app still boots. */
 export function configureGoogleStrategy(): void {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     logger.warn('Google OAuth not configured — /auth/google is disabled');
@@ -55,11 +50,7 @@ export function configureGoogleStrategy(): void {
   );
 }
 
-/**
- * Mounts the browser-facing OAuth endpoints as raw Express routes. These are
- * redirect flows, not JSON API calls, so they live outside the JsonController
- * (which would wrap them in the success envelope). Skipped when Google is unset.
- */
+/** Raw Express routes, not JsonController, since these are redirect flows rather than JSON API calls. Skipped when Google is unset. */
 export function mountGoogleRoutes(app: Express): void {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     return;
@@ -80,9 +71,7 @@ export function mountGoogleRoutes(app: Express): void {
           throw new Error('Google callback reached without an authenticated user');
         }
         const { token, refreshToken } = await Container.get(AuthService).issueSessionFor(req.user);
-        // Hand tokens to the SPA via the URL fragment (not sent to servers/logs).
-        // Demo-grade: production should prefer a one-time code exchange or an
-        // httpOnly refresh cookie over placing a long-lived token in the URL.
+        // URL fragment keeps tokens out of server logs; demo-grade — prefer a code exchange or httpOnly cookie in production.
         res.redirect(`${env.GOOGLE_SUCCESS_REDIRECT}#token=${token}&refreshToken=${refreshToken}`);
       } catch (error) {
         logger.warn(`Google callback failed: ${(error as Error).message}`);

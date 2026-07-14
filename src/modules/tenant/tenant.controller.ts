@@ -14,11 +14,7 @@ export class TenantController {
     private readonly auth: AuthService,
   ) {}
 
-  /**
-   * Onboarding: any authenticated user creates a tenant and becomes its owner.
-   * Returns a fresh access + refresh pair scoped to the new tenant (the caller's
-   * old session has no tenant claim).
-   */
+  /** Any authenticated user creates a tenant and becomes its owner; returns a fresh access + refresh pair scoped to the new tenant. */
   @Post()
   @HttpCode(201)
   @Authorized()

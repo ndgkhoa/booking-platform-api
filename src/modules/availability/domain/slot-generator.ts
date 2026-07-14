@@ -8,11 +8,7 @@ function overlaps(a: MsInterval, b: MsInterval): boolean {
   return a.start < b.end && b.start < a.end;
 }
 
-/**
- * Slices a free `window` into consecutive `durationMs` slots (stepping by the
- * duration) and drops any that overlap a blocker. Blockers are time-off and
- * buffer-expanded existing bookings, all in UTC ms.
- */
+/** Slices a free window into consecutive durationMs slots, dropping any that overlap a blocker (time-off / buffer-expanded bookings, in UTC ms). */
 export function generateSlots(
   window: MsInterval,
   durationMs: number,

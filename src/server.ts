@@ -121,8 +121,8 @@ export function createServer(): Express {
       swaggerUi.setup(spec, {
         customSiteTitle: 'booking-platform-api docs',
         swaggerOptions: {
-          tagsSorter: 'alpha', // groups A→Z
-          operationsSorter: 'alpha', // endpoints within a group A→Z
+          tagsSorter: 'alpha',
+          operationsSorter: 'alpha',
           persistAuthorization: true, // keep the bearer token across reloads
         },
       }),

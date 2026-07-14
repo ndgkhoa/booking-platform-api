@@ -91,11 +91,7 @@ export class BookingService {
     return this.getOrThrow(id);
   }
 
-  /**
-   * Inserts one recurrence occurrence (pre-validated by the caller) on the
-   * current transaction and emits its event. Throws the mapped 409 on slot
-   * conflict — the caller decides skip vs abort.
-   */
+  /** Inserts one pre-validated recurrence occurrence and emits its event; throws the mapped 409 on slot conflict so the caller decides skip vs abort. */
   async createOccurrence(spec: OccurrenceSpec, recurrenceId: string): Promise<Booking> {
     const booking = await this.bookings.create({
       staffId: spec.staffId,

@@ -2,11 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { QueryRunner } from 'typeorm';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
-/**
- * Proves Postgres RLS isolates `services` at the database layer. Seeding runs on
- * the superuser connection (which bypasses RLS); to observe the policy actually
- * enforcing we SET ROLE to the app's non-superuser role (created in global-setup).
- */
+// Proves Postgres RLS isolates `services` at the database layer; SET ROLE to a non-superuser to observe enforcement.
 const APP_RLS_ROLE = 'app_rls_user';
 
 describe('RLS tenant isolation (database layer)', () => {
@@ -20,8 +16,7 @@ describe('RLS tenant isolation (database layer)', () => {
     qr = ctx.dataSource.createQueryRunner();
     await qr.connect();
 
-    // `services` already carries the migration's RLS policy + FORCE (global-setup
-    // runs the real migrations). Seed as superuser (RLS bypassed): 2 for A, 1 for B.
+    // Seed as superuser (RLS bypassed) using the migration's real policy: 2 rows for A, 1 for B.
     for (const [id, name] of [
       [tenantA, 'A'],
       [tenantB, 'B'],

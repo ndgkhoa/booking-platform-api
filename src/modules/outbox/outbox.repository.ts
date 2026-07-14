@@ -14,12 +14,7 @@ export interface RecordEventInput {
 
 @Service()
 export class OutboxRepository {
-  /**
-   * Writes an event on the ACTIVE tenant transaction (the request's manager), so
-   * it commits atomically with the state change. Requires an in-flight tenant
-   * transaction — falling back to autocommit would break atomicity, so it fails
-   * fast instead.
-   */
+  /** Writes on the active tenant transaction so it commits atomically with the state change; requires an in-flight transaction and fails fast otherwise. */
   record(input: RecordEventInput): Promise<OutboxEvent> {
     const manager = getTenantManager();
     if (!manager) {

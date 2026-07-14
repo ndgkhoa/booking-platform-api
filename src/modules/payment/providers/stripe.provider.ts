@@ -8,13 +8,7 @@ import type {
 } from '@modules/payment/providers/payment-provider.interface';
 import { Service } from 'typedi';
 
-/**
- * Stripe adapter — global hosted Checkout. `createCheckout` builds our reference
- * and the URL to the hosted session (a real deployment would create the session
- * via the Stripe API and return session.url; the reference travels in metadata).
- * Webhooks carry a `Stripe-Signature: t=<ts>,v1=<hmac>` header verified against
- * the signed payload `"<ts>.<body>"`.
- */
+/** Stripe adapter; a real deployment would create the checkout session via the Stripe API instead of building the URL directly, with the reference traveling in metadata. */
 @Service()
 export class StripeProvider implements PaymentProvider {
   readonly name = 'stripe' as const;

@@ -1,15 +1,6 @@
 import { DateTime } from 'luxon';
 
-/**
- * The UTC instant for a local wall-clock minute-of-day on a calendar date in an
- * IANA zone. DST-safe: `.set({hour,minute})` picks the wall-clock time and luxon
- * resolves the offset for THAT local date, so `09:00` maps to the right instant
- * even on transition days. (Do NOT use `.plus({minutes})` from midnight — that
- * adds *absolute* minutes and lands an hour off across a DST boundary.)
- *
- * `minutes === 1440` yields the next local midnight; non-existent (spring-forward
- * gap) and ambiguous (fall-back repeat) wall times are resolved sanely by luxon.
- */
+/** DST-safe: sets the wall-clock hour/minute directly rather than adding absolute minutes from midnight, which would drift across a DST boundary. */
 export function localMinutesToUtc(date: string, minutes: number, zone: string): Date {
   return DateTime.fromISO(date, { zone })
     .startOf('day')

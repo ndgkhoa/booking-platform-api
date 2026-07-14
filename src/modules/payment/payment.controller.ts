@@ -14,13 +14,7 @@ export class PaymentController {
     private readonly subscriptions: SubscriptionService,
   ) {}
 
-  /**
-   * Inbound payment webhooks that drive subscription state. Unauthenticated but
-   * signature-gated and consumed idempotently. Verifies against the RAW request
-   * body (captured in server.ts) — a re-serialised body would not match. The
-   * tenant is recovered from the event reference inside the service, which applies
-   * the effect under that tenant's RLS-scoped transaction.
-   */
+  /** Unauthenticated but signature-gated; verifies against the RAW request body (captured in server.ts) since a re-serialised body would not match. */
   @Post('/webhooks/:provider')
   async handleWebhook(
     @Param('provider') provider: PaymentProviderName,

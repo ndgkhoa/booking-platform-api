@@ -22,12 +22,7 @@ export interface PaymentEvent {
   subscriptionReference: string; // ties the event back to our subscription
 }
 
-/**
- * Strategy for a payment provider. The billing domain depends only on this
- * interface; concrete providers (SePay, Stripe) are adapters isolating each
- * provider's checkout shape, signature scheme, and event format. Signature
- * verification and event parsing are pure so they unit-test without live calls.
- */
+/** The billing domain depends only on this interface; concrete providers are adapters, and verification/parsing stay pure so they unit-test without live calls. */
 export interface PaymentProvider {
   readonly name: PaymentProviderName;
 

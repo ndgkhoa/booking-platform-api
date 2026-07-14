@@ -59,13 +59,7 @@ export class AuthService {
     return this.issueSessionFor(user);
   }
 
-  /**
-   * Resolves (or provisions) the user behind a Google identity already verified by
-   * the OAuth strategy. A verified Google email is trusted to link onto an existing
-   * password account with the same address; unverified emails are refused so an
-   * address can't be claimed by someone who doesn't control it. Returns the user
-   * without a session — the caller mints one via `issueSessionFor`.
-   */
+  /** Verified Google email links onto an existing password account; unverified emails are refused to prevent address claiming. */
   async resolveGoogleUser(identity: GoogleIdentity): Promise<User> {
     if (!identity.emailVerified) {
       throw new UnauthorizedException('Google account email is not verified');
@@ -105,11 +99,7 @@ export class AuthService {
     return this.issueSession(userId, { tenantId, role });
   }
 
-  /**
-   * Rotates the refresh token. Live authority is re-resolved from membership so a
-   * removed/downgraded member cannot keep minting old-privilege access tokens for
-   * the refresh window — the family is burned if the membership is gone.
-   */
+  /** Re-resolves authority from membership on rotation so a removed/downgraded member can't keep minting old-privilege tokens; family is burned if membership is gone. */
   async refresh(refreshToken: string): Promise<SessionTokens> {
     const claimed = await this.refreshTokens.claim(refreshToken);
 

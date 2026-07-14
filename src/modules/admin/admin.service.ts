@@ -11,12 +11,7 @@ import { TenantService } from '@modules/tenant/tenant.service';
 import { Service } from 'typedi';
 import { DataSource } from 'typeorm';
 
-/**
- * Super-admin platform console. Runs OUTSIDE any tenant context (the super-admin
- * token carries no tenant claim), and reads tenant-scoped data only through an
- * explicit, audited per-tenant `SET app.tenant_id` path — never a blanket RLS
- * bypass. Every cross-tenant action is recorded in the immutable audit log.
- */
+/** Runs outside tenant context; reads tenant data via an explicit, audited per-tenant SET app.tenant_id — never a blanket RLS bypass. */
 @Service()
 export class AdminService {
   constructor(
@@ -65,12 +60,7 @@ export class AdminService {
     return this.changeStatus(actorUserId, tenantId, TenantStatus.Active, 'tenant.reactivate');
   }
 
-  /**
-   * Flips a tenant's status and writes the audit entry in ONE transaction, so a
-   * privileged mutation can never land without its audit record (or vice versa).
-   * Spans two aggregates as a deliberate unit of work — like tenant onboarding —
-   * hence the direct manager access rather than routing through each service.
-   */
+  /** Status change + audit entry in one transaction so a privileged mutation can never land without its audit record. */
   private async changeStatus(
     actorUserId: string,
     tenantId: string,

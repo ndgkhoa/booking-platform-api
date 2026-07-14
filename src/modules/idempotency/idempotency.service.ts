@@ -4,13 +4,7 @@ import { IdempotencyRepository } from '@modules/idempotency/idempotency.reposito
 import { instanceToPlain } from 'class-transformer';
 import { Service } from 'typedi';
 
-/**
- * Runs an operation at most once per `Idempotency-Key` (per tenant). Because the
- * whole request executes in one tenant transaction, claiming the key first makes
- * the unique index serialise concurrent same-key requests: the second insert
- * blocks until the first commits, then reads the stored response and replays it.
- * A key reused with a different body is rejected.
- */
+/** Claiming the key first lets the unique index serialise concurrent same-key requests within the request's tenant transaction; the loser replays the winner's stored response. */
 @Service()
 export class IdempotencyService {
   constructor(private readonly keys: IdempotencyRepository) {}

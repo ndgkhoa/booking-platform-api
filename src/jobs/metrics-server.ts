@@ -3,11 +3,8 @@ import { registry } from '@common/monitoring/metrics';
 import { env } from '@config/env';
 import { logger } from '@config/logger';
 
-/**
- * Exposes the worker process's Prometheus registry over HTTP. Outbox counters and
- * backlog gauges are mutated in THIS process, so they must be scraped here — the
- * API's /metrics only reflects the API process's registry.
- */
+// Exposes the worker process's Prometheus registry over HTTP; outbox counters/gauges are
+// mutated here, so the API's /metrics endpoint won't reflect them.
 export function startWorkerMetricsServer(): http.Server {
   const server = http.createServer((req, res) => {
     if (req.url === '/metrics') {

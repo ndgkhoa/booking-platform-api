@@ -46,7 +46,7 @@ export class InviteService {
       email: invite.email,
       tenantName: tenant.name,
       role,
-      acceptUrl: `${env.APP_URL}/accept-invite?token=${token}`,
+      acceptUrl: `${env.WEB_APP_URL}/accept-invite?token=${token}`,
     }).catch((error: Error) => logger.warn(`Invite email enqueue failed: ${error.message}`));
 
     return { invite, token };

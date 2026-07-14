@@ -7,10 +7,7 @@ import { Container } from 'typedi';
 import { authHeader, createOwner } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
-/**
- * Verifies the transactional outbox: events are written atomically with the
- * booking change (rollback leaves none), and the relay drains committed events.
- */
+// Verifies outbox events are written atomically with the booking change and the relay drains committed ones.
 describe('Transactional outbox e2e', () => {
   let ctx: IntegrationContext;
   let app: Express;

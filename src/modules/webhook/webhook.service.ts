@@ -19,11 +19,7 @@ export interface WebhookPayload {
 export class WebhookService {
   constructor(private readonly webhooks: WebhookRepository) {}
 
-  /**
-   * Registers the tenant's webhook endpoint. Returns a PLAIN object (not the
-   * entity) so the freshly generated `secret` is exposed exactly once — the
-   * entity's `@Exclude` strips it from every later read.
-   */
+  /** Returns a PLAIN object, not the entity, so the freshly generated secret is exposed exactly once — the entity's @Exclude strips it from every later read. */
   async create(dto: CreateWebhookDto): Promise<{
     id: string;
     url: string;
@@ -61,13 +57,7 @@ export class WebhookService {
     }
   }
 
-  /**
-   * Delivers a signed webhook over HTTPS. The signature covers `timestamp.body`
-   * (so a captured delivery can't be replayed far later) and the URL is re-checked
-   * for SSRF at send time. Redirects are refused (a 3xx could point at an internal
-   * host) and the request is aborted on timeout so sockets don't linger. A non-2xx
-   * throws so the queue retries.
-   */
+  /** Signature covers timestamp.body so a captured delivery can't be replayed later; URL is re-checked for SSRF and redirects refused since a 3xx could point at an internal host. */
   async deliver(url: string, secret: string, payload: WebhookPayload): Promise<void> {
     await assertSafeWebhookUrl(url);
     const body = JSON.stringify(payload);

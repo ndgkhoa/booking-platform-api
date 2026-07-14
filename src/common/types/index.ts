@@ -1,5 +1,3 @@
-// Barrel for shared types. Enums and reusable interfaces can be imported from
-// '@common/types' directly, or from their specific file.
 export * from './enums/auth-role';
 export * from './enums/booking-status';
 export * from './enums/membership-role';

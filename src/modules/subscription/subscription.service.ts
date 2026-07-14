@@ -20,11 +20,7 @@ import { SubscriptionRepository } from '@modules/subscription/subscription.repos
 import { Service } from 'typedi';
 import { DataSource } from 'typeorm';
 
-/**
- * Explicit staff-entitlement outcome. Replaces a magic `-1` that conflated two
- * distinct states — "no plan in force" and "plan grants unlimited" — so only
- * `capped` ever enforces a ceiling.
- */
+/** Replaces a magic -1 that conflated "no plan in force" and "plan grants unlimited"; only `capped` ever enforces a ceiling. */
 type StaffEntitlement =
   | { kind: 'unmetered' } // no plan configured at all → fail open, no limit
   | { kind: 'unlimited' } // a plan is in force and grants unlimited staff
@@ -79,11 +75,7 @@ export class SubscriptionService {
     }
   }
 
-  /**
-   * Consumes a verified payment event: claims it once and applies it to the
-   * subscription — both in ONE tenant-scoped transaction, so RLS covers the
-   * write and a failed apply rolls the claim back (the provider then retries).
-   */
+  /** Claims the event and applies it in ONE tenant-scoped transaction, so RLS covers the write and a failed apply rolls the claim back for the provider to retry. */
   async consumeWebhook(provider: PaymentProviderName, event: PaymentEvent): Promise<void> {
     const tenantId = tenantFromReference(event.subscriptionReference);
     if (!tenantId) return; // malformed/foreign reference — ignore
@@ -117,13 +109,7 @@ export class SubscriptionService {
     }
   }
 
-  /**
-   * Resolves the plan whose caps apply, then maps it to an entitlement. A tenant
-   * with no active subscription falls back to the default free tier (canceled
-   * counts as unsubscribed); a past_due subscription still enforces its own plan
-   * cap — a failed payment must not loosen limits. A negative cap denotes an
-   * unlimited plan; no plan configured at all is unmetered (fail open).
-   */
+  /** No active subscription falls back to the default free tier; a past_due subscription still enforces its own cap, since a failed payment must not loosen limits. */
   private async resolveStaffEntitlement(): Promise<StaffEntitlement> {
     const subscription = await this.currentSubscription();
     const plan =

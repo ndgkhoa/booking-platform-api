@@ -105,11 +105,7 @@ export class RecurrenceService {
     return { created, skipped: [] };
   }
 
-  /**
-   * Insert each occurrence inside its own SAVEPOINT so a slot conflict (23P01)
-   * can be rolled back to the savepoint and skipped WITHOUT poisoning the outer
-   * request transaction (a raised error would abort it otherwise).
-   */
+  /** Each occurrence runs inside its own SAVEPOINT so a slot conflict (23P01) rolls back and skips without poisoning the outer request transaction. */
   private async skipConflicts(
     occurrences: Date[],
     recurrenceId: string,

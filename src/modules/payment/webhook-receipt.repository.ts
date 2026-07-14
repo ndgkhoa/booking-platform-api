@@ -3,11 +3,7 @@ import type { PaymentProviderName } from '@modules/payment/providers/payment-pro
 import { Service } from 'typedi';
 import { DataSource } from 'typeorm';
 
-/**
- * System-level idempotency for INBOUND provider webhooks. `webhook_receipts` has
- * no tenant column and no RLS; the claim runs on the caller's transaction manager
- * so it commits or rolls back atomically with the event's side effects.
- */
+/** webhook_receipts has no tenant column and no RLS; the claim runs on the caller's transaction manager so it commits/rolls back atomically with the event's side effects. */
 @Service()
 export class WebhookReceiptRepository {
   constructor(private readonly dataSource: DataSource) {}

@@ -48,10 +48,7 @@ export const TEST_ENTITIES = [
 ];
 
 export interface IntegrationContext {
-  /**
-   * Superuser connection — bypasses RLS. Use for seeding and cleanup that needs
-   * to reach across tenants; the app itself never runs on this.
-   */
+  /** Superuser connection — bypasses RLS; use for cross-tenant seeding/cleanup only, never in the app. */
   dataSource: DataSource;
   /** Non-superuser connection the app runs on, so RLS is enforced end-to-end. */
   appDataSource: DataSource;
@@ -59,14 +56,7 @@ export interface IntegrationContext {
   teardown: () => Promise<void>;
 }
 
-/**
- * Opens two DataSources against the shared container (see global-setup.ts):
- * a superuser one for test seeding/cleanup and a non-superuser one wired into
- * the DI container so the app under test executes every statement under RLS.
- * The schema and its policies already exist (migrations ran in global-setup),
- * so neither connection synchronizes. Call in `beforeAll`; `teardown` in
- * `afterAll`. Specs stay free of container/bootstrap boilerplate.
- */
+/** Opens a superuser DataSource for seeding/cleanup and a non-superuser one wired into the DI container so the app under test executes every statement under RLS. Call in `beforeAll`; `teardown` in `afterAll`. */
 export async function initIntegrationContext(): Promise<IntegrationContext> {
   const adminUrl = process.env.TEST_DATABASE_URL;
   const appUrl = process.env.TEST_APP_DATABASE_URL;

@@ -10,11 +10,8 @@ import { renderEmail } from '@modules/mail/mail-content';
 import { type Job, Worker } from 'bullmq';
 import { Container } from 'typedi';
 
-/**
- * Recipient address. Welcome/invite jobs carry it; a booking job carries only the
- * customer id, so we look their email up under the tenant's RLS scope. A missing
- * customer yields null (skip); other errors bubble so BullMQ retries.
- */
+// Welcome/invite jobs carry the recipient; booking jobs carry only a customer id, so we
+// look it up under the tenant's RLS scope — a missing customer yields null (skip).
 async function resolveRecipient(job: EmailJob): Promise<string | null> {
   if (job.type !== 'booking') {
     return job.email;
@@ -32,10 +29,8 @@ async function resolveRecipient(job: EmailJob): Promise<string | null> {
   }
 }
 
-/**
- * Delivers queued emails via Resend. At-least-once with an idempotent jobId, so a
- * redelivery of the same event is a no-op; a provider error throws to retry.
- */
+// At-least-once delivery with an idempotent jobId, so redelivery of the same event is a
+// no-op; a provider error throws to retry.
 export function startEmailWorker(): Worker<EmailJob> {
   const mail = Container.get(MailService);
 

@@ -25,12 +25,7 @@ export class SubscriptionRepository {
     });
   }
 
-  /**
-   * Lookup by provider reference for the inbound webhook. The caller resolves the
-   * tenant from the reference and re-enters that tenant's context first, so this
-   * runs RLS-scoped on the tenant transaction — the reference alone can never read
-   * another tenant's subscription.
-   */
+  /** Caller resolves the tenant from the reference and re-enters that tenant's context first, so this runs RLS-scoped — the reference alone can never read another tenant's subscription. */
   findByReference(providerReference: string): Promise<Subscription | null> {
     return this.manager.getRepository(Subscription).findOne({ where: { providerReference } });
   }

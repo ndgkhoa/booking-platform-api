@@ -132,7 +132,6 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
     const got = await request(app).get(`/api/v1/bookings/${id}`).set(authHeader(f.token));
     expect(got.headers.etag).toBe(`"${created.body.data.version}"`);
 
-    // Stale If-Match → 412.
     const stale = await request(app)
       .patch(`/api/v1/bookings/${id}/reschedule`)
       .set(authHeader(f.token))
@@ -140,7 +139,6 @@ describe('Booking idempotency & ETag/If-Match e2e', () => {
       .send({ startsAt: '2026-10-04T05:00:00.000Z' });
     expect(stale.status).toBe(412);
 
-    // Correct If-Match → success.
     const ok = await request(app)
       .patch(`/api/v1/bookings/${id}/reschedule`)
       .set(authHeader(f.token))

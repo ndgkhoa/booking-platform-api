@@ -12,11 +12,7 @@ export interface OwnerContext {
   tenantId: string;
 }
 
-/**
- * Registers a fresh user, logs in, and onboards a tenant — returning the owner
- * session plus the ids specs commonly need. Specs that need more (staff, service,
- * customer…) compose additional requests on top of this.
- */
+/** Registers a fresh user, logs in, and onboards a tenant — returning the owner session plus common ids. */
 export async function createOwner(
   app: Express,
   overrides: { timezone?: string } = {},

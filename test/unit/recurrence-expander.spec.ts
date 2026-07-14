@@ -72,8 +72,7 @@ describe('recurrence expander', () => {
   });
 
   it('keeps local wall-clock time constant across a DST change (weekly 10:00)', () => {
-    // America/New_York springs forward 2026-03-08. Weekly Sunday 10:00 local:
-    // 2026-03-01 EST (UTC-5) → 15:00Z; 2026-03-08 EDT (UTC-4) → 14:00Z.
+    // New York springs forward 2026-03-08: weekly Sunday 10:00 local is 15:00Z pre-DST, 14:00Z post-DST.
     const out = expandRecurrence({
       freq: 'weekly',
       interval: 1,

@@ -41,11 +41,7 @@ export function isBlockedIp(ip: string): boolean {
   return true; // not a valid IP → treat as blocked
 }
 
-/**
- * Sync SSRF validation used at REGISTRATION: https only, not localhost/.internal,
- * and if the host is a literal IP it must not be in a blocked range. Does NOT
- * resolve DNS (registration shouldn't depend on it). Returns the parsed URL.
- */
+/** SSRF validation for REGISTRATION: https only, not localhost/.internal, no literal IP in a blocked range. Does NOT resolve DNS (registration shouldn't depend on it). */
 export function validateWebhookUrl(raw: string): URL {
   let url: URL;
   try {
@@ -67,11 +63,7 @@ export function validateWebhookUrl(raw: string): URL {
   return url;
 }
 
-/**
- * Full SSRF check used at DELIVERY (the real connect point): the sync checks PLUS
- * DNS resolution, so an internal hostname or naive rebind is caught before the
- * request goes out. A residual resolve-vs-connect TOCTOU remains (accepted here).
- */
+/** Full SSRF check for DELIVERY: sync checks plus DNS resolution, catching an internal hostname or naive rebind before the request goes out. Residual resolve-vs-connect TOCTOU accepted. */
 export async function assertSafeWebhookUrl(raw: string): Promise<URL> {
   const url = validateWebhookUrl(raw);
   const host = url.hostname.replace(/^\[|\]$/g, '');

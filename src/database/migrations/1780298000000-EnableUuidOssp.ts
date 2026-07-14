@@ -1,10 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-/**
- * Enables the uuid-ossp extension. Every subsequent migration defaults its
- * primary keys with uuid_generate_v4(), which this extension provides, so it
- * must run first (hence the earliest timestamp).
- */
+// Must run first (earliest timestamp): later migrations default primary keys with
+// uuid_generate_v4(), which this extension provides.
 export class EnableUuidOssp1780298000000 implements MigrationInterface {
   name = 'EnableUuidOssp1780298000000';
 

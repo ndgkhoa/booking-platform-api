@@ -8,11 +8,7 @@ export function signWebhook(secret: string, body: string): string {
   return createHmac('sha256', secret).update(body).digest('hex');
 }
 
-/**
- * Constant-time check of a received signature against `signedContent`. Accepts
- * the wire header with or without the `sha256=` prefix. `signedContent` is the
- * exact string that was signed (delivery signs `"<timestamp>.<body>"`).
- */
+/** Constant-time check against signedContent (the exact string that was signed); accepts the wire header with or without the sha256= prefix. */
 export function verifyWebhook(secret: string, signedContent: string, signature: string): boolean {
   const received = signature.replace(/^sha256=/, '');
   const expected = signWebhook(secret, signedContent);

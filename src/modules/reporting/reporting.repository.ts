@@ -104,11 +104,7 @@ export class ReportingRepository {
     return qb.select([]);
   }
 
-  /**
-   * Bucket key: a tenant-local truncated date for time groups (DST-aware), or the
-   * entity id. Each branch is a CONSTANT SQL fragment — the enum unit is never
-   * interpolated, so this can't become an injection vector under refactoring.
-   */
+  /** Each branch is a CONSTANT SQL fragment — the enum unit is never interpolated, so this can't become an injection vector under refactoring. */
   private bucketExpr(groupBy: ReportGroupBy): string {
     switch (groupBy) {
       case 'service':

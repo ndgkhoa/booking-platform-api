@@ -17,8 +17,7 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
   beforeAll(async () => {
     ctx = await initIntegrationContext();
     app = ctx.app;
-    // Unique codes: the migration already seeds default 'free'/'pro' plans in the
-    // shared DB, and this suite needs its own limits (free.maxStaff = 1).
+    // Unique codes: needs its own limits (free.maxStaff = 1) apart from the migration-seeded defaults.
     const plans = ctx.dataSource.getRepository(Plan);
     freePlanId = (
       await plans.save(
@@ -124,7 +123,6 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
 
   it('enforces the plan staff limit (402 over cap)', async () => {
     const { token, userId } = await createOwner(app);
-    // Subscribe to the free plan (maxStaff=1) and activate it.
     const sub = await request(app)
       .post('/api/v1/subscriptions')
       .set(authHeader(token))
@@ -136,7 +134,6 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
       .set('x-webhook-signature', sepaySig(event))
       .send(event);
 
-    // First staff ok; a second exceeds the cap.
     const first = await request(app)
       .post('/api/v1/staff')
       .set(authHeader(token))

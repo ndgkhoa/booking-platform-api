@@ -111,9 +111,7 @@ describe('Reporting e2e', () => {
 
   it('buckets and bounds by the tenant timezone, not UTC', async () => {
     const f = await fixture('America/New_York');
-    // 2027-03-01T04:00Z is 2027-02-28 23:00 in New York → local Feb 28.
-    // A UTC-interpreted range [.., 2027-03-01) would WRONGLY exclude it; a
-    // tenant-local range must include it and bucket it under 2027-02-28.
+    // 2027-03-01T04:00Z is local Feb 28 23:00 in NY; a UTC-interpreted range would wrongly exclude it.
     await bookCompleted(f, '2027-03-01T04:00:00.000Z');
 
     const res = await request(app)

@@ -16,12 +16,7 @@ export interface RecurrenceRule {
 /** Safety bound so an open-ended rule can never scan/emit without limit. */
 export const MAX_OCCURRENCES = 100;
 
-/**
- * Expands a recurrence rule into individual UTC start instants. Times are
- * anchored to the local wall clock (luxon calendar math keeps e.g. weekly 10:00
- * at 10:00 local across a DST change) then converted to UTC. Always bounded by
- * `count`, `until`, and `MAX_OCCURRENCES`.
- */
+/** Anchored to the local wall clock (luxon keeps e.g. weekly 10:00 at 10:00 local across a DST change) then converted to UTC; always bounded by count/until/MAX_OCCURRENCES. */
 export function expandRecurrence(rule: RecurrenceRule): Date[] {
   const zone = rule.timezone;
   const hour = Math.floor(rule.startMinutes / 60);

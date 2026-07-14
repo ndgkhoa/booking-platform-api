@@ -52,11 +52,8 @@ export class BookingsCore1780298800000 implements MigrationInterface {
       'CREATE INDEX "IDX_bookings_staff_starts" ON "bookings" ("tenant_id", "staff_id", "starts_at")',
     );
 
-    // The flagship guarantee: no two active bookings for the same staff overlap.
-    // tstzrange is half-open [start,end); btree_gist (installed in the foundation
-    // migration) enables the scalar equality operators inside the GiST exclusion.
-    // Cancelled/completed/no_show are excluded so a freed slot can be rebooked.
-    // A conflicting INSERT/UPDATE raises SQLSTATE 23P01 → mapped to 409.
+    // Flagship guarantee: no two active bookings for the same staff overlap (tstzrange +
+    // btree_gist GiST exclusion); a conflicting INSERT/UPDATE raises SQLSTATE 23P01 → 409.
     await queryRunner.query(`
       ALTER TABLE "bookings" ADD CONSTRAINT "bookings_no_overlap"
         EXCLUDE USING gist (

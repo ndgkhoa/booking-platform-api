@@ -1,10 +1,7 @@
 import { BaseEntity } from '@common/base/entity.base';
 import { Column, Entity, Index } from 'typeorm';
 
-/**
- * A global subscription plan (not tenant-scoped). Entitlement limits are stored
- * as integer caps; `-1` means unlimited. Price is integer minor units.
- */
+/** Global subscription plan (not tenant-scoped); entitlement caps use -1 for unlimited, price is integer minor units. */
 @Entity('plans')
 export class Plan extends BaseEntity {
   @Index({ unique: true })

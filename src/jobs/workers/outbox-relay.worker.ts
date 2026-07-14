@@ -9,11 +9,8 @@ import { OutboxService } from '@modules/outbox/outbox.service';
 import type { OutboxEvent } from '@modules/outbox/outbox-event.entity';
 import { Container } from 'typedi';
 
-/**
- * Maps a committed outbox event to queued side effects (at-least-once). jobId is
- * derived from the event id so a redelivery enqueues the same job once. Webhook
- * jobs are always enqueued; the worker no-ops if the tenant has no endpoint.
- */
+// Maps a committed outbox event to queued side effects (at-least-once); jobId is derived
+// from the event id so redelivery enqueues the same job once.
 async function dispatch(event: OutboxEvent): Promise<void> {
   if (event.aggregateType !== 'booking') {
     return;

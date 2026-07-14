@@ -1,8 +1,4 @@
-/**
- * Billing plan codes. These rows are seeded by the Billing migration; this const
- * is the single source of truth for their `code` values so lookups never rely on
- * a bare string literal.
- */
+// Billing plan codes seeded by the Billing migration; single source of truth for `code` values.
 export const PlanCode = {
   Free: 'free',
   Pro: 'pro',

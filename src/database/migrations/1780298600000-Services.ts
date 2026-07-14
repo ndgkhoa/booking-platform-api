@@ -29,11 +29,8 @@ export class Services1780298600000 implements MigrationInterface {
       'CREATE UNIQUE INDEX "UQ_services_tenant_name" ON "services" ("tenant_id", "name") WHERE "deleted_at" IS NULL',
     );
 
-    // Row-Level Security: defence-in-depth over the app-layer tenant filter.
-    // Reads current_setting('app.tenant_id') set per request via SET LOCAL; fails
-    // closed (NULL → no rows) when unset. NOTE: superusers and table owners with
-    // BYPASSRLS ignore RLS — the app must connect as a non-superuser role in
-    // production for this to take effect.
+    // RLS: defense-in-depth over the app-layer filter; fails closed when app.tenant_id is
+    // unset (BYPASSRLS roles/owners ignore it — app must connect as non-superuser in prod).
     await queryRunner.query('ALTER TABLE "services" ENABLE ROW LEVEL SECURITY');
     await queryRunner.query('ALTER TABLE "services" FORCE ROW LEVEL SECURITY');
     await queryRunner.query(`

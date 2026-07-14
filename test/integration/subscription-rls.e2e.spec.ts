@@ -2,16 +2,9 @@ import { randomUUID } from 'node:crypto';
 import type { QueryRunner } from 'typeorm';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
-/**
- * Proves the payment-webhook consume path is tenant-safe at the DATABASE layer.
- * The webhook has no auth context: it decodes the tenant from the event
- * reference and runs `runInTenantContext(tenantId)`, i.e. `set app.tenant_id`
- * then read/update the subscription. Seeding runs on the superuser connection
- * (which bypasses RLS); the assertions SET ROLE to the app's non-superuser role
- * and exercise exactly that pattern on `subscriptions`, showing a webhook scoped
- * to tenant A can neither see nor modify tenant B's subscription — even given
- * B's row id.
- */
+// Proves the auth-less payment-webhook consume path (set app.tenant_id from the event reference) is
+// tenant-safe at the DATABASE layer: a webhook scoped to tenant A can neither see nor modify tenant B's
+// subscription, even given B's row id.
 const APP_RLS_ROLE = 'app_rls_user';
 describe('Subscription webhook RLS isolation (database layer)', () => {
   let ctx: IntegrationContext;
@@ -29,10 +22,7 @@ describe('Subscription webhook RLS isolation (database layer)', () => {
     qr = ctx.dataSource.createQueryRunner();
     await qr.connect();
 
-    // `subscriptions` already carries the migration's RLS policy + FORCE
-    // (global-setup runs the real migrations).
-    // Seed as superuser (RLS bypassed): a plan, two tenants, one subscription each.
-    // Unique code — the global plans table is shared across suites and not cleaned.
+    // Seed as superuser (RLS bypassed): a plan (unique code, since the plans table is shared and not cleaned), two tenants, one subscription each.
     planId = (
       await qr.query(
         `INSERT INTO "plans" (code, name, price_amount) VALUES ($1, 'RLS', 0) RETURNING id`,
@@ -80,8 +70,7 @@ describe('Subscription webhook RLS isolation (database layer)', () => {
   it("cannot update another tenant's subscription even with its id", async () => {
     await qr.query(`SET ROLE ${APP_RLS_ROLE}`);
     await asTenant(tenantA);
-    // A webhook scoped to A applies an update; B's row is invisible under RLS,
-    // so the UPDATE matches zero rows rather than flipping B's status.
+    // B's row is invisible under RLS, so this UPDATE matches zero rows rather than flipping B's status.
     await qr.query(`UPDATE "subscriptions" SET status = 'active' WHERE id = $1`, [subB]);
     await qr.query('RESET ROLE');
 

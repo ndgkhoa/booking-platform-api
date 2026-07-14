@@ -8,12 +8,7 @@ import type {
 } from '@modules/payment/providers/payment-provider.interface';
 import { Service } from 'typedi';
 
-/**
- * SePay adapter — Vietnamese VietQR bank-transfer settlement. Checkout produces a
- * hosted QR page carrying our reference; SePay calls back with an HMAC-SHA256
- * signature over the raw body. The customer transfers via any VietQR-capable
- * banking app.
- */
+/** SePay adapter for VietQR bank-transfer settlement; checkout produces a hosted QR page and SePay calls back with an HMAC-SHA256 signature over the raw body. */
 @Service()
 export class SepayProvider implements PaymentProvider {
   readonly name = 'sepay' as const;

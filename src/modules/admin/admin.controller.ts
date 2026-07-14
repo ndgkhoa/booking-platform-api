@@ -13,11 +13,7 @@ import {
 } from 'routing-controllers';
 import { Service } from 'typedi';
 
-/**
- * Super-admin platform console. Class-level `@Authorized(SUPER_ADMIN_ONLY)` gates
- * every route to the global platform flag (`users.is_super_admin`); no tenant
- * membership grants access.
- */
+/** Class-level @Authorized(SUPER_ADMIN_ONLY) gates every route on the global users.is_super_admin flag; no tenant membership grants access. */
 @Service()
 @JsonController('/admin')
 @Authorized(SUPER_ADMIN_ONLY)

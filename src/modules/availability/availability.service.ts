@@ -23,12 +23,7 @@ export interface AvailabilitySlot {
   endsAt: string;
 }
 
-/**
- * Read model that aggregates working hours, time-off, existing bookings and
- * capability to produce bookable slots. Slots are computed in the tenant's
- * timezone (DST-safe) then returned as UTC instants. It intentionally depends on
- * several domain services because availability is a projection over all of them.
- */
+/** Read model projecting working hours, time-off, bookings and capability into bookable slots, computed in the tenant's timezone (DST-safe) and returned as UTC instants. */
 @Service()
 export class AvailabilityService {
   constructor(
@@ -97,13 +92,7 @@ export class AvailabilityService {
     return slots;
   }
 
-  /**
-   * Time-off (as-is) + existing bookings padded by the queried service's buffers
-   * on their correct sides (before at the start, after at the end). Simplification:
-   * a booking's OWN service buffers aren't loaded; the queried service's buffers
-   * proxy for the required gap. This only pre-filters UX — the EXCLUDE constraint
-   * (which has no buffer) is the actual booking guarantee.
-   */
+  /** Time-off as-is + bookings padded by the queried service's buffers (a UX pre-filter only; the DB EXCLUDE constraint is the actual booking guarantee). */
   private async buildBlockers(
     staffId: string,
     dayStart: Date,

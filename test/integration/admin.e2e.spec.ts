@@ -19,8 +19,7 @@ describe('Admin (super-admin tenant console) e2e', () => {
     await ctx.teardown();
   });
 
-  /** A registered user promoted to the platform super-admin flag; the register
-   * token carries no tenant, and the flag is read fresh from the DB per request. */
+  /** Promotes a fresh user to super-admin; the flag is read fresh from the DB per request. */
   async function superAdmin(): Promise<string> {
     const email = `sa-${randomUUID()}@test.com`;
     const reg = await request(app)

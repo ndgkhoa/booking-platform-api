@@ -2,11 +2,8 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { UnauthorizedException } from '@common/exceptions';
 import type { EntityManager } from 'typeorm';
 
-/**
- * Ambient tenant context for a single request/unit of work.
- * `manager` is present only inside a tenant transaction (see tenant-transaction.ts)
- * and points at the RLS-scoped connection so repositories run on it.
- */
+// Ambient tenant context for a request; `manager` is set only inside a tenant transaction
+// (see tenant-transaction.ts) and points at the RLS-scoped connection.
 export interface TenantContext {
   tenantId: string;
   manager?: EntityManager;

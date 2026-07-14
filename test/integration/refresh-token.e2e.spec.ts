@@ -48,7 +48,6 @@ describe('Refresh-token rotation & reuse detection e2e', () => {
     const rotated = await request(app).post('/api/v1/auth/refresh').send({ refreshToken: first });
     const second = rotated.body.data.refreshToken;
 
-    // Replay the already-rotated first token → reuse detected.
     const reuse = await request(app).post('/api/v1/auth/refresh').send({ refreshToken: first });
     expect(reuse.status).toBe(401);
     expect(reuse.body.code).toBe('UNAUTHORIZED');

@@ -1,14 +1,8 @@
 import { type Action, Interceptor, type InterceptorInterface } from 'routing-controllers';
 import { Service } from 'typedi';
 
-/**
- * Commits the per-request tenant transaction (opened by TenantContextMiddleware)
- * once a controller action has produced its result but BEFORE the response is
- * serialised. A commit failure therefore propagates as a 500 instead of a
- * success reply for data that rolled back. Non-action paths (auth failures,
- * validation errors, 404s) never reach here — the middleware's finish/close
- * listener rolls those back.
- */
+// Commits the per-request tenant tx after the action but before response serialization,
+// so a commit failure surfaces as 500 instead of a success reply for rolled-back data.
 @Service()
 @Interceptor()
 export class TenantTransactionInterceptor implements InterceptorInterface {

@@ -1,13 +1,8 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-/** Super-admin action a log entry records. */
 export type AdminAction = 'tenant.view' | 'tenant.suspend' | 'tenant.reactivate';
 
-/**
- * Immutable, append-only record of every privileged cross-tenant super-admin
- * action. Not tenant-scoped (a platform-wide log). No update/delete columns —
- * the production migration additionally blocks UPDATE/DELETE at the DB level.
- */
+/** Immutable, platform-wide (not tenant-scoped) log; migration also blocks UPDATE/DELETE at the DB level. */
 @Entity('admin_audit_logs')
 @Index(['targetTenantId', 'createdAt'])
 export class AdminAuditLog {

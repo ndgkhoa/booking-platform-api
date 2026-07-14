@@ -10,12 +10,7 @@ export class IdempotencyRepository extends BaseTenantRepository<IdempotencyKey> 
     super(dataSource, IdempotencyKey);
   }
 
-  /**
-   * Claims a key via `INSERT ... ON CONFLICT DO NOTHING`, returning the new row's
-   * id or null if the key already exists. Using ON CONFLICT (not a caught unique
-   * violation) is essential inside the per-request transaction: a raised 23505
-   * would abort the transaction and poison the follow-up read.
-   */
+  /** ON CONFLICT DO NOTHING, not a caught unique violation — a raised 23505 would abort the per-request transaction and poison the follow-up read. */
   async claim(key: string, requestHash: string): Promise<string | null> {
     const result = await this.repo
       .createQueryBuilder()

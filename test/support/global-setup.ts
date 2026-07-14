@@ -39,9 +39,6 @@ export default async function globalSetup(): Promise<void> {
     migrations: [path.join(__dirname, '..', '..', 'src', 'database', 'migrations', '*.{ts,js}')],
   });
   await migrator.initialize();
-  // Migrations default ids with uuid_generate_v4(); provision the extension the
-  // same way production does before applying them.
-  await migrator.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
   await migrator.runMigrations();
 
   await migrator.query(

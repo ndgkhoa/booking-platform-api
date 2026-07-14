@@ -1,9 +1,17 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 // @ts-expect-error — class-transformer storage is not exported from the type root
 import { defaultMetadataStorage } from 'class-transformer/cjs/storage';
 import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import type { RoutingControllersOptions } from 'routing-controllers';
 import { getMetadataArgsStorage } from 'routing-controllers';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
+
+// Version comes from package.json (read at startup, so it works with rootDir:src
+// in the build) — `pnpm version` is the only place a release bumps it.
+const APP_VERSION: string = JSON.parse(
+  readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8'),
+).version;
 
 /** RFC 7807 problem+json — the shape every error response uses. */
 const ProblemDetails = {
@@ -45,7 +53,7 @@ export function buildOpenApiSpec(options: RoutingControllersOptions): object {
   const spec = routingControllersToSpec(getMetadataArgsStorage(), options, {
     info: {
       title: 'booking-platform-api',
-      version: '1.0.0',
+      version: APP_VERSION,
       description: 'Multi-tenant booking SaaS API.',
     },
     // Host roots only — the paths already carry the /api/v1 prefix.

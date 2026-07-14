@@ -16,6 +16,7 @@
     "lint:fix": "biome check --write .",
     "test": "jest --selectProjects unit --runInBand",
     "test:int": "jest --selectProjects integration --runInBand",
+    "test:cov": "jest --coverage --runInBand",
     "typeorm": "ts-node ./node_modules/typeorm/cli.js -d src/config/data-source.ts",
     "migration:gen": "pnpm typeorm migration:generate src/database/migrations/Migration",
     "migration:run": "pnpm typeorm migration:run",

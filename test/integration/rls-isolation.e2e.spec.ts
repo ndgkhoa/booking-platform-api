@@ -3,10 +3,12 @@ import type { QueryRunner } from 'typeorm';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
 /**
- * Proves Postgres RLS isolates `services` at the database layer. The app's test
- * connection is a superuser (which bypasses RLS), so we drop to a non-superuser
- * role with SET ROLE to observe the policy actually enforcing.
+ * Proves Postgres RLS isolates `services` at the database layer. Seeding runs on
+ * the superuser connection (which bypasses RLS); to observe the policy actually
+ * enforcing we SET ROLE to the app's non-superuser role (created in global-setup).
  */
+const APP_RLS_ROLE = 'app_rls_user';
+
 describe('RLS tenant isolation (database layer)', () => {
   let ctx: IntegrationContext;
   let qr: QueryRunner;
@@ -18,19 +20,8 @@ describe('RLS tenant isolation (database layer)', () => {
     qr = ctx.dataSource.createQueryRunner();
     await qr.connect();
 
-    // Apply the same RLS the migration ships (the test DB uses synchronize).
-    await qr.query('ALTER TABLE "services" ENABLE ROW LEVEL SECURITY');
-    await qr.query('ALTER TABLE "services" FORCE ROW LEVEL SECURITY');
-    await qr.query(`
-      CREATE POLICY "tenant_isolation" ON "services"
-        USING ("tenant_id" = current_setting('app.tenant_id', true)::uuid)
-        WITH CHECK ("tenant_id" = current_setting('app.tenant_id', true)::uuid)
-    `);
-    await qr.query('DROP ROLE IF EXISTS rls_tester');
-    await qr.query('CREATE ROLE rls_tester NOSUPERUSER');
-    await qr.query('GRANT SELECT, INSERT ON "services" TO rls_tester');
-
-    // Seed as superuser (RLS bypassed): 2 services for A, 1 for B.
+    // `services` already carries the migration's RLS policy + FORCE (global-setup
+    // runs the real migrations). Seed as superuser (RLS bypassed): 2 for A, 1 for B.
     for (const [id, name] of [
       [tenantA, 'A'],
       [tenantB, 'B'],
@@ -53,17 +44,12 @@ describe('RLS tenant isolation (database layer)', () => {
 
   afterAll(async () => {
     await qr.query('RESET ROLE');
-    await qr.query('DROP POLICY IF EXISTS "tenant_isolation" ON "services"');
-    await qr.query('ALTER TABLE "services" NO FORCE ROW LEVEL SECURITY');
-    await qr.query('ALTER TABLE "services" DISABLE ROW LEVEL SECURITY');
-    await qr.query('REVOKE ALL ON "services" FROM rls_tester');
-    await qr.query('DROP ROLE IF EXISTS rls_tester');
     await qr.release();
     await ctx.teardown();
   });
 
   it('shows only the active tenant rows under a non-superuser role', async () => {
-    await qr.query('SET ROLE rls_tester');
+    await qr.query(`SET ROLE ${APP_RLS_ROLE}`);
     await qr.query(`SELECT set_config('app.tenant_id', $1, false)`, [tenantA]);
 
     const rows: Array<{ tenant_id: string }> = await qr.query('SELECT tenant_id FROM "services"');
@@ -74,7 +60,7 @@ describe('RLS tenant isolation (database layer)', () => {
   });
 
   it('blocks inserting a row for another tenant (WITH CHECK)', async () => {
-    await qr.query('SET ROLE rls_tester');
+    await qr.query(`SET ROLE ${APP_RLS_ROLE}`);
     await qr.query(`SELECT set_config('app.tenant_id', $1, false)`, [tenantA]);
 
     await expect(

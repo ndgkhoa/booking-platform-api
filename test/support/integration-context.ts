@@ -48,36 +48,59 @@ export const TEST_ENTITIES = [
 ];
 
 export interface IntegrationContext {
+  /**
+   * Superuser connection — bypasses RLS. Use for seeding and cleanup that needs
+   * to reach across tenants; the app itself never runs on this.
+   */
   dataSource: DataSource;
+  /** Non-superuser connection the app runs on, so RLS is enforced end-to-end. */
+  appDataSource: DataSource;
   app: Express;
   teardown: () => Promise<void>;
 }
 
 /**
- * Opens a DataSource against the shared container (see global-setup.ts), wires it
- * into the DI container, and builds the app. Call in `beforeAll`; `teardown` in
+ * Opens two DataSources against the shared container (see global-setup.ts):
+ * a superuser one for test seeding/cleanup and a non-superuser one wired into
+ * the DI container so the app under test executes every statement under RLS.
+ * The schema and its policies already exist (migrations ran in global-setup),
+ * so neither connection synchronizes. Call in `beforeAll`; `teardown` in
  * `afterAll`. Specs stay free of container/bootstrap boilerplate.
  */
 export async function initIntegrationContext(): Promise<IntegrationContext> {
-  const url = process.env.TEST_DATABASE_URL;
-  if (!url) {
-    throw new Error('TEST_DATABASE_URL is unset — is the integration global-setup registered?');
+  const adminUrl = process.env.TEST_DATABASE_URL;
+  const appUrl = process.env.TEST_APP_DATABASE_URL;
+  if (!adminUrl || !appUrl) {
+    throw new Error(
+      'TEST_DATABASE_URL / TEST_APP_DATABASE_URL unset — is the integration global-setup registered?',
+    );
   }
 
   const dataSource = new DataSource({
     type: 'postgres',
-    url,
+    url: adminUrl,
     entities: TEST_ENTITIES,
-    synchronize: true,
+    synchronize: false,
+  });
+  const appDataSource = new DataSource({
+    type: 'postgres',
+    url: appUrl,
+    entities: TEST_ENTITIES,
+    synchronize: false,
     // Headroom for concurrency tests where each request holds a tenant-tx connection.
     poolSize: 25,
   });
   await dataSource.initialize();
-  Container.set(DataSource, dataSource);
+  await appDataSource.initialize();
+  Container.set(DataSource, appDataSource);
 
   return {
     dataSource,
+    appDataSource,
     app: createServer(),
-    teardown: () => dataSource.destroy(),
+    teardown: async () => {
+      await appDataSource.destroy();
+      await dataSource.destroy();
+    },
   };
 }

@@ -17,11 +17,13 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
   beforeAll(async () => {
     ctx = await initIntegrationContext();
     app = ctx.app;
+    // Unique codes: the migration already seeds default 'free'/'pro' plans in the
+    // shared DB, and this suite needs its own limits (free.maxStaff = 1).
     const plans = ctx.dataSource.getRepository(Plan);
     freePlanId = (
       await plans.save(
         plans.create({
-          code: 'free',
+          code: `free-${randomUUID()}`,
           name: 'Free',
           priceAmount: 0,
           maxStaff: 1,
@@ -32,7 +34,7 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
     proPlanId = (
       await plans.save(
         plans.create({
-          code: 'pro',
+          code: `pro-${randomUUID()}`,
           name: 'Pro',
           priceAmount: 20000000,
           maxStaff: -1,
@@ -152,7 +154,7 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
   });
 
   it('caps an unsubscribed tenant at the default free plan', async () => {
-    // No subscription: the seeded free plan (maxStaff=1) applies by default.
+    // No subscription: the migration-seeded default free plan (maxStaff=2) applies.
     const { token, userId } = await createOwner(app);
     const first = await request(app)
       .post('/api/v1/staff')
@@ -160,13 +162,20 @@ describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
       .send({ userId, displayName: 'One' });
     expect(first.status).toBe(201);
 
-    const otherUserId = await addMember(token);
+    const secondUserId = await addMember(token);
     const second = await request(app)
       .post('/api/v1/staff')
       .set(authHeader(token))
-      .send({ userId: otherUserId, displayName: 'Two' });
-    expect(second.status).toBe(402);
-    expect(second.body.code).toBe('PLAN_LIMIT_EXCEEDED');
+      .send({ userId: secondUserId, displayName: 'Two' });
+    expect(second.status).toBe(201);
+
+    const thirdUserId = await addMember(token);
+    const third = await request(app)
+      .post('/api/v1/staff')
+      .set(authHeader(token))
+      .send({ userId: thirdUserId, displayName: 'Three' });
+    expect(third.status).toBe(402);
+    expect(third.body.code).toBe('PLAN_LIMIT_EXCEEDED');
   });
 
   it('rejects an unknown provider (400)', async () => {

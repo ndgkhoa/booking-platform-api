@@ -6,11 +6,13 @@ import { type IntegrationContext, initIntegrationContext } from '../support/inte
  * Proves the payment-webhook consume path is tenant-safe at the DATABASE layer.
  * The webhook has no auth context: it decodes the tenant from the event
  * reference and runs `runInTenantContext(tenantId)`, i.e. `set app.tenant_id`
- * then read/update the subscription. This test drops to a non-superuser role
- * (the app's test connection is a superuser, which bypasses RLS) and exercises
- * exactly that pattern on `subscriptions`, showing a webhook scoped to tenant A
- * can neither see nor modify tenant B's subscription — even given B's row id.
+ * then read/update the subscription. Seeding runs on the superuser connection
+ * (which bypasses RLS); the assertions SET ROLE to the app's non-superuser role
+ * and exercise exactly that pattern on `subscriptions`, showing a webhook scoped
+ * to tenant A can neither see nor modify tenant B's subscription — even given
+ * B's row id.
  */
+const APP_RLS_ROLE = 'app_rls_user';
 describe('Subscription webhook RLS isolation (database layer)', () => {
   let ctx: IntegrationContext;
   let qr: QueryRunner;
@@ -27,18 +29,8 @@ describe('Subscription webhook RLS isolation (database layer)', () => {
     qr = ctx.dataSource.createQueryRunner();
     await qr.connect();
 
-    // The test DB uses synchronize, so apply the RLS the migration ships.
-    await qr.query('ALTER TABLE "subscriptions" ENABLE ROW LEVEL SECURITY');
-    await qr.query('ALTER TABLE "subscriptions" FORCE ROW LEVEL SECURITY');
-    await qr.query(`
-      CREATE POLICY "tenant_isolation" ON "subscriptions"
-        USING ("tenant_id" = current_setting('app.tenant_id', true)::uuid)
-        WITH CHECK ("tenant_id" = current_setting('app.tenant_id', true)::uuid)
-    `);
-    await qr.query('DROP ROLE IF EXISTS sub_rls_tester');
-    await qr.query('CREATE ROLE sub_rls_tester NOSUPERUSER');
-    await qr.query('GRANT SELECT, INSERT, UPDATE ON "subscriptions" TO sub_rls_tester');
-
+    // `subscriptions` already carries the migration's RLS policy + FORCE
+    // (global-setup runs the real migrations).
     // Seed as superuser (RLS bypassed): a plan, two tenants, one subscription each.
     // Unique code — the global plans table is shared across suites and not cleaned.
     planId = (
@@ -69,17 +61,12 @@ describe('Subscription webhook RLS isolation (database layer)', () => {
 
   afterAll(async () => {
     await qr.query('RESET ROLE');
-    await qr.query('DROP POLICY IF EXISTS "tenant_isolation" ON "subscriptions"');
-    await qr.query('ALTER TABLE "subscriptions" NO FORCE ROW LEVEL SECURITY');
-    await qr.query('ALTER TABLE "subscriptions" DISABLE ROW LEVEL SECURITY');
-    await qr.query('REVOKE ALL ON "subscriptions" FROM sub_rls_tester');
-    await qr.query('DROP ROLE IF EXISTS sub_rls_tester');
     await qr.release();
     await ctx.teardown();
   });
 
   it('sees only the scoped tenant subscription (webhook findByReference)', async () => {
-    await qr.query('SET ROLE sub_rls_tester');
+    await qr.query(`SET ROLE ${APP_RLS_ROLE}`);
     await asTenant(tenantA);
     const rows: Array<{ tenant_id: string }> = await qr.query(
       'SELECT tenant_id FROM "subscriptions"',
@@ -91,7 +78,7 @@ describe('Subscription webhook RLS isolation (database layer)', () => {
   });
 
   it("cannot update another tenant's subscription even with its id", async () => {
-    await qr.query('SET ROLE sub_rls_tester');
+    await qr.query(`SET ROLE ${APP_RLS_ROLE}`);
     await asTenant(tenantA);
     // A webhook scoped to A applies an update; B's row is invisible under RLS,
     // so the UPDATE matches zero rows rather than flipping B's status.
@@ -107,7 +94,7 @@ describe('Subscription webhook RLS isolation (database layer)', () => {
   });
 
   it('does apply an update to the scoped tenant own subscription', async () => {
-    await qr.query('SET ROLE sub_rls_tester');
+    await qr.query(`SET ROLE ${APP_RLS_ROLE}`);
     await asTenant(tenantA);
     await qr.query(`UPDATE "subscriptions" SET status = 'active' WHERE tenant_id = $1`, [tenantA]);
     const rows: Array<{ status: string }> = await qr.query('SELECT status FROM "subscriptions"');

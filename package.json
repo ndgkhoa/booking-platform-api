@@ -95,7 +95,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/luxon": "^3.7.2",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.1.1",
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.17",
     "@types/passport-jwt": "^4.0.1",

@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0](https://github.com/ndgkhoa/booking-platform-api/compare/booking-platform-api-v1.0.1...booking-platform-api-v1.1.0) (2026-07-20)
+## [1.1.0](https://github.com/ndgkhoa/booking-platform-api/compare/v1.0.1...v1.1.0) (2026-07-20)
 
 
 ### Features

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/ndgkhoa/booking-platform-api/compare/v1.1.0...v1.2.0) (2026-07-20)
+
+
+### Features
+
+* **docker:** multi-arch images and Dependabot dependency bot ([7d15c9d](https://github.com/ndgkhoa/booking-platform-api/commit/7d15c9dba40de7814d1e6f94298aec55184ba9f0))
+* **docker:** publish multi-arch images for amd64 and arm64 ([e7e774f](https://github.com/ndgkhoa/booking-platform-api/commit/e7e774fe329794bd4e500571fecd7241a232a6a1))
+
 ## [1.1.0](https://github.com/ndgkhoa/booking-platform-api/compare/v1.0.1...v1.1.0) (2026-07-20)
 
 

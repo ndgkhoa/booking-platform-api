@@ -13,16 +13,6 @@ jobs:
       contents: read
       pull-requests: write
 
-    env:
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_NAME: ${{ secrets.DB_NAME }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-      SEPAY_WEBHOOK_SECRET: ${{ secrets.SEPAY_WEBHOOK_SECRET }}
-      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
-
     steps:
       - uses: actions/checkout@v7
 

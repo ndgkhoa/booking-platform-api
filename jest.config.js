@@ -8,7 +8,7 @@ const { compilerOptions } = config;
 
 const base = {
   testEnvironment: 'node',
-  setupFiles: ['reflect-metadata'],
+  setupFiles: ['reflect-metadata', '<rootDir>/test/support/test-env.ts'],
   transform: { '^.+\\.ts$': 'ts-jest' },
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
   clearMocks: true,

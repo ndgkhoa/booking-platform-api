@@ -1,0 +1,24 @@
+name: Cleanup packages
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "List what would be deleted without deleting"
+        type: boolean
+        default: false
+
+jobs:
+  prune-untagged:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: snok/container-retention-policy@v3.1.0
+        with:
+          account: user
+          token: ${{ secrets.GHCR_CLEANUP_TOKEN }}
+          image-names: booking-platform-api
+          tag-selection: untagged
+          cut-off: 1w
+          dry-run: ${{ inputs.dry-run || false }}

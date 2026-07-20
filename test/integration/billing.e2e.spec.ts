@@ -1,4 +1,5 @@
 import { createHmac, randomUUID } from 'node:crypto';
+import { env } from '@config/env';
 import { Plan } from '@modules/plan/plan.entity';
 import type { Express } from 'express';
 import jwt from 'jsonwebtoken';
@@ -6,7 +7,7 @@ import request from 'supertest';
 import { authHeader, createOwner } from '../support/api';
 import { type IntegrationContext, initIntegrationContext } from '../support/integration-context';
 
-const SEPAY_SECRET = 'dev-sepay-secret'; // matches SEPAY_WEBHOOK_SECRET env default
+const SEPAY_SECRET = env.SEPAY_WEBHOOK_SECRET;
 
 describe('Billing (subscriptions + signed webhooks + entitlement) e2e', () => {
   let ctx: IntegrationContext;

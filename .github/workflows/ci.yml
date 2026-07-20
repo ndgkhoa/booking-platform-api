@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  # push only on main: guarantees the main branch stays green after a merge.
-  # Feature branches are covered by pull_request, so this avoids double runs.
   push:
     branches: [main]
   pull_request:
@@ -13,7 +11,7 @@ jobs:
 
     permissions:
       contents: read
-      pull-requests: write # post the build/test result comment on PRs
+      pull-requests: write
 
     env:
       DB_USER: ${{ secrets.DB_USER }}

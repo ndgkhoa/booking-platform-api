@@ -128,34 +128,57 @@ Permissions: `contents: read`, `pull-requests: write` (post comments on PRs).
 
 ## Release / CD
 
-`.github/workflows/release.yml` is triggered when a git tag matching `v*.*.*` is pushed. It:
+`.github/workflows/release-please.yml` runs on every push to `main` and automates
+versioning + release with [release-please](https://github.com/googleapis/release-please)
+(manifest mode). Two jobs:
 
-1. **Builds Docker image** — multi-stage: build with deps → slim non-root runtime.
-2. **Logs into GHCR** via `docker/login-action@v4` with `${{ secrets.GITHUB_TOKEN }}` (same-owner GHCR, no PAT needed).
-3. **Extracts metadata** via `docker/metadata-action@v6` — generates SemVer-based tags from the tag:
+**`release-please` job** — maintains an open **release PR**:
+
+1. Scans Conventional Commits since the last release and computes the next SemVer
+   (`feat` → minor, `fix` → patch, `BREAKING CHANGE` → major).
+2. Opens/updates a PR titled `chore: release X.Y.Z` that bumps `package.json`
+   `version` and regenerates `CHANGELOG.md`.
+3. When that PR is **merged**, creates the annotated tag `vX.Y.Z` + a GitHub Release
+   with generated notes, and outputs `release_created=true` + `tag_name`.
+
+**`docker` job** — gated on `release_created == 'true'`, so it only runs on the
+merge that actually cut a release (same workflow run — no separate tag-triggered
+workflow, because a `GITHUB_TOKEN`-pushed tag would not trigger one):
+
+1. Checks out the tagged commit (`ref: <tag_name>`).
+2. Logs into GHCR via `docker/login-action@v4` with `${{ secrets.GITHUB_TOKEN }}` (same-owner GHCR, no PAT needed).
+3. **Extracts metadata** via `docker/metadata-action@v6` — SemVer tags derived from `tag_name`:
    - `1.2.3` (full version)
    - `1.2` (major.minor)
    - `1` (major)
-   - `sha-<commit>` (commit SHA short)
-   - `latest` (auto-applied to highest semver)
+   - `latest`
 4. **Builds and pushes** to `ghcr.io/ndgkhoa/booking-platform-api` with GitHub Actions cache.
-5. **Auto-creates GitHub Release** via `softprops/action-gh-release@v3` with auto-generated release notes.
 
-Permissions: `contents: write` (create Release), `packages: write` (push Docker image).
+Config: `release-please-config.json` (release-type `node`, changelog path, tag prefix
+`v`) + `.release-please-manifest.json` (tracks the last released version — currently
+`1.0.1`). Permissions: `contents: write` (commit/tag/Release), `pull-requests: write`
+(release PR), `packages: write` (push image, on the docker job).
+
+> The release PR is opened with `GITHUB_TOKEN`, so CI does not run on it by design.
+> To get CI on the release PR, swap `token` for a PAT with `repo` + `workflow` scope.
 
 ### Versioning (single source of truth)
 
-`package.json` `version` is the **only place** a release version is defined. The flow:
+`package.json` `version` remains the **only place** a release version is defined —
+release-please writes it for you; no manual `pnpm version` or tagging. The OpenAPI
+spec (`src/config/swagger.ts`) reads `package.json` at runtime via `fs.readFileSync()`,
+so `info.version` is always in sync.
 
-1. On main branch: `pnpm version <patch|minor|major>`
-   - Bumps `package.json` version
-   - Creates annotated git tag `vX.Y.Z`
-2. `git push --follow-tags`
-   - Push the commit + tag
-   - Triggers `release.yml` (tag matches `v*.*.*`)
-3. OpenAPI spec (`src/config/swagger.ts`) reads `package.json` at runtime via `fs.readFileSync()`, so `info.version` is always in sync — no manual edit needed.
+Bootstrapping note: the current version `1.0.1` was seeded into
+`.release-please-manifest.json` so release-please knows the baseline; the next
+merged `feat`/`fix` will propose `1.1.0` / `1.0.2` accordingly.
 
-Example (first release): `pnpm version major` (on main) creates `v1.0.0` and tag; `git push --follow-tags` triggers the release workflow.
+### Commit convention (enforced)
+
+Commits must follow **Conventional Commits with a required scope** — `type(scope): subject`,
+e.g. `feat(booking): add reschedule endpoint`. Enforced locally by a Husky `commit-msg`
+hook running commitlint (`commitlint.config.js` extends `@commitlint/config-conventional`
+with `scope-empty: [2, 'never']`). Correct commit types are what drive the version bump above.
 
 ## Migrations
 

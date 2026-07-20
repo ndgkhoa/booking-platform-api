@@ -1,0 +1,56 @@
+# Changelog
+
+## [1.1.0](https://github.com/ndgkhoa/booking-platform-api/compare/booking-platform-api-v1.0.1...booking-platform-api-v1.1.0) (2026-07-20)
+
+
+### Features
+
+* add google oauth login via passport ([3378759](https://github.com/ndgkhoa/booking-platform-api/commit/33787597c3b9fe4207d8694379607324e8bc76cd))
+* **admin:** super-admin tenant console with immutable audit log ([f1b23af](https://github.com/ndgkhoa/booking-platform-api/commit/f1b23af974b5a34d6beeaa52746beefc150e191e))
+* **auth:** rotating refresh tokens with reuse detection ([3e01498](https://github.com/ndgkhoa/booking-platform-api/commit/3e01498ef68669efdf42bcdf576280c86a247b62))
+* **auth:** tenant-scoped JWT, membership RBAC, tenant onboarding and switch ([8c0ab71](https://github.com/ndgkhoa/booking-platform-api/commit/8c0ab717bde2eb45a4bd079000bc75fbb95a2f89))
+* **availability:** DST-safe bookable-slot computation ([ebc9f03](https://github.com/ndgkhoa/booking-platform-api/commit/ebc9f03f4865f35bc4a21e8f6826790e1e3ea28b))
+* **billing:** default unsubscribed tenants to the free plan tier ([0f9be4b](https://github.com/ndgkhoa/booking-platform-api/commit/0f9be4bc137fe423e1fd84be95581ac240778e17))
+* **billing:** payment provider Strategy (SePay + Stripe) with subscriptions ([6ecee9d](https://github.com/ndgkhoa/booking-platform-api/commit/6ecee9d6d38f58c11ae475c29158831fd181cbc6))
+* **booking:** double-booking-safe bookings with state machine and optimistic lock ([6fa8cf9](https://github.com/ndgkhoa/booking-platform-api/commit/6fa8cf996be14a15b0200f26a33196aea6ee2d9c))
+* **booking:** Idempotency-Key on create and ETag/If-Match concurrency ([de4ea3b](https://github.com/ndgkhoa/booking-platform-api/commit/de4ea3bf8fe14e167aa45fd0c4144d1ba6009372))
+* **catalog:** service module, Money/TimeRange VOs, per-request RLS ([11f2124](https://github.com/ndgkhoa/booking-platform-api/commit/11f21240aabcecfd91bd98c2dd44f1213a111a66))
+* full database seed with up/down and PlanCode vocabulary ([9306dea](https://github.com/ndgkhoa/booking-platform-api/commit/9306dea8bea8f04c687edbde108d678aba48f7e9))
+* implement core API with auth, jobs and monitoring ([4f660fd](https://github.com/ndgkhoa/booking-platform-api/commit/4f660fdc34a3e222a682fedd9de39c9ae32e3111))
+* **invite:** email-bound tenant invitations with atomic accept ([cd445eb](https://github.com/ndgkhoa/booking-platform-api/commit/cd445eb01efe392929da27c38e9b9090e218f8e7))
+* **observability:** OpenTelemetry tracing and RFC 7807 problem+json errors ([50e7dfa](https://github.com/ndgkhoa/booking-platform-api/commit/50e7dfac5aaafdc17b17655ec6f2b2994569f0fe))
+* **openapi:** document the RFC 7807 error schema and request headers ([928d8e5](https://github.com/ndgkhoa/booking-platform-api/commit/928d8e50e25f6dd655a97ac0c6b24902a4c41f4e))
+* **outbox:** transactional outbox for booking events ([1114970](https://github.com/ndgkhoa/booking-platform-api/commit/1114970e5e24b2f78e9f303c5ab89a43e9e7df48))
+* production-ready Express + TypeStack API boilerplate ([5a2deea](https://github.com/ndgkhoa/booking-platform-api/commit/5a2deeadfffdb6dbdc71636f110240ce143228a3))
+* **recurrence:** recurring bookings via bounded DST-safe expansion ([811e271](https://github.com/ndgkhoa/booking-platform-api/commit/811e271c194f7bb3486e4890947da60f7fa719a7))
+* release v1.0.0 multi-tenant booking SaaS API ([322a650](https://github.com/ndgkhoa/booking-platform-api/commit/322a6503b3618e6d4056d76b5ed74e91072841e3))
+* **release:** automate versioning and releases with release-please ([076ccfa](https://github.com/ndgkhoa/booking-platform-api/commit/076ccfa4105d890bae027f81e16b8b483f5c2b80))
+* **release:** automate versioning with release-please and enforce commit scope ([8bc5bcb](https://github.com/ndgkhoa/booking-platform-api/commit/8bc5bcb4884ad0d545662516f9d12f53d2032b4b))
+* **reporting:** tenant-scoped bookings & revenue analytics ([c065b9b](https://github.com/ndgkhoa/booking-platform-api/commit/c065b9b1c7baba2856ff8f94d2fdfa901bda374d))
+* send transactional emails via resend (optional) ([596eb75](https://github.com/ndgkhoa/booking-platform-api/commit/596eb752e8ae07029391612dd8c3064a3b4d1acb))
+* **staff:** staff directory, service capability, and staff schedule ([0fdf639](https://github.com/ndgkhoa/booking-platform-api/commit/0fdf6396636cb34eb7e3d9f114a9675957f014b7))
+* **tenant:** tenant context, RLS mechanism, and tenant/membership schema ([b692d82](https://github.com/ndgkhoa/booking-platform-api/commit/b692d82f39d6d4b036cfc5a3052295b6e2ba78c3))
+* **user:** paginated list query with page/limit and name/email filter ([f703c18](https://github.com/ndgkhoa/booking-platform-api/commit/f703c18b56645c70e06ebfbedb47fc3216c21447))
+* **webhook:** signed webhook delivery with SSRF guard and outbox metrics ([87ca2f7](https://github.com/ndgkhoa/booking-platform-api/commit/87ca2f75d29e1ad1909574e8998c43110dd04597))
+
+
+### Bug Fixes
+
+* accept report groupBy query param ([c01545b](https://github.com/ndgkhoa/booking-platform-api/commit/c01545b03889af36bf3032d2dcbcdbf113ed3bb1))
+* add uuid-ossp extension migration required by later migrations ([bbac545](https://github.com/ndgkhoa/booking-platform-api/commit/bbac545b8722eaf0f6d9184eea276f0bc39fac33))
+* **admin:** give the audit log action an explicit varchar column type ([6d5b7f2](https://github.com/ndgkhoa/booking-platform-api/commit/6d5b7f28dfbd99cd02731170f46ff85e6ce2ffb1))
+* **auth:** re-resolve membership on refresh, atomic token rotation, slug race ([d284994](https://github.com/ndgkhoa/booking-platform-api/commit/d28499413b2dd3d78827365af80cbc36bc364b06))
+* **availability:** correct DST wall-clock conversion and buffer/query hygiene ([03cb551](https://github.com/ndgkhoa/booking-platform-api/commit/03cb5513a434cb939fd11e72fe98950744dbb7ea))
+* **billing:** review follow-ups + explicit entitlement state ([a50d18f](https://github.com/ndgkhoa/booking-platform-api/commit/a50d18fd7b270f915e7aca830fcfa9f4a5f4808c))
+* **booking:** exclude soft-deleted rows from the overlap constraint ([16f9b6d](https://github.com/ndgkhoa/booking-platform-api/commit/16f9b6df4c0f75f116160f6a721a21429a939975))
+* **idempotency:** store serialized response and use 422 for key reuse ([2fe2632](https://github.com/ndgkhoa/booking-platform-api/commit/2fe2632add2d07e4644d383b0583e7315635a219))
+* **invite:** create membership before consuming invite, precise status codes ([9034242](https://github.com/ndgkhoa/booking-platform-api/commit/9034242d4c4e139a469a472d6652044b56644902))
+* outbox job id cannot contain colon ([a6bee82](https://github.com/ndgkhoa/booking-platform-api/commit/a6bee829f1b316592d1ccb12bb3b99638093ebb1))
+* **outbox:** dedupe redelivery, safe shutdown, fail-fast atomicity ([ba5ad48](https://github.com/ndgkhoa/booking-platform-api/commit/ba5ad489a47d647d7764833d8364b9d364caf592))
+* **payment:** accept any matching v1 during Stripe secret rotation ([78ab5f8](https://github.com/ndgkhoa/booking-platform-api/commit/78ab5f885f1e5c4ebb4cfdb7482f73538b789239))
+* **recurrence:** emit cancel events for series, derive weekly scan bound ([969d544](https://github.com/ndgkhoa/booking-platform-api/commit/969d5449ef28830cf0fd238e7d71477a72cc74a3))
+* **reporting:** tenant-local ranges, per-currency revenue, injection hardening ([696061d](https://github.com/ndgkhoa/booking-platform-api/commit/696061d6f5c88d3d6eea71f329b0800262ac3aa8))
+* **rls:** commit tenant tx before response, harden connection lifecycle ([f04a047](https://github.com/ndgkhoa/booking-platform-api/commit/f04a047686943570a3f153561b5c86e41190739d))
+* **schedule:** DB-level overlap guard and soft-delete-safe uniques ([f17afe9](https://github.com/ndgkhoa/booking-platform-api/commit/f17afe90b7bdcbc8cbd467c135df6071294a5d94))
+* **tenant:** harden transaction lifecycle, OR-query scoping, and 5xx redaction ([1d9ff47](https://github.com/ndgkhoa/booking-platform-api/commit/1d9ff47be3d44f230c100d01f13bdfee35dfe19f))
+* **webhook:** close SSRF gaps, prevent replay, expose worker metrics ([0cb5494](https://github.com/ndgkhoa/booking-platform-api/commit/0cb5494fec9fc4b71e466e6a53b6c9d0e3e89679))

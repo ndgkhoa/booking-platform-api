@@ -84,7 +84,7 @@ pnpm dev                      # http://localhost:3000
 | `pnpm migration:gen\|run\|revert` | TypeORM migrations |
 | `pnpm seed:up` / `pnpm seed:down` | Seed / unseed the database |
 
-## Concurrency guarantee (no double booking)
+## Concurrency guarantee
 
 The flagship invariant — one staff member can never be double-booked for
 overlapping times — is enforced by a Postgres `EXCLUDE USING gist` constraint on
@@ -118,64 +118,33 @@ superusers, so **production must run the app as a dedicated non-superuser,
 non-`BYPASSRLS` role** — the app refuses to start otherwise (`src/index.ts`). The
 integration suite mirrors this: it runs the real migrations against a Postgres
 testcontainer and connects the app under test through a non-superuser role, so
-RLS is exercised end-to-end. See [deployment guide](./docs/deployment-guide.md#database-role--rls-production-critical).
+RLS is exercised end-to-end.
 
-## Testing
+## CI/CD
 
-```bash
-pnpm test          # unit tests
-pnpm test:int      # integration (spins up Postgres + Redis via testcontainers)
-pnpm test:cov      # full suite + coverage (CI uses this)
-```
-
-Integration tests require Docker (testcontainers). They run the actual migrations
-and a real Redis, exercising the same schema, RLS policies, and queues as
-production. Load tests live in [`load-tests/`](./load-tests) (k6).
-
-## Docker, CI/CD & releases
-
-- **Image:** multi-stage `Dockerfile` → slim non-root runtime; all deps are
-  pure-JS (no native build toolchain in the image).
-- **CI** (`.github/workflows/ci.yml`): on push to `main` and on every PR — lint →
-  typecheck → build → test (+coverage). Build/test results are posted back as a
-  sticky PR comment.
-- **Release** (`.github/workflows/release.yml`): pushing a `vX.Y.Z` tag builds and
-  pushes the image to GHCR and opens a GitHub Release with generated notes.
+- **CI** (`ci.yml`): lint → typecheck → build → test (+coverage) on every PR and
+  push to `main`, with results posted back as a sticky PR comment.
+- **Release** (`release-please.yml`): [release-please](https://github.com/googleapis/release-please)
+  derives the version from Conventional Commits, keeps an open release PR, and on
+  merge tags `vX.Y.Z`, cuts a GitHub Release, and pushes the image to GHCR.
+  Commits are linted (Conventional Commits, **required scope**) by a Husky
+  `commit-msg` hook.
 
 ```bash
 docker pull ghcr.io/ndgkhoa/booking-platform-api:latest
 ```
 
-Image tags follow SemVer: `1.2.3`, `1.2`, `1`, `latest`, and `sha-<commit>`.
-
-**Cutting a release** — `package.json` is the single source of truth (the OpenAPI
-spec reads its version at runtime):
-
-```bash
-git checkout main && git pull
-pnpm version patch          # bump package.json + create tag vX.Y.Z
-git push --follow-tags      # → release.yml builds the image & Release
-```
-
-## Project structure
-
-```
-src/
-├─ modules/        # feature modules: auth, tenant, booking, service, staff,
-│                  #   availability, subscription, payment, webhook, outbox,
-│                  #   idempotency, reporting, admin, … (controller → service → repository)
-├─ common/         # cross-cutting: tenant context, middlewares, exceptions, base classes
-├─ config/         # env, data-source, logger, swagger, tracing, redis
-├─ database/       # migrations + seeds
-└─ jobs/           # BullMQ queues & workers
-```
-
 ## Conventions
 
-- **Path aliases** for all imports (`@config`, `@common`, `@modules`, `@database`, `@jobs`) — no relative `../../`.
-- **Layering:** controller → service → **repository** (all DB access lives in `*.repository.ts`; services never touch QueryBuilder).
-- **Structured responses:** success `{ success, data, meta? }`; errors are RFC 7807 `application/problem+json` (`type, title, status, detail, instance, code, errors?, traceId?`).
-- **Custom exceptions** extend routing-controllers `HttpError` with a stable `errorCode`.
+- **Path aliases** for all imports (`@config`, `@common`, `@modules`, `@database`,
+  `@jobs`) — no relative `../../`.
+- **Layering:** controller → service → **repository** (all DB access lives in
+  `*.repository.ts`; services never touch QueryBuilder).
+- **Structured responses:** success `{ success, data, meta? }`; errors are RFC 7807
+  `application/problem+json` (`type, title, status, detail, instance, code,
+  errors?, traceId?`).
+- **Custom exceptions** extend routing-controllers `HttpError` with a stable
+  `errorCode`.
 
 ## Documentation
 
@@ -183,4 +152,4 @@ See [`docs/`](./docs): [overview](./docs/project-overview-pdr.md) · [architectu
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE) © 2026 ndgkhoa

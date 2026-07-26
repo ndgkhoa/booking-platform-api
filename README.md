@@ -1,19 +1,22 @@
 # booking-platform-api
 
+![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-24_LTS-5FA04E?logo=nodedotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-1.0-FE0803?logo=typeorm&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-8-FF4438?logo=redis&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Traces-425CC7?logo=opentelemetry&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-GHCR-2496ED?logo=docker&logoColor=white)
+![Jest](https://img.shields.io/badge/Jest-Testcontainers-C21325?logo=jest&logoColor=white)
+![Biome](https://img.shields.io/badge/Biome-Lint_+_Format-60A5FA?logo=biome&logoColor=white)
+
 [![CI](https://github.com/ndgkhoa/booking-platform-api/actions/workflows/ci.yml/badge.svg)](https://github.com/ndgkhoa/booking-platform-api/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/ndgkhoa/booking-platform-api?sort=semver)](https://github.com/ndgkhoa/booking-platform-api/releases)
+[![Release](https://img.shields.io/github/v/release/ndgkhoa/booking-platform-api?sort=semver&label=release&color=orange)](https://github.com/ndgkhoa/booking-platform-api/releases)
 [![codecov](https://codecov.io/gh/ndgkhoa/booking-platform-api/graph/badge.svg)](https://codecov.io/gh/ndgkhoa/booking-platform-api)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org)
+[![License](https://img.shields.io/badge/License-MIT-blue)](./LICENSE)
 
-A **multi-tenant booking SaaS API** — appointment scheduling for many independent
-businesses on one database, with tenant isolation enforced at the database layer
-(Postgres Row-Level Security), provably safe concurrent booking, subscription
-billing with signed webhooks, and background delivery via a transactional outbox.
-
-Built on the TypeStack ecosystem (Express + routing-controllers + TypeDI +
-TypeORM) with structured responses, JWT + Google OAuth, OpenAPI docs, Prometheus
-metrics, OpenTelemetry tracing, and graceful shutdown.
+Multi-tenant **booking SaaS backend** in Express — tenant isolation enforced by Postgres row-level security, double-booking made physically impossible by a GiST exclusion constraint, idempotent APIs, a transactional outbox relaying to BullMQ, subscription billing with HMAC-signed webhooks, and OpenTelemetry tracing.
 
 ## Highlights
 

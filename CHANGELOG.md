@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/ndgkhoa/booking-platform-api/compare/v1.2.0...v1.2.1) (2026-08-04)
+
+
+### Miscellaneous Chores
+
+* **release:** request patch release 1.2.1 ([aa45e89](https://github.com/ndgkhoa/booking-platform-api/commit/aa45e89b3bf092e8ab2140e3164abdfda9c87323))
+
 ## [1.2.0](https://github.com/ndgkhoa/booking-platform-api/compare/v1.1.0...v1.2.0) (2026-07-20)
 
 
